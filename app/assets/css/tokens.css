@@ -39,7 +39,12 @@
   --tx: #e9f4fb;
   --tx-2: #bcd8ea;
   --mut: #7fa8c2;
-  --mut-2: #5d86a3;
+  /* Lifted 2% in lightness from #5d86a3, same hue and saturation. It carries
+     the smallest type on the board — footnotes, glosses, the map attribution —
+     and measured 4.4:1 against the card interior and 4.3:1 against the lighter
+     KPI tile, i.e. the least readable text on a wall people read from across a
+     stand was also the only text under 4.5:1. Now 4.7 and 4.6. */
+  --mut-2: #648ba7;
 
   --cy-rgb: 57, 215, 245;
   --ink: #03101f;

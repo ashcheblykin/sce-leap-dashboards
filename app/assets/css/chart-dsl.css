@@ -251,16 +251,25 @@
   color: var(--mut);
 }
 
+/* Pinned LTR, the same way .ax-svg pins the SVG frame.
+
+   The fill used to hug the inline start, which grew it right-to-left on the
+   Arabic board. That is arguably the better reading direction, but the SVG
+   horizontal bars next to it grow left-to-right in both locales — Axion's
+   CartesianChart.tsx keeps its coordinate space LTR and mirrors only text —
+   and there are nine of those across the four boards. Two kinds of horizontal
+   bar growing opposite ways on one Arabic panel is worse than either direction
+   on its own, so the HTML kind follows the renderer. The label and value above
+   the track still sit on the reading-start side; only the track is pinned. */
 .ax-bars-track {
   display: flex;
   overflow: hidden;
   height: min(var(--sp-2), var(--cap-row-note));
   flex: none;
   border-radius: var(--radius-xs);
+  direction: ltr;
 }
 
-/* The fill hugs the inline start, so it grows from the right in RTL with no
-   coordinate mirroring — the reason the original renders this in HTML. */
 .ax-bars-fill {
   width: 0;
   height: 100%;
