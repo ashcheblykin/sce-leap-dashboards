@@ -36,10 +36,13 @@
   --bg: radial-gradient(1900px 1100px at 50% 26%, #062036 0%, #03101f 55%, #020813 100%);
   --scanline: repeating-linear-gradient(0deg, transparent 0 3px, rgba(var(--cy-rgb), 0.012) 3px 4px);
 
-  /* --- Axion structure --- */
+  /* --- Axion structure ---
+     One 4px-stepped scale (4/8/12/16) so nested corners can be derived from
+     it rather than picked by eye. */
   --radius-card: 16px;
-  --radius-md: 10px;
+  --radius-md: 12px;
   --radius-sm: 8px;
+  --radius-xs: 4px;
   --radius-pill: 999px;
 
   --hairline: 0.5px;
@@ -111,6 +114,28 @@
   --glow-spectrum: 0 0 0.5px 0.5px rgba(var(--cy-rgb), 0.12);
   --glow-drag: 0 24px 60px rgba(0, 0, 0, 0.7);
   --blur-glass: blur(24px);
+
+  /* --- Chip-tabs motion (sliding-pill segmented control) ---
+     Lead/trail split reads as a liquid stretch: the edge in the direction of
+     travel arrives first, the trailing edge lags and catches up. */
+  --chip-ease: var(--ease);
+  --chip-ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --chip-dur-lead: var(--dur-fast);
+  --chip-dur-trail: 240ms;
+  --chip-dur-press: 100ms;
+  --chip-dur-pop: 220ms;
+  --chip-hold: 100ms;
+  --chip-fill: rgba(var(--cy-rgb), 0.16);
+  /* In flight the pill thins out to a hairline ring rather than vanishing.
+     A fully transparent travelling pill animates correctly but is invisible
+     the whole way, which reads as no animation at all — the highlight simply
+     blinks from one segment to the next. */
+  --chip-fill-ghost: rgba(var(--cy-rgb), 0.06);
+  --chip-rim: 0 0 0 0.5px rgba(var(--cy-rgb), 0.5);
+  /* resting active state matches the steady spectrum glow every other
+     active control on the dashboard uses (.lang-btn.is-on, [data-on] nav
+     items); arrival gets a brief bloom on top before settling back to it. */
+  --chip-glow-bloom: var(--glow-spectrum), 0 0 calc(6 * var(--u)) rgba(var(--cy-rgb), 0.4);
 
   /* --- Shell geometry --- */
   --shell-header: calc(96 * var(--u));

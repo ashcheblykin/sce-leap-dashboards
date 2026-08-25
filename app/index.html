@@ -21,11 +21,7 @@
 
   <body>
     <div class="shell">
-      <div class="ticker" id="ticker"></div>
-
-      <main class="stage" id="stage"></main>
-
-      <footer class="hdr">
+      <header class="hdr">
         <div class="hdr-brand">
           <img class="hdr-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
           <span class="hdr-rule"></span>
@@ -46,11 +42,18 @@
           <button class="hdr-reset" id="reset" type="button">Reset layout</button>
           <!-- Language switch. Arabic is a full second locale, not a label
                swap: it flips the document direction, which moves every chart's
-               category axis to the other side. A single button toggles
-               between the two. -->
+               category axis to the other side. -->
           <div class="lang" id="lang"></div>
+          <div>
+            <div class="hdr-event">LEAP 2026</div>
+            <div class="hdr-clock" id="clock">·</div>
+          </div>
         </div>
-      </footer>
+      </header>
+
+      <main class="stage" id="stage"></main>
+
+      <div class="ticker" id="ticker"></div>
     </div>
 
     <section class="splash" id="splash">

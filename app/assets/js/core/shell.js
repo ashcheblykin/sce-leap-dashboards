@@ -37,6 +37,7 @@
   var stage = document.getElementById('stage');
   var navHost = document.getElementById('nav');
   var playBtn = document.getElementById('navPlay');
+  var clockEl = document.getElementById('clock');
   var resetBtn = document.getElementById('reset');
   /* Two hosts: the header's and the splash's. Both are built from the same
      list, so the switch is in the same place in the same shape wherever the
@@ -158,22 +159,20 @@
     { code: 'ar', label: 'ع' },
   ];
 
-  /* One button, not a segmented pair: it always names the *other* locale,
-     i.e. what pressing it switches to. */
   function buildLang() {
-    var active = LOCALES[0].code === I18N.locale ? LOCALES[0] : LOCALES[1];
-    var other = active === LOCALES[0] ? LOCALES[1] : LOCALES[0];
     for (var h = 0; h < langHosts.length; h++) {
       var host = langHosts[h];
       host.innerHTML = '';
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'lang-btn';
-      btn.setAttribute('data-locale', other.code);
-      btn.setAttribute('lang', other.code);
-      btn.setAttribute('aria-label', I18N.t('ctl.lang') + ': ' + other.label);
-      btn.textContent = other.label;
-      host.appendChild(btn);
+      for (var i = 0; i < LOCALES.length; i++) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'lang-btn' + (LOCALES[i].code === I18N.locale ? ' is-on' : '');
+        btn.setAttribute('data-locale', LOCALES[i].code);
+        btn.setAttribute('lang', LOCALES[i].code);
+        btn.setAttribute('aria-label', I18N.t('ctl.lang') + ': ' + LOCALES[i].label);
+        btn.textContent = LOCALES[i].label;
+        host.appendChild(btn);
+      }
     }
   }
 
@@ -325,6 +324,21 @@
       '</div></div>';
   }
 
+  /* --- Clock --- */
+  function startClock() {
+    function paint() {
+      var d = new Date();
+      /* en-GB in both locales: the wall shows one unambiguous 24h clock, and
+         an ar-SA date would switch calendars mid-demo. */
+      clockEl.textContent =
+        d.toLocaleDateString('en-GB') +
+        ' · ' +
+        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    paint();
+    setInterval(paint, 10000);
+  }
+
   function bindControls() {
     playBtn.addEventListener('click', function () {
       noteInteraction();
@@ -411,6 +425,7 @@
     buildLang();
     buildTicker();
     localizeStatic();
+    startClock();
     bindControls();
     setPlaying(true);
     setInterval(slideshowTick, 200);

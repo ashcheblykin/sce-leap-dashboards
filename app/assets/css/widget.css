@@ -125,27 +125,71 @@ body.grid-dragging .widget-head {
 /* One segmented control rather than loose buttons, which is how Axion switches
    a widget's view and what makes the row read as a product affordance. */
 .chips {
+  /* Single source for the track's inset — read by the pill's position
+     *and* by its radius below, so the two can never drift apart the way a
+     hardcoded pixel figure eventually does. Concentric corners are
+     outerRadius - inset, not a second radius token picked by eye. */
+  --track-pad: calc(3 * var(--u));
+  position: relative;
   display: flex;
   flex: none;
   gap: calc(2 * var(--u));
-  padding: calc(3 * var(--u));
+  padding: var(--track-pad);
   border: var(--hairline) solid var(--separator);
   border-radius: var(--radius-md);
   background: var(--track);
+  /* the pill can pop slightly past its own edges on press */
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+/* Sliding pill: an absolutely positioned layer under the chip labels, moved
+   by JS (left/right) so the highlight glides between segments instead of
+   jump-cutting. --pl/--pr/--pt/--pe are retuned per-gesture from JS so a
+   drag can be instantaneous while a tap keeps the liquid-stretch glide. */
+.chip-pill {
+  position: absolute;
+  top: var(--track-pad);
+  bottom: var(--track-pad);
+  left: 0;
+  right: 0;
+  z-index: 0;
+  border-radius: calc(var(--radius-md) - var(--track-pad));
+  background-color: var(--chip-fill);
+  pointer-events: none;
+  transform: translateZ(0);
+  --pl: var(--chip-dur-trail);
+  --pr: var(--chip-dur-trail);
+  --pt: var(--chip-dur-press);
+  --pe: var(--chip-ease);
+  transition:
+    left var(--pl) var(--chip-ease),
+    right var(--pr) var(--chip-ease),
+    transform var(--pt) var(--pe),
+    background-color var(--dur-fast) var(--chip-ease),
+    box-shadow var(--dur-fast) var(--chip-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-pill,
+  .chip {
+    transition: none !important;
+  }
 }
 
 .chip {
+  position: relative;
+  z-index: 1;
   padding: calc(5 * var(--u)) calc(13 * var(--u));
   border: var(--hairline) solid transparent;
-  border-radius: calc(var(--radius-sm) - 2 * var(--u));
+  border-radius: calc(var(--radius-md) - var(--track-pad));
   color: var(--mut);
   font-size: var(--fs-chip);
   font-weight: 500;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  transition:
-    color var(--dur-fast) var(--ease),
-    background var(--dur-fast) var(--ease);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .chip:hover {
@@ -154,11 +198,12 @@ body.grid-dragging .widget-head {
 }
 
 .chip[data-on] {
-  border-color: rgba(var(--cy-rgb), 0.34);
-  background: rgba(var(--cy-rgb), 0.16);
-  box-shadow: var(--glow-spectrum);
   color: var(--cy);
   font-weight: 600;
+}
+
+.chip[data-on]:hover {
+  background: none;
 }
 
 /* --- Short cards ---------------------------------------------------------
@@ -197,7 +242,7 @@ body.grid-dragging .widget-head {
   }
 
   .chips {
-    padding: calc(2 * var(--u));
+    --track-pad: calc(2 * var(--u));
   }
 }
 
@@ -211,6 +256,6 @@ body.grid-dragging .widget-head {
   }
 
   .chips {
-    padding: calc(2 * var(--u));
+    --track-pad: calc(2 * var(--u));
   }
 }
