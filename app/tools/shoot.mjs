@@ -196,12 +196,26 @@ const PROBE = `(() => {
           ' in cell ' + Math.round(cell.width) + 'x' + Math.round(cell.height));
       }
     });
-    s.querySelectorAll('.widget-body').forEach((b) => {
-      if (b.scrollHeight > b.clientHeight + 2 || b.scrollWidth > b.clientWidth + 2) {
-        out.clipping.push(b.closest('[data-grid-item]').getAttribute('data-grid-item') +
-          ' content ' + b.scrollWidth + 'x' + b.scrollHeight +
-          ' vs body ' + b.clientWidth + 'x' + b.clientHeight);
-      }
+    // Every box that hides its own overflow, not just .widget-body. A table
+    // has an intrinsic min-content height it will not shrink past, so an
+    // over-budget one does not clip itself -- it pushes the footnote out
+    // through the bottom of the shell it sits in, and .widget-body never grows
+    // because the shell clipped first. Checking only the body missed a card
+    // quietly losing its last row and its note.
+    //
+    // Vertical only: horizontal clipping is what text-overflow is FOR, and
+    // every label on the board is meant to ellipsize.
+    items.forEach((el) => {
+      el.querySelectorAll('*').forEach((b) => {
+        const o = getComputedStyle(b);
+        // nowrap boxes are the ellipsis case, and an Arabic glyph box is
+        // taller than its line box, so every one of them reads as overflowing.
+        if (o.whiteSpace === 'nowrap' || o.overflowY === 'visible') return;
+        if (b.scrollHeight <= b.clientHeight + 2) return;
+        out.clipping.push(el.getAttribute('data-grid-item') + ' ' +
+          (b.className || b.tagName) + ' content h' + b.scrollHeight +
+          ' vs box h' + b.clientHeight);
+      });
     });
   });
   return out;

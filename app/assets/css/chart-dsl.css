@@ -103,6 +103,12 @@
   gap: var(--sp-1) var(--sp-4);
   color: var(--mut);
   font-size: min(var(--fs-xs), var(--cap-note));
+  /* Every other tight text element in this file sets its own leading (1.3 on
+     notes, 1.28 on tile labels, 1.04 on tile values); the legend alone fell
+     through to the body's 1.45, which is a paragraph value. On a five-item
+     side legend that difference was 12px — enough to push the column past its
+     box and, because it is centred, to lose an item off each end. */
+  line-height: 1.3;
 }
 
 .ax-legend--bottom {
@@ -113,7 +119,15 @@
   padding-bottom: var(--sp-2);
 }
 
-/* A side legend is a column that shares the row with the plot. */
+/* A side legend is a column that shares the row with the plot.
+
+   Two corrections over the bottom legend it forks from. The gap is one step,
+   matching that legend's own row gap — at two steps a five-item column ran
+   ~17px past its box on a two-row panel, and since the column is centred it
+   lost items off BOTH ends. And `safe center` so that if a longer list ever
+   does outgrow the box, it falls back to start-aligned rather than centring
+   the overflow: losing the tail of a legend is recoverable, losing its head
+   and its tail is not. */
 .ax-legend--left,
 .ax-legend--right {
   display: flex;
@@ -121,8 +135,8 @@
   max-width: 42%;
   flex-direction: column;
   flex-wrap: nowrap;
-  justify-content: center;
-  gap: var(--sp-2);
+  justify-content: safe center;
+  gap: var(--sp-1);
   padding-inline-start: var(--sp-3);
 }
 
