@@ -115,24 +115,24 @@ body.grid-dragging {
 
 [data-resize-handle='s']::after,
 [data-resize-handle='n']::after {
-  width: 28px;
-  height: 3px;
+  width: calc(28 * var(--u));
+  height: var(--sp-1);
 }
 
 [data-resize-handle='e']::after,
 [data-resize-handle='w']::after {
-  width: 3px;
-  height: 28px;
+  width: var(--sp-1);
+  height: calc(28 * var(--u));
 }
 
 [data-resize-handle='se']::after,
 [data-resize-handle='sw']::after {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: var(--sp-2);
+  height: var(--sp-2);
+  border-radius: var(--radius-xs);
   background: rgba(var(--cy-rgb), 0.4);
 }
 
 [data-grid-item][data-resizing] [data-resize-handle]::after {
-  filter: drop-shadow(0 0 8px rgba(var(--cy-rgb), 0.6));
+  filter: drop-shadow(0 0 var(--sp-2) rgba(var(--cy-rgb), 0.6));
 }

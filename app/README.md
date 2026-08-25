@@ -145,6 +145,50 @@ CSS container and the headline sizes are `min(token, N cqh)`. A card that is
 short also tightens its own header and chips, because at this scale a two-row
 panel was spending a quarter of its height on chrome.
 
+## The scales
+
+Every size in the app is a multiple of **4 design units**. Not a convention —
+a rule, and `DESIGN-AUDIT.md` records the pass that made it true.
+
+```
+spacing   --sp-1..--sp-11    4 8 12 16 20 24 32 40 48 56 64
+type      --fs-2xs           12u   credits, attribution, the hidden reset
+          --fs-xs            16u   notes, labels, chips, legends
+          --fs-sm            20u   body, bar labels, table, ticker
+          --fs-md            24u   card titles, nav, header, splash CTA
+          --fs-kpi-sm        40u   --fs-kpi 56u   --fs-display 72u
+radii     --radius-xs/sm/md/card    4 8 12 16
+```
+
+Three things follow from it that are easy to undo by accident:
+
+**Radii scale too.** They were the one piece of geometry left in absolute px,
+so `]` grew the type and the padding while the corners stayed put and the same
+card read differently on a laptop and on the wall. A radius in px is a bug now.
+
+**Two names for one size is a bug.** `--fs-title` and `--fs-body` were both 20u,
+so a card title had no size hierarchy over its own content; `--fs-kpi-lg` and
+`--fs-hud` were 70u and 74u, which is 5px on a 90px number. Where two pieces of
+text share a rung today they are told apart by weight, colour and case.
+
+**Colour has one home.** The six chart tones are declared in `tokens.css` and
+`Chart.TONE` reads them back out of the cascade, the same way `refreshUnit()`
+reads `--chart-u`. There are no colour literals in the boards.
+
+Caps work the same way. Anything that can dominate a panel is
+`min(token, --cap-*)`, and a cap names the fraction of **its own** box that
+piece may take. There are two bases, because there are two kinds of box: a
+panel or tile (`--cap-note`, `--cap-label`, `--cap-gap`, `--cap-kpi*`) and a
+single row inside a list (`--cap-row-note`, `--cap-row-text`).
+
+One warning, learned the hard way. A `<table>` has an intrinsic min-content
+height it will not shrink past, so a table over its budget does not clip
+itself — it pushes the footnote out through the bottom of the card, and
+`.widget-body` never reports overflow because the shell around the table
+clipped first. That is why the row budget reserves the note's cap (46cqh, not
+52) and why `shoot.mjs` now walks every box that hides its own overflow rather
+than only the body.
+
 ## Fonts
 
 Two faces, subsetted to what is actually on screen: **342 KB → 51 KB.**
@@ -248,6 +292,9 @@ python3 tools/subset-fonts.py      # rebuild assets/fonts/ (needs fonttools)
 python3 tools/bake-geo.py          # regenerate the country outlines (needs network)
 python3 tools/bake-basemap.py      # regenerate the basemap raster (needs network)
 ```
+
+`DESIGN-AUDIT.md` is the design pass over all of this: what was measured, what
+changed, and the five questions it deliberately left open.
 
 `shoot.mjs` and `audit-data.mjs` both honour `TARGET=../SCE_LEAP_2026.html` to
 check the bundle rather than the source. Headless Chrome only draws on demand,

@@ -1,6 +1,12 @@
 /* Design tokens: SCE colour story on Axion structure.
    Colours come from Data Files/cc.css, everything structural (radii, hairlines,
-   spacing, motion, glass) from axion.gen.web frontend/src/app/globals.css. */
+   spacing, motion, glass) from axion.gen.web frontend/src/app/globals.css.
+
+   ONE RULE governs every number below: it is a multiple of 4 design units.
+   Radii, spacing, type and shell geometry all come off that grid, so nothing on
+   the wall can be a value somebody picked by eye. The only deliberate
+   exceptions are marked at the site: `--hairline` (a physical half-pixel) and
+   `--grid-gap` (read as a constant by the drag maths). */
 
 @font-face {
   font-family: 'Noto Sans';
@@ -19,30 +25,42 @@
 }
 
 :root {
-  /* --- SCE palette --- */
+  /* --- SCE palette ---
+     The six chart tones live here and nowhere else: chart-dsl.js reads them
+     back out of the cascade into `Chart.TONE`, so a colour has exactly one
+     definition and the JS half can never drift from the CSS half. */
   --cy: #39d7f5;
   --gold: #d4af5a;
   --green: #3ee6a4;
   --purple: #b48af5;
+  --blue: #7ac8ff;
+  --pink: #f58aa8;
+
   --tx: #e9f4fb;
   --tx-2: #bcd8ea;
   --mut: #7fa8c2;
-  --mut-2: #5d86a3;
-  --sce-navy: #233755;
+  /* Lifted 2% in lightness from #5d86a3, same hue and saturation. It carries
+     the smallest type on the board — footnotes, glosses, the map attribution —
+     and measured 4.4:1 against the card interior and 4.3:1 against the lighter
+     KPI tile, i.e. the least readable text on a wall people read from across a
+     stand was also the only text under 4.5:1. Now 4.7 and 4.6. */
+  --mut-2: #648ba7;
 
   --cy-rgb: 57, 215, 245;
   --ink: #03101f;
 
-  --bg: radial-gradient(1900px 1100px at 50% 26%, #062036 0%, #03101f 55%, #020813 100%);
-  --scanline: repeating-linear-gradient(0deg, transparent 0 3px, rgba(var(--cy-rgb), 0.012) 3px 4px);
+  --bg: radial-gradient(1900px 1100px at 50% 26%, #062036 0%, var(--ink) 55%, #020813 100%);
 
   /* --- Axion structure ---
-     One 4px-stepped scale (4/8/12/16) so nested corners can be derived from
-     it rather than picked by eye. */
-  --radius-card: 16px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --radius-xs: 4px;
+     One 4-unit-stepped scale (4/8/12/16) so nested corners are derived from it
+     rather than picked by eye. Expressed in `--u` like everything else: a
+     radius that stayed in absolute px was the one piece of geometry that did
+     NOT grow when `]` raised the scale, so corners flattened out as the type
+     grew and the same card read differently on a laptop and on the wall. */
+  --radius-card: calc(16 * var(--u));
+  --radius-md: calc(12 * var(--u));
+  --radius-sm: calc(8 * var(--u));
+  --radius-xs: calc(4 * var(--u));
   --radius-pill: 999px;
 
   --hairline: 0.5px;
@@ -51,7 +69,7 @@
   --separator: rgba(var(--cy-rgb), 0.12);
 
   --surface: linear-gradient(165deg, rgba(7, 34, 58, 0.72), rgba(4, 21, 37, 0.82));
-  --surface-flat: rgba(4, 24, 43, 0.84);
+  --plate: rgba(4, 24, 43, 0.72);
   --control: rgba(var(--cy-rgb), 0.06);
   --control-hover: rgba(var(--cy-rgb), 0.12);
   --track: rgba(var(--cy-rgb), 0.1);
@@ -68,22 +86,42 @@
   --u-scale: 1.3;
   --u: clamp(0.74px, min(100vw / 2880, 100vh / 1152) * var(--u-scale), 2.4px);
 
-  --pad-card: calc(16 * var(--u));
-  --gap-grid: calc(8 * var(--u));
+  /* --- Spacing scale ---
+     Every padding, margin, gap and offset in the app is one of these. Steps are
+     4u up to 24u, where a single step is still readable as a difference, then
+     8u above it, where it is not. */
+  --sp-1: calc(4 * var(--u));
+  --sp-2: calc(8 * var(--u));
+  --sp-3: calc(12 * var(--u));
+  --sp-4: calc(16 * var(--u));
+  --sp-5: calc(20 * var(--u));
+  --sp-6: calc(24 * var(--u));
+  --sp-7: calc(32 * var(--u));
+  --sp-8: calc(40 * var(--u));
+  --sp-9: calc(48 * var(--u));
+  --sp-10: calc(56 * var(--u));
+  --sp-11: calc(64 * var(--u));
 
-  /* Axion's own type scale, expressed in units instead of px: a 14px card
-     title becomes 20u, a 12px chip 16u, an 11px axis tick 11 chart-units. At
-     the default --u-scale the wall lands on 26px titles and 75px indicators. */
-  --fs-title: calc(20 * var(--u));
-  --fs-chip: calc(16 * var(--u));
-  --fs-label: calc(16.5 * var(--u));
-  --fs-body: calc(20 * var(--u));
-  --fs-note: calc(17 * var(--u));
-  --fs-micro: calc(14 * var(--u));
-  --fs-kpi: calc(58 * var(--u));
-  --fs-kpi-sm: calc(42 * var(--u));
-  --fs-kpi-lg: calc(70 * var(--u));
-  --fs-hud: calc(74 * var(--u));
+  --pad-card: var(--sp-4);
+
+  /* --- Type scale ---
+     Five text rungs and four display rungs, every multiplier a multiple of 4.
+     Rungs are far enough apart to be seen: the old scale had four tokens inside
+     a 3u band (14/16/16.5/17), which is under 4px on the wall — four names for
+     one size. Where two pieces of text now share a rung, they are told apart by
+     weight, colour and case, not by half a pixel of cap height.
+
+     At the default --u-scale the wall lands on 31px card titles, 26px body and
+     94px indicators. */
+  --fs-2xs: calc(12 * var(--u)); /* ambient chrome: credits, attribution */
+  --fs-xs: calc(16 * var(--u)); /* notes, labels, chips, legends */
+  --fs-sm: calc(20 * var(--u)); /* body, bar labels, table, ticker */
+  --fs-md: calc(24 * var(--u)); /* card titles, nav, header */
+
+  --fs-kpi-sm: calc(40 * var(--u));
+  --fs-kpi: calc(56 * var(--u));
+  --fs-display: calc(72 * var(--u)); /* biggest number on a panel, and the map HUD */
+  --fs-splash: calc(88 * var(--u)); /* attract screen only */
 
   /* Chart geometry unit. Every px constant in chart-dsl.js is multiplied by
      this, so Axion's ratios survive and only the scale changes: an 11px axis
@@ -98,6 +136,23 @@
   /* The ground a sunburst's sibling hairline is drawn in — the page behind the
      card, so the separator reads as a gap rather than a stroke. */
   --chart-ground: #051b30;
+
+  /* Container caps. Everything that can dominate a panel is `min(token, cap)`,
+     and the cap says what fraction of ITS OWN box that piece may occupy. Two
+     bases, because two kinds of box exist: a panel or tile, and a single row
+     inside a list. Written once here so the twenty per-site percentages that
+     used to carry this cannot drift apart. */
+  --cap-note: 12cqh; /* supporting text against a panel or tile */
+  --cap-label: 20cqh; /* a tile's own label */
+  --cap-gap: 8cqh; /* a margin between two lines of tile text */
+  --cap-row-note: 22cqh; /* supporting text against one list row */
+  --cap-row-text: 46cqh; /* a list row's own label and value */
+  /* The indicator ladder: three rungs, each the share of its own tile that the
+     headline number may take. There used to be four, but the top two tokens
+     were 70u and 74u — 5px apart on a 90px number, one size under two names. */
+  --cap-kpi-sm: 40cqh;
+  --cap-kpi: 46cqh;
+  --cap-kpi-lg: 54cqh;
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */
@@ -114,6 +169,9 @@
   --glow-spectrum: 0 0 0.5px 0.5px rgba(var(--cy-rgb), 0.12);
   --glow-drag: 0 24px 60px rgba(0, 0, 0, 0.7);
   --blur-glass: blur(24px);
+  /* Keyboard focus. The board is driven from the keyboard on the stand, so
+     every control needs a ring that is visible from across the room. */
+  --focus-ring: 0 0 0 var(--sp-1) rgba(var(--cy-rgb), 0.85);
 
   /* --- Chip-tabs motion (sliding-pill segmented control) ---
      Lead/trail split reads as a liquid stretch: the edge in the direction of
@@ -135,12 +193,12 @@
   /* resting active state matches the steady spectrum glow every other
      active control on the dashboard uses (.lang-btn.is-on, [data-on] nav
      items); arrival gets a brief bloom on top before settling back to it. */
-  --chip-glow-bloom: var(--glow-spectrum), 0 0 calc(6 * var(--u)) rgba(var(--cy-rgb), 0.4);
+  --chip-glow-bloom: var(--glow-spectrum), 0 0 var(--sp-2) rgba(var(--cy-rgb), 0.4);
 
   /* --- Shell geometry --- */
   --shell-header: calc(96 * var(--u));
-  --shell-ticker: calc(52 * var(--u));
-  --shell-pad: calc(14 * var(--u));
+  --shell-ticker: var(--sp-10);
+  --shell-pad: var(--sp-4);
   --grid-cols: 24;
   --grid-rows: 8;
   /* Fixed rather than scaled: the gesture maths reads it as a constant, and

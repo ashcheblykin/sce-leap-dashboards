@@ -368,7 +368,7 @@
     }
     half +=
       '<span class="ticker-item ticker-item--credit">Powered by ' +
-      AXION_MARK_SVG +
+      Fmt.axionMark +
       '<span class="ticker-sep">·</span></span>';
 
     document.getElementById('ticker').innerHTML =

@@ -20,21 +20,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Command-centre scanline, above content but inert. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 900;
-}
-
 button {
   font: inherit;
   color: inherit;
   background: none;
   border: none;
   cursor: pointer;
+}
+
+/* One focus treatment for every control. `:focus-visible` rather than `:focus`
+   so a pointer press never leaves a ring behind on the wall. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Numbers must never reflow while a counter runs, and a numeric run keeps its
@@ -74,7 +72,7 @@ button {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(var(--cy-rgb), 0.2);
-  border-radius: 3px;
+  border-radius: var(--radius-pill);
 }
 
 ::selection {
@@ -90,15 +88,11 @@ button {
   white-space: nowrap;
 }
 
-/* The Axion wordmark, wherever a "Powered by" credit renders it (splash
-   footer, ticker, map corner). Sized off the surrounding text's line-height
-   and coloured by it too, so one mark works on light and dark credit lines
-   alike. */
+/* The Axion wordmark, sized to sit inline with a "Powered by" credit and
+   colored by the surrounding text (fill="currentColor" on its path). */
 .axion-mark {
-  display: inline-block;
-  height: 0.8em;
+  height: 0.72em;
   width: auto;
-  flex: none;
-  vertical-align: -0.1em;
-  fill: currentColor;
+  margin-inline-start: 0.35em;
+  vertical-align: -0.05em;
 }

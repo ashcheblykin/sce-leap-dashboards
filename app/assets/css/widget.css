@@ -18,7 +18,7 @@
   background: var(--surface);
   box-shadow:
     var(--glow-spectrum),
-    inset 0 0 30px rgba(var(--cy-rgb), 0.03);
+    inset 0 0 var(--sp-7) rgba(var(--cy-rgb), 0.03);
   transition: box-shadow var(--dur-fast) var(--ease);
 }
 
@@ -34,7 +34,7 @@
   flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: calc(8 * var(--u));
+  gap: var(--sp-2);
   padding-bottom: var(--pad-card);
   border-bottom: var(--hairline) solid var(--separator);
   cursor: grab;
@@ -64,9 +64,9 @@ body.grid-dragging .widget-head {
   overflow: hidden;
   min-width: 0;
   align-items: center;
-  gap: calc(9 * var(--u));
+  gap: var(--sp-2);
   color: var(--tx);
-  font-size: var(--fs-title);
+  font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: 0.005em;
   white-space: nowrap;
@@ -112,11 +112,11 @@ body.grid-dragging .widget-head {
      *and* by its radius below, so the two can never drift apart the way a
      hardcoded pixel figure eventually does. Concentric corners are
      outerRadius - inset, not a second radius token picked by eye. */
-  --track-pad: calc(3 * var(--u));
+  --track-pad: var(--sp-1);
   position: relative;
   display: flex;
   flex: none;
-  gap: calc(2 * var(--u));
+  gap: var(--sp-1);
   padding: var(--track-pad);
   border-radius: var(--radius-pill);
   overflow: hidden;
@@ -160,11 +160,11 @@ body.grid-dragging .widget-head {
 .chip {
   position: relative;
   z-index: 1;
-  padding: calc(5 * var(--u)) calc(13 * var(--u));
+  padding: var(--sp-1) var(--sp-3);
   border: var(--hairline) solid transparent;
   border-radius: var(--radius-pill);
   color: var(--mut);
-  font-size: var(--fs-chip);
+  font-size: var(--fs-xs);
   font-weight: 500;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -186,12 +186,17 @@ body.grid-dragging .widget-head {
   background: none;
 }
 
-/* --- Short cards ---------------------------------------------------------
+/* --- Compact cards -------------------------------------------------------
    At the raised type scale a two-row panel spends a quarter of its height on
    the header and its own padding, which left the chart 84px and a donut the
    size of a coin. The card is a size container, so a short one tightens its
-   chrome and hands the difference to the content. The thresholds are in px
-   because they are about how much room is left, not about the design unit. */
+   own chrome and hands the difference to the content.
+
+   The chip tabs themselves stay a fixed size everywhere on purpose — a
+   shrunk tab on a short or narrow card read as a different control than the
+   same tab elsewhere, not as the same control adapting. The threshold below
+   is in px because it is about how much room is left, not about the design
+   unit. */
 
 [data-grid-item] {
   container-type: size;
@@ -199,12 +204,11 @@ body.grid-dragging .widget-head {
 
 @container (max-height: 280px) {
   .widget {
-    gap: calc(9 * var(--u));
-    padding: calc(11 * var(--u));
+    gap: var(--sp-2);
+    padding: var(--sp-3);
   }
 
   .widget-head {
-    padding-bottom: calc(8 * var(--u));
+    padding-bottom: var(--sp-2);
   }
 }
-
