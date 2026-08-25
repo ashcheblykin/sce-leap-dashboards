@@ -1,14 +1,12 @@
-/* SCE start screen — the LEAP hero frame (Figma node 2421-648), ported 1:1.
+/* SCE start screen — the LEAP hero frame (Figma node 2421-648).
 
-   The frame is designed at 2880x1152, so the splash carries its own unit:
-   `--su` is one design pixel of that frame, from the viewport alone. It is
-   deliberately NOT `--u` — the splash is a poster, not a board, so the `[`/`]`
-   type-scale knob must not move its composition. Every coordinate below is
-   the Figma value times `--su`; where a value looks arbitrary (161, 942,
-   2498) it is the design's own, not something picked by eye.
-
-   The palm still + video cover the whole viewport; the composed scene
-   (grid, blur frame, headlines, logos) letterboxes inside it. */
+   The frame is drawn at 2880x1152, and it converts to this app's own system
+   exactly: the 116px headline is --fs-splash (88u) at the default 1.3 scale,
+   the 21px credit is --fs-xs — the design was composed on this token scale,
+   so the port keeps the tokens, not the pixel values. Composition follows the
+   boards' rule: positions are viewport fractions (the frame's own gridlines),
+   so the screen fills edge-to-edge at any aspect, while type and marks are
+   sized in --u and answer to `[` and `]` like everything else. */
 
 @font-face {
   /* 29LT Bukra, variable. Shipped whole rather than subset: the variable
@@ -22,7 +20,10 @@
 }
 
 .splash {
-  --su: min(100vw / 2880, 100vh / 1152);
+  /* Pure white and black, not --tx on --bg: the splash is the client's
+     poster and keeps the design's own ink, the way the chart tones keep
+     theirs. Declared once here; no literals below. */
+  --splash-ink: #fff;
 
   position: fixed;
   z-index: 1000;
@@ -59,172 +60,169 @@
   inset: 0;
 }
 
+/* Data-point scatter around the crown, centred where the frame puts it. */
+.splash-pattern {
+  position: absolute;
+  top: 23.4%;
+  left: 56.6%;
+  width: calc(788 * var(--u));
+  height: auto;
+  translate: -50% -50%;
+}
+
 /* --- The blur frame --- */
 
 /* The design's background-mask: a backdrop-blur border with a sharp window
-   over the palm. The window is 591..2290 x 113..1038 of the frame — the
-   same lines the grid draws — held here as offsets from the viewport
-   centre so the bands still cover a viewport wider or taller than the
-   scene. Four bands rather than one evenodd clip-path: a band can never
-   fail closed and blur the whole screen. */
+   over the palm. The window edges are the gridlines below, so the two stay
+   registered at any aspect. Four bands rather than one evenodd clip-path:
+   a band can never fail closed and blur the whole screen. */
 .splash-blur {
   position: absolute;
-  backdrop-filter: blur(calc(50 * var(--su)));
+  backdrop-filter: blur(calc(40 * var(--u)));
 }
 
 .splash-blur--top {
-  height: calc(50% - 463 * var(--su));
+  height: 9.8%;
   inset: 0 0 auto 0;
 }
 
 .splash-blur--bottom {
-  height: calc(50% - 462 * var(--su));
+  height: 9.9%;
   inset: auto 0 0 0;
 }
 
 .splash-blur--left,
 .splash-blur--right {
-  top: calc(50% - 463 * var(--su));
-  bottom: calc(50% - 462 * var(--su));
+  top: 9.8%;
+  bottom: 9.9%;
+  width: 20.5%;
 }
 
 .splash-blur--left {
   left: 0;
-  width: calc(50% - 849 * var(--su));
 }
 
 .splash-blur--right {
   right: 0;
-  width: calc(50% - 850 * var(--su));
 }
 
-/* --- The scene --- */
+/* --- The grid --- */
 
-.splash-scene {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(2880 * var(--su));
-  height: calc(1152 * var(--su));
-  translate: -50% -50%;
-}
-
-/* Data-point scatter around the crown: a 1024px plate centred on
-   (1631, 270) of the frame. */
-.splash-pattern {
-  position: absolute;
-  top: calc(270 * var(--su));
-  left: calc(1631 * var(--su));
-  width: calc(1024 * var(--su));
-  height: calc(1024 * var(--su));
-  translate: -50% -50%;
-}
-
+/* Three solid horizontals, four dashed verticals, on the frame's own
+   fractions; inline SVG in index.html with non-scaling strokes, so the
+   lines stretch with the viewport and the hairline does not. */
 .splash-grid {
   position: absolute;
-  inset: calc(20 * var(--su));
-  width: calc(2840 * var(--su));
-  height: calc(1111 * var(--su));
+  width: 100%;
+  height: 100%;
+  color: var(--splash-ink);
+  inset: 0;
+  pointer-events: none;
 }
 
-/* Two survey glyphs pinned to the hillside. */
+/* --- Survey glyphs on the hillside --- */
+
+/* Both keep the design's odd sizes (13u, 26u): a 17x18 glyph rounded to the
+   4-unit rail would visibly change shape, and nothing else aligns to it. */
 .splash-spark {
   position: absolute;
-  top: calc(794 * var(--su));
-  left: calc(1141 * var(--su));
-  width: calc(17 * var(--su));
-  height: calc(18 * var(--su));
+  top: 68.9%;
+  left: 39.6%;
+  width: calc(13 * var(--u));
+  height: auto;
   translate: -50% -50%;
   rotate: 135deg;
 }
 
 .splash-marker {
   position: absolute;
-  top: calc(903 * var(--su));
-  left: calc(1425 * var(--su));
-  width: calc(34 * var(--su));
-  height: calc(34 * var(--su));
+  top: 78.4%;
+  left: 49.5%;
+  width: calc(26 * var(--u));
+  height: auto;
 }
 
 /* --- Headlines --- */
 
 /* One size, two staggered blocks. The English pair hangs off the frame's
    left gridline; the Arabic pair mirrors onto the right one with the
-   design's own offsets — not a reflection, its own composition. */
+   design's own offsets — not a reflection, its own composition. Widths are
+   in --u so the line breaks ride with the type, not with the aspect. */
 .splash-title {
   position: absolute;
-  color: #fff;
+  color: var(--splash-ink);
   font-family: '29LT Bukra', var(--font);
-  font-size: calc(116 * var(--su));
+  font-size: var(--fs-splash);
   font-weight: 400;
-  line-height: calc(100 * var(--su));
+  line-height: 0.86;
   text-box: trim-both cap alphabetic;
 }
 
 .splash-title--lead {
-  top: calc(227 * var(--su));
-  left: calc(299 * var(--su));
-  width: calc(556 * var(--su));
+  top: 19.7%;
+  left: 10.4%;
+  width: calc(428 * var(--u));
 }
 
 .splash-title--tail {
-  top: calc(697 * var(--su));
-  left: calc(588 * var(--su));
-  width: calc(644 * var(--su));
+  top: 60.5%;
+  left: 20.4%;
+  width: calc(496 * var(--u));
 }
 
 [dir='rtl'] .splash-title {
-  line-height: calc(122 * var(--su));
+  line-height: 1.05;
   text-align: right;
 }
 
 [dir='rtl'] .splash-title--lead {
-  top: calc(114 * var(--su));
-  right: calc(578 * var(--su));
+  top: 9.9%;
+  right: 20.1%;
   left: auto;
-  width: calc(606 * var(--su));
+  width: calc(468 * var(--u));
 }
 
 [dir='rtl'] .splash-title--tail {
-  top: calc(821 * var(--su));
-  right: calc(584 * var(--su));
+  top: 71.3%;
+  right: 20.3%;
   left: auto;
-  width: calc(644 * var(--su));
+  width: calc(496 * var(--u));
 }
 
 /* --- Marks --- */
 
-/* Both marks hold their corners in both locales, as designed. */
+/* Both marks sit just above the bottom gridline and hold their corners in
+   both locales, as designed. */
 .splash-sce {
   position: absolute;
-  top: calc(942 * var(--su));
-  left: calc(161 * var(--su));
-  width: calc(220 * var(--su));
-  height: calc(92 * var(--su));
+  bottom: calc(9.9% + var(--sp-1));
+  left: calc(124 * var(--u));
+  width: calc(168 * var(--u));
+  height: auto;
 }
 
 .splash-credit {
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: calc(10 * var(--su));
-  top: calc(960 * var(--su));
-  left: calc(2498 * var(--su));
-  width: calc(187 * var(--su));
-  color: #fff;
+  gap: var(--sp-2);
+  right: calc(152 * var(--u));
+  bottom: calc(9.9% + var(--sp-2));
+  width: calc(144 * var(--u));
+  color: var(--splash-ink);
   text-align: left;
 }
 
 .splash-credit span {
   opacity: 0.6;
-  font-size: calc(21 * var(--su));
+  font-size: var(--fs-xs);
   font-weight: 300;
-  line-height: calc(25 * var(--su));
+  line-height: 1.2;
 }
 
 .splash-credit img {
-  width: calc(186 * var(--su));
-  height: calc(32 * var(--su));
+  width: 100%;
+  height: auto;
 }
 
 /* --- Entrance --- */
@@ -251,7 +249,7 @@
 @keyframes splash-rise {
   from {
     opacity: 0;
-    translate: 0 calc(16 * var(--su));
+    translate: 0 var(--sp-4);
   }
 }
 

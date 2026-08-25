@@ -97,22 +97,36 @@
       <div class="splash-blur splash-blur--left"></div>
       <div class="splash-blur splash-blur--right"></div>
 
-      <div class="splash-scene">
-        <img class="splash-pattern" src="assets/media/splash-pattern.png" alt="" />
-        <img class="splash-grid" src="assets/img/splash-grid.svg" alt="" />
-        <img class="splash-spark" src="assets/img/splash-spark.svg" alt="" />
-        <img class="splash-marker" src="assets/img/splash-marker.svg" alt="" />
+      <img class="splash-pattern" src="assets/media/splash-pattern.png" alt="" />
 
-        <h1 class="splash-title splash-title--lead" data-i18n="splash.title1"></h1>
-        <p class="splash-title splash-title--tail" data-i18n="splash.title2"></p>
+      <!-- The frame's gridlines, stretched over the whole viewport;
+           non-scaling strokes keep the hairline a hairline at any size. -->
+      <svg class="splash-grid" viewBox="0 0 2880 1152" preserveAspectRatio="none" aria-hidden="true">
+        <g stroke="currentColor" stroke-width="0.5" fill="none">
+          <line x1="20" y1="113" x2="2860" y2="113" vector-effect="non-scaling-stroke" />
+          <line x1="20" y1="575" x2="2860" y2="575" vector-effect="non-scaling-stroke" />
+          <line x1="20" y1="1038" x2="2860" y2="1038" vector-effect="non-scaling-stroke" />
+          <g stroke-opacity="0.5" stroke-dasharray="2 2">
+            <line x1="591" y1="20" x2="591" y2="1131" vector-effect="non-scaling-stroke" />
+            <line x1="1162" y1="20" x2="1162" y2="1131" vector-effect="non-scaling-stroke" />
+            <line x1="1719" y1="20" x2="1719" y2="1131" vector-effect="non-scaling-stroke" />
+            <line x1="2290" y1="20" x2="2290" y2="1131" vector-effect="non-scaling-stroke" />
+          </g>
+        </g>
+      </svg>
 
-        <img class="splash-sce" src="assets/img/sce-logo.svg" alt="Saudi Council of Engineers" />
+      <img class="splash-spark" src="assets/img/splash-spark.svg" alt="" />
+      <img class="splash-marker" src="assets/img/splash-marker.svg" alt="" />
 
-        <!-- Latin credit line in both locales, exactly as designed. -->
-        <div class="splash-credit" dir="ltr">
-          <span>powered by</span>
-          <img src="assets/img/axion-logo.svg" alt="Axion" />
-        </div>
+      <h1 class="splash-title splash-title--lead" data-i18n="splash.title1"></h1>
+      <p class="splash-title splash-title--tail" data-i18n="splash.title2"></p>
+
+      <img class="splash-sce" src="assets/img/sce-logo.svg" alt="Saudi Council of Engineers" />
+
+      <!-- Latin credit line in both locales, exactly as designed. -->
+      <div class="splash-credit" dir="ltr">
+        <span>powered by</span>
+        <img src="assets/img/axion-logo.svg" alt="Axion" />
       </div>
 
       <!-- The attract screen carries its own language switch: an Arabic-reading
