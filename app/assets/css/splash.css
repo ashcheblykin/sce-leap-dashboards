@@ -46,13 +46,13 @@
 
 .splash-logo {
   height: calc(96 * var(--u));
-  filter: drop-shadow(0 0 40px rgba(var(--cy-rgb), 0.2));
+  filter: drop-shadow(0 0 var(--sp-8) rgba(var(--cy-rgb), 0.2));
 }
 
 .splash-eyebrow {
-  margin-top: calc(30 * var(--u));
+  margin-top: var(--sp-7);
   color: var(--cy);
-  font-size: calc(18 * var(--u));
+  font-size: var(--fs-xs);
   font-weight: 500;
   letter-spacing: 0.42em;
   text-transform: uppercase;
@@ -60,12 +60,12 @@
 
 .splash-title {
   max-width: calc(1500 * var(--u));
-  margin-top: calc(20 * var(--u));
+  margin-top: var(--sp-5);
   background: linear-gradient(180deg, #ffffff 0%, #9dd6ee 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-size: calc(86 * var(--u));
+  font-size: var(--fs-splash);
   font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 1.08;
@@ -77,9 +77,9 @@
 
 .splash-sub {
   max-width: calc(880 * var(--u));
-  margin-top: calc(22 * var(--u));
+  margin-top: var(--sp-5);
   color: var(--tx-2);
-  font-size: calc(24 * var(--u));
+  font-size: var(--fs-md);
   font-weight: 300;
   line-height: 1.55;
 }
@@ -87,18 +87,18 @@
 .splash-cta {
   display: flex;
   align-items: center;
-  gap: calc(16 * var(--u));
-  padding: calc(22 * var(--u)) calc(56 * var(--u));
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-10);
   border: var(--hairline) solid rgba(var(--cy-rgb), 0.55);
   border-radius: var(--radius-pill);
-  margin-top: calc(46 * var(--u));
+  margin-top: var(--sp-9);
   background: rgba(var(--cy-rgb), 0.12);
   box-shadow:
-    0 0 40px rgba(var(--cy-rgb), 0.16),
+    0 0 var(--sp-8) rgba(var(--cy-rgb), 0.16),
     var(--glow-spectrum);
   backdrop-filter: var(--blur-glass);
   color: var(--tx);
-  font-size: calc(22 * var(--u));
+  font-size: var(--fs-md);
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -110,44 +110,44 @@
 
 .splash-cta:hover {
   background: rgba(var(--cy-rgb), 0.2);
-  box-shadow: 0 0 64px rgba(var(--cy-rgb), 0.28);
+  box-shadow: 0 0 var(--sp-11) rgba(var(--cy-rgb), 0.28);
   scale: 1.02;
 }
 
 .splash-cta svg {
-  width: calc(20 * var(--u));
-  height: calc(20 * var(--u));
+  width: var(--sp-5);
+  height: var(--sp-5);
   fill: var(--cy);
 }
 
 .splash-stats {
   display: flex;
-  gap: calc(64 * var(--u));
-  margin-top: calc(56 * var(--u));
+  gap: var(--sp-11);
+  margin-top: var(--sp-10);
 }
 
 .splash-stat-value {
   color: var(--tx);
-  font-size: calc(42 * var(--u));
+  font-size: var(--fs-kpi-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
 .splash-stat-label {
-  margin-top: calc(5 * var(--u));
+  margin-top: var(--sp-1);
   color: var(--mut);
-  font-size: calc(15 * var(--u));
+  font-size: var(--fs-xs);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .splash-foot {
   position: absolute;
-  bottom: calc(28 * var(--u));
+  bottom: var(--sp-7);
   left: 50%;
   color: rgba(var(--cy-rgb), 0.34);
-  font-size: var(--fs-micro);
+  font-size: var(--fs-2xs);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   translate: -50% 0;
@@ -168,7 +168,7 @@
 @keyframes splash-rise {
   from {
     opacity: 0;
-    translate: 0 calc(18 * var(--u));
+    translate: 0 var(--sp-4);
   }
 }
 
@@ -183,8 +183,8 @@
 .lang--splash {
   z-index: 3;
   position: absolute;
-  top: calc(28 * var(--u));
-  inset-inline-end: calc(34 * var(--u));
-  background: rgba(4, 24, 43, 0.55);
+  top: var(--sp-7);
+  inset-inline-end: var(--sp-7);
+  background: var(--plate);
   backdrop-filter: var(--blur-glass);
 }

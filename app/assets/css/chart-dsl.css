@@ -86,9 +86,9 @@
 
 .ax-chart-note {
   flex: none;
-  padding-top: calc(6 * var(--u));
+  padding-top: var(--sp-2);
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 11cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;
 }
 
@@ -100,17 +100,17 @@
   flex: none;
   flex-wrap: wrap;
   justify-content: center;
-  gap: calc(3 * var(--u)) calc(16 * var(--u));
+  gap: var(--sp-1) var(--sp-4);
   color: var(--mut);
-  font-size: min(var(--fs-note), 13cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
 }
 
 .ax-legend--bottom {
-  padding-top: calc(10 * var(--u));
+  padding-top: var(--sp-2);
 }
 
 .ax-legend--top {
-  padding-bottom: calc(10 * var(--u));
+  padding-bottom: var(--sp-2);
 }
 
 /* A side legend is a column that shares the row with the plot. */
@@ -122,13 +122,13 @@
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: calc(7 * var(--u));
-  padding-inline-start: calc(14 * var(--u));
+  gap: var(--sp-2);
+  padding-inline-start: var(--sp-3);
 }
 
 .ax-legend--left {
   padding-inline-start: 0;
-  padding-inline-end: calc(14 * var(--u));
+  padding-inline-end: var(--sp-3);
 }
 
 [data-orient='col'] .ax-legend--left,
@@ -136,19 +136,19 @@
   max-width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
-  padding: calc(10 * var(--u)) 0 0;
+  padding: var(--sp-2) 0 0;
 }
 
 .ax-legend-item {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: calc(6 * var(--u));
+  gap: var(--sp-1);
 }
 
 .ax-legend-dot {
-  width: calc(10 * var(--u));
-  height: calc(10 * var(--u));
+  width: var(--sp-3);
+  height: var(--sp-3);
   flex: none;
 }
 
@@ -216,8 +216,8 @@
   display: grid;
   flex: 1;
   min-height: 0;
-  padding: calc(4 * var(--u)) 0;
-  gap: calc(8 * var(--u));
+  padding: var(--sp-1) 0;
+  gap: var(--sp-2);
   grid-auto-rows: 1fr;
 }
 
@@ -234,9 +234,9 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: calc(10 * var(--u));
-  margin-bottom: min(calc(6 * var(--u)), 12cqh);
-  font-size: min(var(--fs-body), 46cqh);
+  gap: var(--sp-2);
+  margin-bottom: min(var(--sp-1), var(--cap-gap));
+  font-size: min(var(--fs-sm), var(--cap-row-text));
 }
 
 .ax-bars-label {
@@ -254,9 +254,9 @@
 .ax-bars-track {
   display: flex;
   overflow: hidden;
-  height: min(calc(9 * var(--u)), 24cqh);
+  height: min(var(--sp-2), var(--cap-row-note));
   flex: none;
-  border-radius: calc(4 * var(--u));
+  border-radius: var(--radius-xs);
 }
 
 /* The fill hugs the inline start, so it grows from the right in RTL with no
@@ -270,9 +270,9 @@
 
 .ax-bars-note {
   overflow: hidden;
-  margin-top: min(calc(4 * var(--u)), 10cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 22cqh);
+  font-size: min(var(--fs-xs), var(--cap-row-note));
   white-space: nowrap;
 }
 
@@ -292,12 +292,12 @@
   width: 100%;
   flex: 1;
   border-collapse: collapse;
-  font-size: min(var(--fs-body), calc(50cqh / (var(--ax-rows, 6) + 1)));
+  font-size: min(var(--fs-sm), calc(50cqh / (var(--ax-rows, 6) + 1)));
   table-layout: fixed;
 }
 
 .ax-table th {
-  padding-bottom: min(calc(7 * var(--u)), 2cqh);
+  padding-bottom: min(var(--sp-2), 2cqh);
   border-bottom: var(--hairline) solid var(--separator);
   color: var(--mut);
   font-size: 0.84em;
@@ -310,7 +310,7 @@
 
 .ax-table td {
   overflow: hidden;
-  padding: min(calc(4 * var(--u)), 1cqh) 0;
+  padding: min(var(--sp-1), 2cqh) 0;
   border-bottom: var(--hairline) solid var(--separator);
   color: var(--tx-2);
   text-overflow: ellipsis;
@@ -323,7 +323,7 @@
 
 .ax-table th.is-end,
 .ax-table td.is-end {
-  padding-inline-start: calc(10 * var(--u));
+  padding-inline-start: var(--sp-2);
   text-align: end;
 }
 
@@ -333,7 +333,7 @@
 }
 
 .ax-table-rank {
-  width: calc(26 * var(--u));
+  width: var(--sp-6);
   color: var(--mut-2);
   font-size: 0.84em;
 }
@@ -344,7 +344,7 @@
   display: grid;
   flex: 1;
   min-height: 0;
-  gap: calc(8 * var(--u));
+  gap: var(--sp-2);
   grid-auto-rows: 1fr;
 }
 
@@ -357,7 +357,7 @@
   min-height: 0;
   flex-direction: column;
   justify-content: center;
-  padding: min(calc(12 * var(--u)), 10cqh) calc(16 * var(--u));
+  padding: min(var(--sp-3), var(--cap-gap)) var(--sp-4);
   border: var(--hairline) solid rgba(var(--cy-rgb), 0.12);
   border-radius: var(--radius-md);
   background: rgba(var(--cy-rgb), 0.04);
@@ -366,7 +366,7 @@
 
 .ax-kpi-value {
   color: var(--tx);
-  font-size: min(var(--fs-kpi), 46cqh);
+  font-size: min(var(--fs-kpi), var(--cap-kpi));
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.04;
@@ -374,15 +374,14 @@
 }
 
 .ax-kpi.is-sm .ax-kpi-value {
-  font-size: min(var(--fs-kpi-sm), 40cqh);
+  font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
 }
 
+/* Top rung. `is-xl` used to be a fourth one at 74u against this one's 70u —
+   5px apart on a 90px number — so chart-dsl.js now maps both 'large' and
+   'huge' here. Nothing on the four boards asks for either today. */
 .ax-kpi.is-lg .ax-kpi-value {
-  font-size: min(var(--fs-kpi-lg), 46cqh);
-}
-
-.ax-kpi.is-xl .ax-kpi-value {
-  font-size: min(var(--fs-hud), 54cqh);
+  font-size: min(var(--fs-display), var(--cap-kpi-lg));
 }
 
 .ax-kpi-unit {
@@ -395,9 +394,9 @@
 
 .ax-kpi-label {
   overflow: hidden;
-  margin-top: min(calc(6 * var(--u)), 8cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut);
-  font-size: min(var(--fs-label), 19cqh);
+  font-size: min(var(--fs-xs), var(--cap-label));
   font-weight: 500;
   letter-spacing: 0.05em;
   line-height: 1.28;
@@ -406,9 +405,9 @@
 
 .ax-kpi-note {
   overflow: hidden;
-  margin-top: min(calc(3 * var(--u)), 5cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 11cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;
 }
 
@@ -417,13 +416,13 @@
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  gap: calc(5 * var(--u));
-  margin-top: min(calc(6 * var(--u)), 8cqh);
-  padding: calc(2 * var(--u)) calc(10 * var(--u));
+  gap: var(--sp-1);
+  margin-top: min(var(--sp-1), var(--cap-gap));
+  padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-pill);
   background: var(--control);
   color: var(--mut);
-  font-size: min(var(--fs-note), 12cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   font-weight: 500;
 }
 

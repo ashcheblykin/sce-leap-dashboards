@@ -12,7 +12,7 @@
 [data-grid-item][data-entering] {
   opacity: 0;
   transition: none;
-  translate: 0 calc(10 * var(--u));
+  translate: 0 var(--sp-2);
 }
 
 [data-grid-item][data-leaving] {
@@ -20,7 +20,7 @@
   transition:
     opacity 200ms var(--ease) var(--enter-delay, 0ms),
     translate 200ms var(--ease) var(--enter-delay, 0ms);
-  translate: 0 calc(-6 * var(--u));
+  translate: 0 calc(var(--sp-1) * -1);
 }
 
 /* Geometry transitions during a drag must not inherit the stagger delay. */

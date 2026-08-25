@@ -46,8 +46,16 @@
      The SCE tones, named once and used everywhere: the ordered array is what a
      spec falls back to when it names no colour (Axion's CHART_COLORS), and the
      named form is what the boards reach for when a colour has to MEAN something
-     (green is in good standing on every board). */
-  var TONE = {
+     (green is in good standing on every board).
+
+     The values are READ OUT OF tokens.css rather than restated here. They used
+     to be six hex literals in this file, four of which duplicated a token in
+     the cascade (`--cy`, `--green`, `--gold`, `--purple`) and two of which
+     existed nowhere else — so `--purple` read as an unused token while its
+     colour was live on three boards. One definition, one place to change it.
+     The literals stay only as a fallback for a stylesheet that failed to load,
+     which on this machine cannot happen. */
+  var TONE_FALLBACK = {
     cy: '#39d7f5',
     green: '#3ee6a4',
     gold: '#d4af5a',
@@ -55,6 +63,16 @@
     blue: '#7ac8ff',
     pink: '#f58aa8',
   };
+  var TONE = (function () {
+    var css = getComputedStyle(document.documentElement);
+    var out = {};
+    for (var name in TONE_FALLBACK) {
+      if (!TONE_FALLBACK.hasOwnProperty(name)) continue;
+      var raw = String(css.getPropertyValue('--' + name) || '').trim();
+      out[name] = /^#[0-9a-fA-F]{3,6}$/.test(raw) ? raw : TONE_FALLBACK[name];
+    }
+    return out;
+  })();
   var COLORS = [TONE.cy, TONE.green, TONE.gold, TONE.purple, TONE.blue, TONE.pink];
 
   /* --- Constants, from the files named above --------------------------------
@@ -1774,7 +1792,7 @@
    * token capped against the tile's own height, because the same tile runs
    * one-up in a tall panel and four-up in a short one.
    */
-  var VALUE_SIZE = { small: 'is-sm', medium: 'is-md', large: 'is-lg', huge: 'is-xl' };
+  var VALUE_SIZE = { small: 'is-sm', medium: 'is-md', large: 'is-lg', huge: 'is-lg' };
 
   function indicatorTile(item) {
     var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md'));
