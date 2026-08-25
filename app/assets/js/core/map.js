@@ -158,8 +158,18 @@
 
     var credit = document.createElement('div');
     credit.className = 'map-credit';
+    /* Pinned LTR. Both strings are Latin, and the attribution opens with a bare
+       "\u00a9" — a bidi-neutral character, so on the Arabic board it resolved to
+       the paragraph direction and jumped to the far end of the line:
+       "OpenStreetMap \u00b7 \u00a9 CARTO \u00a9". The credit Carto and OSM require has to
+       read the way they wrote it in both locales. */
+    credit.dir = 'ltr';
     credit.innerHTML =
-      '<span class="map-attr">' + KSA_BASEMAP.credit + '</span><span>Powered by Axion</span>';
+      '<span class="map-attr">' +
+      KSA_BASEMAP.credit +
+      '</span><span>Powered by ' +
+      Fmt.axionMark +
+      '</span>';
     container.appendChild(credit);
 
     /**
@@ -191,7 +201,7 @@
           cy: py(p[0]).toFixed(3),
           r: r.toFixed(3),
           class: 'map-dot' + (p[4] ? ' map-dot--' + p[4] : ''),
-          style: 'color:' + (mode.tone || '#39d7f5'),
+          style: 'color:' + (mode.tone || Chart.TONE.cy),
         });
         if (p[3]) {
           var title = svgEl('title', {});
@@ -204,7 +214,7 @@
 
       hud.innerHTML = mode.hud
         ? '<div class="map-hud-value hud-value" style="color:' +
-          (mode.tone || '#39d7f5') +
+          (mode.tone || Chart.TONE.cy) +
           '">' +
           Counter.span(mode.hud.value, mode.hud.format || 'compact') +
           (mode.hud.unit ? '<span class="unit">' + mode.hud.unit + '</span>' : '') +

@@ -431,12 +431,25 @@
    * -> show -> no room -> hide). The head's width minus its chips is stable
    * either way, so the decision is stable too.
    */
-  function fitGloss(head) {
+  function fitGloss(head, remeasure) {
     var gloss = head.querySelector('.gloss');
     if (!gloss) return;
     var label = head.querySelector('.label');
     var chips = head.querySelector('.chips');
-    if (gloss.dataset.natural === undefined) {
+    /* The faces are `font-display: block`, so the first observer callback can
+       land while the text is still in its block period and measure a width the
+       final face will not have. That figure was then cached forever, and the
+       panel kept a decision made about a font it never rendered in — which
+       showed up as BOTH the name and the gloss truncating, the one outcome
+       this function exists to prevent. `document.fonts.ready` re-runs the pass
+       with `remeasure`, which un-hides the gloss first so scrollWidth reads the
+       content rather than 0. */
+    if (remeasure) {
+      gloss.hidden = false;
+      delete gloss.dataset.natural;
+    }
+    if (gloss.dataset.natural === undefined || gloss.dataset.natural === '0') {
+      if (!gloss.scrollWidth) return;
       gloss.dataset.natural = gloss.scrollWidth;
     }
     var title = head.querySelector('.widget-title');
@@ -497,6 +510,14 @@
         if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
       }
     });
+
+    /* One re-decision per board, once the real faces are in. */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        var heads = surface.querySelectorAll('.widget-head');
+        for (var i = 0; i < heads.length; i++) fitGloss(heads[i], true);
+      });
+    }
 
     for (var i = 0; i < def.widgets.length; i++) {
       var w = def.widgets[i];

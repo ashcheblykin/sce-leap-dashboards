@@ -5,7 +5,7 @@
   min-height: 0;
   border: var(--hairline) solid rgba(var(--cy-rgb), 0.16);
   border-radius: var(--radius-md);
-  background: #03101f;
+  background: var(--ink);
 }
 
 .map-svg {
@@ -85,18 +85,18 @@
 .map-hud {
   z-index: 1;
   position: absolute;
-  top: calc(14 * var(--u));
-  inset-inline-start: calc(16 * var(--u));
-  padding: calc(10 * var(--u)) calc(18 * var(--u));
+  top: var(--sp-3);
+  inset-inline-start: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
   border: var(--hairline) solid var(--panel-border-strong);
   border-radius: var(--radius-md);
-  background: rgba(4, 24, 43, 0.72);
+  background: var(--plate);
   box-shadow: var(--glow-spectrum);
   backdrop-filter: var(--blur-glass);
 }
 
 .map-hud-value {
-  font-size: var(--fs-hud);
+  font-size: var(--fs-display);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -110,9 +110,9 @@
 }
 
 .map-hud-label {
-  margin-top: calc(6 * var(--u));
+  margin-top: var(--sp-2);
   color: var(--mut);
-  font-size: var(--fs-label);
+  font-size: var(--fs-xs);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -121,30 +121,30 @@
 .map-foot {
   z-index: 1;
   position: absolute;
-  bottom: calc(12 * var(--u));
-  inset-inline-start: calc(16 * var(--u));
+  bottom: var(--sp-3);
+  inset-inline-start: var(--sp-4);
   max-width: 76%;
   display: flex;
-  gap: calc(14 * var(--u));
-  padding: calc(7 * var(--u)) calc(14 * var(--u));
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
   border: var(--hairline) solid var(--separator);
   border-radius: var(--radius-sm);
-  background: rgba(4, 24, 43, 0.78);
+  background: var(--plate);
   backdrop-filter: var(--blur-glass);
   color: var(--mut);
-  font-size: var(--fs-note);
+  font-size: var(--fs-xs);
   letter-spacing: 0.02em;
 }
 
 .map-foot .key {
   display: inline-flex;
   align-items: center;
-  gap: calc(5 * var(--u));
+  gap: var(--sp-1);
 }
 
 .map-foot .key i {
-  width: calc(8 * var(--u));
-  height: calc(8 * var(--u));
+  width: var(--sp-3);
+  height: var(--sp-3);
   border-radius: 50%;
   background: currentColor;
 }
@@ -156,13 +156,18 @@
 .map-credit {
   z-index: 1;
   position: absolute;
-  inset-inline-end: calc(16 * var(--u));
-  top: calc(16 * var(--u));
+  inset-inline-end: var(--sp-4);
+  top: var(--sp-4);
   display: flex;
   align-items: center;
-  gap: calc(12 * var(--u));
-  color: rgba(var(--cy-rgb), 0.38);
-  font-size: var(--fs-micro);
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--plate);
+  backdrop-filter: var(--blur-glass);
+  color: var(--mut);
+  font-size: var(--fs-2xs);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -170,7 +175,7 @@
 /* Carto and OSM require the credit; it sits with the Axion mark rather than
    competing with it. */
 .map-attr {
-  color: rgba(var(--cy-rgb), 0.22);
+  color: var(--mut-2);
   letter-spacing: 0.06em;
   text-transform: none;
 }

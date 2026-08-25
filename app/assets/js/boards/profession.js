@@ -197,7 +197,7 @@
 
       {
         id: 'pr-spec',
-        x: 0, y: 5, w: 8, h: 3, minW: 5, minH: 2,
+        x: 0, y: 5, w: 10, h: 3, minW: 5, minH: 2,
         titleKey: 'w.spec',
         chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
         views: [
@@ -239,7 +239,7 @@
 
       {
         id: 'pr-nat',
-        x: 8, y: 5, w: 8, h: 3, minW: 5, minH: 2,
+        x: 10, y: 5, w: 7, h: 3, minW: 5, minH: 2,
         titleKey: 'w.nat',
         chipKeys: ['c.bars', 'c.share'],
         views: [
@@ -276,7 +276,7 @@
 
       {
         id: 'pr-register',
-        x: 16, y: 5, w: 8, h: 3, minW: 5, minH: 2,
+        x: 17, y: 5, w: 7, h: 3, minW: 5, minH: 2,
         titleKey: 'w.register',
         chipKeys: ['c.kpis'],
         views: [

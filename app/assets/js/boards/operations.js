@@ -36,7 +36,7 @@
     widgets: [
       {
         id: 'op-kpis',
-        x: 0, y: 0, w: 7, h: 3, minW: 4, minH: 2,
+        x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 2,
         titleKey: 'w.enf',
         chipKeys: ['c.kpis', 'c.pipeline'],
         views: [
@@ -69,7 +69,7 @@
 
       {
         id: 'op-pipe',
-        x: 0, y: 3, w: 7, h: 5, minW: 4, minH: 3,
+        x: 0, y: 5, w: 6, h: 3, minW: 4, minH: 3,
         titleKey: 'w.pipeline',
         chipKeys: ['c.windows', 'c.bytrack'],
         views: [
@@ -105,7 +105,7 @@
 
       {
         id: 'op-map',
-        x: 7, y: 0, w: 10, h: 5, minW: 6, minH: 3,
+        x: 6, y: 0, w: 11, h: 5, minW: 6, minH: 3,
         titleKey: 'w.map',
         chipKeys: ['c.actions', 'c.value'],
         views: [
@@ -140,7 +140,7 @@
 
       {
         id: 'op-trend',
-        x: 7, y: 5, w: 10, h: 3, minW: 6, minH: 2,
+        x: 6, y: 5, w: 11, h: 3, minW: 6, minH: 2,
         titleKey: 'w.trend',
         chipKeys: ['c.trend', 'c.bars'],
         views: [

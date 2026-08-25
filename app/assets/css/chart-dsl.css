@@ -86,9 +86,9 @@
 
 .ax-chart-note {
   flex: none;
-  padding-top: calc(6 * var(--u));
+  padding-top: var(--sp-2);
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 11cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;
 }
 
@@ -100,20 +100,34 @@
   flex: none;
   flex-wrap: wrap;
   justify-content: center;
-  gap: calc(3 * var(--u)) calc(16 * var(--u));
+  gap: var(--sp-1) var(--sp-4);
   color: var(--mut);
-  font-size: min(var(--fs-note), 13cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
+  /* Every other tight text element in this file sets its own leading (1.3 on
+     notes, 1.28 on tile labels, 1.04 on tile values); the legend alone fell
+     through to the body's 1.45, which is a paragraph value. On a five-item
+     side legend that difference was 12px — enough to push the column past its
+     box and, because it is centred, to lose an item off each end. */
+  line-height: 1.3;
 }
 
 .ax-legend--bottom {
-  padding-top: calc(10 * var(--u));
+  padding-top: var(--sp-2);
 }
 
 .ax-legend--top {
-  padding-bottom: calc(10 * var(--u));
+  padding-bottom: var(--sp-2);
 }
 
-/* A side legend is a column that shares the row with the plot. */
+/* A side legend is a column that shares the row with the plot.
+
+   Two corrections over the bottom legend it forks from. The gap is one step,
+   matching that legend's own row gap — at two steps a five-item column ran
+   ~17px past its box on a two-row panel, and since the column is centred it
+   lost items off BOTH ends. And `safe center` so that if a longer list ever
+   does outgrow the box, it falls back to start-aligned rather than centring
+   the overflow: losing the tail of a legend is recoverable, losing its head
+   and its tail is not. */
 .ax-legend--left,
 .ax-legend--right {
   display: flex;
@@ -121,14 +135,14 @@
   max-width: 42%;
   flex-direction: column;
   flex-wrap: nowrap;
-  justify-content: center;
-  gap: calc(7 * var(--u));
-  padding-inline-start: calc(14 * var(--u));
+  justify-content: safe center;
+  gap: var(--sp-1);
+  padding-inline-start: var(--sp-3);
 }
 
 .ax-legend--left {
   padding-inline-start: 0;
-  padding-inline-end: calc(14 * var(--u));
+  padding-inline-end: var(--sp-3);
 }
 
 [data-orient='col'] .ax-legend--left,
@@ -136,19 +150,19 @@
   max-width: 100%;
   flex-direction: row;
   flex-wrap: wrap;
-  padding: calc(10 * var(--u)) 0 0;
+  padding: var(--sp-2) 0 0;
 }
 
 .ax-legend-item {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: calc(6 * var(--u));
+  gap: var(--sp-1);
 }
 
 .ax-legend-dot {
-  width: calc(10 * var(--u));
-  height: calc(10 * var(--u));
+  width: var(--sp-3);
+  height: var(--sp-3);
   flex: none;
 }
 
@@ -216,8 +230,8 @@
   display: grid;
   flex: 1;
   min-height: 0;
-  padding: calc(4 * var(--u)) 0;
-  gap: calc(8 * var(--u));
+  padding: var(--sp-1) 0;
+  gap: var(--sp-2);
   grid-auto-rows: 1fr;
 }
 
@@ -234,9 +248,9 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: calc(10 * var(--u));
-  margin-bottom: min(calc(6 * var(--u)), 12cqh);
-  font-size: min(var(--fs-body), 46cqh);
+  gap: var(--sp-2);
+  margin-bottom: min(var(--sp-1), var(--cap-gap));
+  font-size: min(var(--fs-sm), var(--cap-row-text));
 }
 
 .ax-bars-label {
@@ -251,16 +265,25 @@
   color: var(--mut);
 }
 
+/* Pinned LTR, the same way .ax-svg pins the SVG frame.
+
+   The fill used to hug the inline start, which grew it right-to-left on the
+   Arabic board. That is arguably the better reading direction, but the SVG
+   horizontal bars next to it grow left-to-right in both locales — Axion's
+   CartesianChart.tsx keeps its coordinate space LTR and mirrors only text —
+   and there are nine of those across the four boards. Two kinds of horizontal
+   bar growing opposite ways on one Arabic panel is worse than either direction
+   on its own, so the HTML kind follows the renderer. The label and value above
+   the track still sit on the reading-start side; only the track is pinned. */
 .ax-bars-track {
   display: flex;
   overflow: hidden;
-  height: min(calc(9 * var(--u)), 24cqh);
+  height: min(var(--sp-2), var(--cap-row-note));
   flex: none;
-  border-radius: calc(4 * var(--u));
+  border-radius: var(--radius-xs);
+  direction: ltr;
 }
 
-/* The fill hugs the inline start, so it grows from the right in RTL with no
-   coordinate mirroring — the reason the original renders this in HTML. */
 .ax-bars-fill {
   width: 0;
   height: 100%;
@@ -270,9 +293,9 @@
 
 .ax-bars-note {
   overflow: hidden;
-  margin-top: min(calc(4 * var(--u)), 10cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 22cqh);
+  font-size: min(var(--fs-xs), var(--cap-row-note));
   white-space: nowrap;
 }
 
@@ -287,17 +310,24 @@
 }
 
 /* `--ax-rows` is written by the renderer. The header counts as a row and a row
-   is about 1.9x its type, so the fit is ~100cqh / ((rows + 1) * 1.9). */
+   is about 1.9x its type, so the fit is ~100cqh / ((rows + 1) * 1.9) = 52cqh.
+
+   46, not 52, because the budget is not the whole panel: a table almost always
+   carries a footnote under it, and the note is `flex: none` while a <table> has
+   an intrinsic min-content height it will not shrink past — so an over-budget
+   table does not clip itself, it pushes the note out through the bottom of the
+   card. Reserving the note's own cap (--cap-note, 12cqh) leaves
+   (100 - 12) x 0.526 = 46cqh for the rows. */
 .ax-table {
   width: 100%;
   flex: 1;
   border-collapse: collapse;
-  font-size: min(var(--fs-body), calc(50cqh / (var(--ax-rows, 6) + 1)));
+  font-size: min(var(--fs-sm), calc(46cqh / (var(--ax-rows, 6) + 1)));
   table-layout: fixed;
 }
 
 .ax-table th {
-  padding-bottom: min(calc(7 * var(--u)), 2cqh);
+  padding-bottom: min(var(--sp-2), 2cqh);
   border-bottom: var(--hairline) solid var(--separator);
   color: var(--mut);
   font-size: 0.84em;
@@ -310,7 +340,11 @@
 
 .ax-table td {
   overflow: hidden;
-  padding: min(calc(4 * var(--u)), 1cqh) 0;
+  /* 1cqh, not 2: a row's vertical padding is the one figure here that is
+     load-bearing rather than cosmetic. At 2cqh an eight-row table overruns its
+     own box by ~40px and silently loses its last row and its footnote — with
+     no overflow anywhere for a checker to see, because .widget-body clips. */
+  padding: min(var(--sp-1), 1cqh) 0;
   border-bottom: var(--hairline) solid var(--separator);
   color: var(--tx-2);
   text-overflow: ellipsis;
@@ -323,7 +357,7 @@
 
 .ax-table th.is-end,
 .ax-table td.is-end {
-  padding-inline-start: calc(10 * var(--u));
+  padding-inline-start: var(--sp-2);
   text-align: end;
 }
 
@@ -333,7 +367,7 @@
 }
 
 .ax-table-rank {
-  width: calc(26 * var(--u));
+  width: var(--sp-6);
   color: var(--mut-2);
   font-size: 0.84em;
 }
@@ -344,7 +378,7 @@
   display: grid;
   flex: 1;
   min-height: 0;
-  gap: calc(8 * var(--u));
+  gap: var(--sp-2);
   grid-auto-rows: 1fr;
 }
 
@@ -357,7 +391,7 @@
   min-height: 0;
   flex-direction: column;
   justify-content: center;
-  padding: min(calc(12 * var(--u)), 10cqh) calc(16 * var(--u));
+  padding: min(var(--sp-3), var(--cap-gap)) var(--sp-4);
   border: var(--hairline) solid rgba(var(--cy-rgb), 0.12);
   border-radius: var(--radius-md);
   background: rgba(var(--cy-rgb), 0.04);
@@ -366,7 +400,7 @@
 
 .ax-kpi-value {
   color: var(--tx);
-  font-size: min(var(--fs-kpi), 46cqh);
+  font-size: min(var(--fs-kpi), var(--cap-kpi));
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.04;
@@ -374,15 +408,14 @@
 }
 
 .ax-kpi.is-sm .ax-kpi-value {
-  font-size: min(var(--fs-kpi-sm), 40cqh);
+  font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
 }
 
+/* Top rung. `is-xl` used to be a fourth one at 74u against this one's 70u —
+   5px apart on a 90px number — so chart-dsl.js now maps both 'large' and
+   'huge' here. Nothing on the four boards asks for either today. */
 .ax-kpi.is-lg .ax-kpi-value {
-  font-size: min(var(--fs-kpi-lg), 46cqh);
-}
-
-.ax-kpi.is-xl .ax-kpi-value {
-  font-size: min(var(--fs-hud), 54cqh);
+  font-size: min(var(--fs-display), var(--cap-kpi-lg));
 }
 
 .ax-kpi-unit {
@@ -395,9 +428,9 @@
 
 .ax-kpi-label {
   overflow: hidden;
-  margin-top: min(calc(6 * var(--u)), 8cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut);
-  font-size: min(var(--fs-label), 19cqh);
+  font-size: min(var(--fs-xs), var(--cap-label));
   font-weight: 500;
   letter-spacing: 0.05em;
   line-height: 1.28;
@@ -406,9 +439,9 @@
 
 .ax-kpi-note {
   overflow: hidden;
-  margin-top: min(calc(3 * var(--u)), 5cqh);
+  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut-2);
-  font-size: min(var(--fs-micro), 11cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;
 }
 
@@ -417,13 +450,13 @@
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  gap: calc(5 * var(--u));
-  margin-top: min(calc(6 * var(--u)), 8cqh);
-  padding: calc(2 * var(--u)) calc(10 * var(--u));
+  gap: var(--sp-1);
+  margin-top: min(var(--sp-1), var(--cap-gap));
+  padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-pill);
   background: var(--control);
   color: var(--mut);
-  font-size: min(var(--fs-note), 12cqh);
+  font-size: min(var(--fs-xs), var(--cap-note));
   font-weight: 500;
 }
 
