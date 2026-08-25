@@ -1,0 +1,115 @@
+/* Shared mark tooltip (core/tooltip.js). One floating card for every chart
+   mark and every map bubble, same plate chrome as .map-hud/.map-foot so it
+   reads as part of the same system rather than a browser-default bubble. */
+
+.ax-tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1100;
+  max-width: min(360px, 44vw);
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--hairline) solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--plate);
+  backdrop-filter: var(--blur-glass);
+  box-shadow: var(--glow-drag);
+  /* The card only ever narrates a hover/tap the pointer already performed on
+     the mark beneath it -- it must never itself be a hit target, or the
+     delegated listeners in tooltip.js would read pointer traffic on the
+     card as leaving the mark and hide it out from under itself. */
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px) scale(0.98);
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.ax-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* A pinned (tap) card gets a visible ring so a touch user can tell it is
+   held open rather than about to vanish on its own, the way the hover card
+   does the moment the pointer moves on. */
+.ax-tooltip.is-pinned {
+  border-color: rgba(var(--cy-rgb), 0.55);
+  box-shadow: var(--glow-drag), 0 0 0 var(--hairline) rgba(var(--cy-rgb), 0.55);
+}
+
+.ax-tooltip-label {
+  color: var(--mut);
+  font-size: var(--fs-xs);
+  line-height: 1.3;
+}
+
+/* Map bubbles hand over one pre-composed string and no separate value, so
+   the label is promoted to read as the card's whole content instead of a
+   caption sitting over an empty row. */
+.ax-tooltip.is-label-only .ax-tooltip-label {
+  color: var(--tip-tone, var(--tx));
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.ax-tooltip-value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+  color: var(--tip-tone, var(--tx));
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.ax-tooltip-num {
+  /* Same isolation as chart-dsl.js's numeric text(): a signed or unit-suffixed
+     value must not be reordered by an RTL ancestor's bidi algorithm. */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.ax-tooltip-meta {
+  color: var(--mut);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+/* Marks and map bubbles this card describes get a plain but real affordance
+   of their own -- cursor + a touch-friendly enlarged hit area is drawn by
+   the JS that mounts them (chart-dsl.js, map.js), this just says "this is
+   the interactive part" to a pointer that can hover. */
+[data-tip-label] {
+  cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+
+/* The hovered mark itself lifts (axion.gen's donut/bar/line highlight), and
+   -- where it shares a group with siblings, e.g. a pie's wedges or a bar
+   series' bars -- those siblings dim a touch so the hovered one reads as
+   singled out rather than just brighter than before. */
+[data-tip-label]:hover,
+[data-tip-label]:focus-visible {
+  filter: brightness(1.2);
+}
+
+:is(.ax-mark, .ax-mark-radial):has([data-tip-label]:hover) [data-tip-label]:not(:hover) {
+  opacity: 0.6;
+}
+
+@media (hover: none) {
+  [data-tip-label] {
+    cursor: default;
+  }
+  [data-tip-label]:hover {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tip-label] {
+    transition-duration: 1ms;
+  }
+}

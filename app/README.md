@@ -132,6 +132,15 @@ space and mirror explicitly, exactly as `ChartText.tsx` prescribes: logical text
 anchors, `unicode-bidi: plaintext` for labels, `isolate` for numeric runs.
 Numbers stay in Western digits in both locales, as Axion Gen does.
 
+The Arabic itself is not ours. SCE's translators localised the four source
+dashboards, and those files are archived verbatim in `i18n-source/` — they are
+the authority for every Arabic string in the table. `tools/i18n-glossary.mjs`
+pairs each one against its English original token for token (all four align
+exactly, so no row is a guess) and writes `i18n-source/GLOSSARY.md`, which is
+where to look before wording anything in Arabic by hand. Where the four files
+translate the same English differently, `i18n-source/DECISIONS.md` records which
+one the board uses and why.
+
 **Sizes scale from one unit.** `--u` is `min(100vw/2880, 100vh/1152) × --u-scale`,
 and every font size, radius, gap and chart constant is expressed in it. The
 wall's real viewing distance is not knowable from a laptop, so `[` and `]` retune

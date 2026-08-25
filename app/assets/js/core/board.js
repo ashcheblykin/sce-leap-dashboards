@@ -397,14 +397,23 @@
       chips += '</div>';
     }
 
+    // A title paired with three-plus tab labels has nowhere to go on a
+    // narrow card — the title gets crushed to an ellipsis before the tabs
+    // give up any width. Those widgets opt into their own full-width tab
+    // row below the title instead of squeezing both into one line.
+    var stacked = !!def.stackChips;
+
     return (
-      '<div class="widget"><div class="widget-head" data-drag-handle>' +
+      '<div class="widget"' + (stacked ? ' data-chips-row' : '') + '>' +
+      '<div class="widget-head" data-drag-handle>' +
       '<div class="widget-title"><span class="label">' +
       Fmt.escapeHtml(I18N.t(def.titleKey)) +
       '</span>' +
       '</div>' +
-      chips +
-      '</div><div class="widget-body"></div></div>' +
+      (stacked ? '' : chips) +
+      '</div>' +
+      (stacked ? chips : '') +
+      '<div class="widget-body"></div></div>' +
       '<div data-resize-handle="s"></div>' +
       '<div data-resize-handle="e"></div>' +
       '<div data-resize-handle="w"></div>' +
@@ -448,8 +457,7 @@
 
     var headObserver = new ResizeObserver(function (entries) {
       for (var i = 0; i < entries.length; i++) {
-        var head = entries[i].target;
-        var chipsEl = head.querySelector('.chips');
+        var chipsEl = entries[i].target.querySelector('.chips');
         if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
       }
     });
@@ -463,7 +471,7 @@
 
       var body = item.querySelector('.widget-body');
       orientObserver.observe(body);
-      headObserver.observe(item.querySelector('.widget-head'));
+      headObserver.observe(item.querySelector('.widget'));
 
       var chipsEl = item.querySelector('.chips');
       if (chipsEl) chipsEl._tabs = attachChipTabs(chipsEl, onChipSelect);

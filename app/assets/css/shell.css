@@ -39,12 +39,15 @@
 
 /* --- Cross-cutting navigation --- */
 .nav {
+  /* Shared with the widgets' .chips track, so the sliding pill below reads as
+     the same control as the view switchers inside every widget. */
+  --track-pad: var(--sp-1);
   position: absolute;
   left: 50%;
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  padding: var(--sp-1);
+  padding: var(--track-pad);
   border: var(--hairline) solid var(--panel-border);
   border-radius: var(--radius-pill);
   background: var(--plate);
@@ -53,8 +56,37 @@
   translate: -50% 0;
 }
 
+/* Sliding pill: same liquid-glide mechanic as the widgets' .chip-pill (see
+   widget.css), moved by JS between nav items instead of chips. */
+.nav-pill {
+  position: absolute;
+  top: var(--track-pad);
+  bottom: var(--track-pad);
+  left: 0;
+  right: 0;
+  z-index: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--chip-fill);
+  pointer-events: none;
+  transform: translateZ(0);
+  --pl: var(--chip-dur-trail);
+  --pr: var(--chip-dur-trail);
+  transition:
+    left var(--pl) var(--chip-ease),
+    right var(--pr) var(--chip-ease),
+    background-color var(--dur-fast) var(--chip-ease),
+    box-shadow var(--dur-fast) var(--chip-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill {
+    transition: none !important;
+  }
+}
+
 .nav-item {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   padding: var(--sp-3) var(--sp-6);
   border-radius: var(--radius-pill);
@@ -63,9 +95,7 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition:
-    color var(--dur-fast) var(--ease),
-    background var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .nav-item:hover {
@@ -74,9 +104,12 @@
 }
 
 .nav-item[data-on] {
-  background: rgba(var(--cy-rgb), 0.14);
   color: var(--cy);
   font-weight: 600;
+}
+
+.nav-item[data-on]:hover {
+  background: none;
 }
 
 /* The slideshow's remaining time reads as a fill under the active label, so the
@@ -89,6 +122,7 @@
   width: 0;
   height: 100%;
   background: rgba(var(--cy-rgb), 0.16);
+  transition: width 200ms linear;
 }
 
 .nav-play {
@@ -236,13 +270,13 @@
 .settings-panel {
   position: absolute;
   z-index: 10;
-  bottom: calc(100% + 14 * var(--u));
+  bottom: calc(100% + var(--sp-4));
   right: 0;
   display: flex;
   width: max-content;
   flex-direction: column;
-  gap: calc(8 * var(--u));
-  padding: calc(12 * var(--u)) calc(16 * var(--u));
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
   border: var(--hairline) solid var(--panel-border-strong);
   border-radius: var(--radius-md);
   background: rgba(4, 24, 43, 0.96);
@@ -257,9 +291,9 @@
 .settings-row {
   display: flex;
   align-items: center;
-  gap: calc(10 * var(--u));
+  gap: var(--sp-2);
   color: var(--tx-2);
-  font-size: var(--fs-chip);
+  font-size: var(--fs-xs);
   letter-spacing: 0.02em;
   cursor: pointer;
   white-space: nowrap;

@@ -118,9 +118,9 @@
   --fs-sm: calc(20 * var(--u)); /* body, bar labels, table, ticker */
   --fs-md: calc(24 * var(--u)); /* card titles, nav, header */
 
-  --fs-kpi-sm: calc(40 * var(--u));
-  --fs-kpi: calc(56 * var(--u));
-  --fs-display: calc(72 * var(--u)); /* biggest number on a panel, and the map HUD */
+  --fs-kpi-sm: calc(46 * var(--u));
+  --fs-kpi: calc(64 * var(--u));
+  --fs-display: calc(84 * var(--u)); /* biggest number on a panel, and the map HUD */
   --fs-splash: calc(88 * var(--u)); /* attract screen only */
 
   /* Chart geometry unit. Every px constant in chart-dsl.js is multiplied by
@@ -150,9 +150,9 @@
   /* The indicator ladder: three rungs, each the share of its own tile that the
      headline number may take. There used to be four, but the top two tokens
      were 70u and 74u — 5px apart on a 90px number, one size under two names. */
-  --cap-kpi-sm: 40cqh;
-  --cap-kpi: 46cqh;
-  --cap-kpi-lg: 54cqh;
+  --cap-kpi-sm: 46cqh;
+  --cap-kpi: 52cqh;
+  --cap-kpi-lg: 60cqh;
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */

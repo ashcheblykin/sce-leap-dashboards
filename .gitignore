@@ -1,1 +1,5 @@
 .DS_Store
+.claude/
+app/tools/shots-current/
+app/tools/shots-i18n/
+app/tools/shots-original/

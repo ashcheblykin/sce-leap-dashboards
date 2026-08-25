@@ -62,7 +62,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
               valueFormat: 'pct',
@@ -80,7 +80,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
               valueFormat: 'pct',

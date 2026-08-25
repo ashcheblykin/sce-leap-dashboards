@@ -3,8 +3,8 @@
    The prototypes drew their maps with Leaflet from cdnjs on top of Carto tiles,
    which cannot work on a conference machine with no internet. So the tiles are
    baked instead: assets/js/data/ksa-basemap.js holds the real Carto raster --
-   coastlines, roads, borders, city labels -- stitched, graded into the SCE
-   palette and inlined as one WebP (see tools/bake-basemap.py).
+   coastlines, roads, borders -- stitched, graded into the SCE palette and
+   inlined as one WebP (see tools/bake-basemap.py).
 
    The plate is Web Mercator, and this renderer's screen space is longitude by
    projected latitude, so placing it is a plain linear mapping and the baked
@@ -150,26 +150,20 @@
 
     var hud = document.createElement('div');
     hud.className = 'map-hud';
-    container.appendChild(hud);
-
+    var hudBody = document.createElement('div');
+    hudBody.className = 'map-hud-body';
     var foot = document.createElement('div');
     foot.className = 'map-foot';
-    container.appendChild(foot);
+    hud.appendChild(hudBody);
+    hud.appendChild(foot);
+    container.appendChild(hud);
 
     var credit = document.createElement('div');
     credit.className = 'map-credit';
-    /* Pinned LTR. Both strings are Latin, and the attribution opens with a bare
-       "\u00a9" — a bidi-neutral character, so on the Arabic board it resolved to
-       the paragraph direction and jumped to the far end of the line:
-       "OpenStreetMap \u00b7 \u00a9 CARTO \u00a9". The credit Carto and OSM require has to
-       read the way they wrote it in both locales. */
+    /* Pinned LTR: the mark and "Powered by" are both Latin, and would
+       otherwise pick up the Arabic board's paragraph direction. */
     credit.dir = 'ltr';
-    credit.innerHTML =
-      '<span class="map-attr">' +
-      KSA_BASEMAP.credit +
-      '</span><span>Powered by ' +
-      Fmt.axionMark +
-      '</span>';
+    credit.innerHTML = '<span>Powered by ' + Fmt.axionMark + '</span>';
     container.appendChild(credit);
 
     /**
@@ -179,6 +173,11 @@
      * }
      */
     function render(mode) {
+      /* A view switch (the map's own chip tabs) rebuilds every bubble; a
+         hover tooltip already self-heals on the next pointermove, but a
+         touch-pinned one would otherwise keep describing a bubble that no
+         longer exists. */
+      if (global.Tooltip) global.Tooltip.hide();
       while (markers.firstChild) markers.removeChild(markers.firstChild);
 
       var points = mode.points || [];
@@ -192,27 +191,48 @@
       var minR = mode.minRadius || coreW * 0.0035;
       var frag = document.createDocumentFragment();
 
+      /* The touch target rides the SAME fixed-core-extent convention as
+         minR/maxR just above, rather than converting a screen-pixel target
+         through the container's current box size: a board can call
+         render() while its panel is mid-transition (hidden, mid-slide, not
+         yet laid out), and a ratio measured at that instant would bake a
+         wrong -- sometimes wildly wrong -- radius into every bubble with no
+         later correction (fit()'s resize handler re-fits the viewBox, but
+         never re-touches already-drawn markers). A fraction of coreW carries
+         no such moment to be wrong at. */
+      var touchMinR = coreW * 0.02;
+
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         var ratio = max ? Math.sqrt(p[2] / max) : 0;
         var r = Math.max(minR, ratio * maxR);
+        var cx = px(p[1]).toFixed(3);
+        var cy = py(p[0]).toFixed(3);
         var circle = svgEl('circle', {
-          cx: px(p[1]).toFixed(3),
-          cy: py(p[0]).toFixed(3),
+          cx: cx,
+          cy: cy,
           r: r.toFixed(3),
           class: 'map-dot' + (p[4] ? ' map-dot--' + p[4] : ''),
           style: 'color:' + (mode.tone || Chart.TONE.cy),
         });
-        if (p[3]) {
-          var title = svgEl('title', {});
-          title.textContent = p[3];
-          circle.appendChild(title);
-        }
         frag.appendChild(circle);
+
+        if (p[3]) {
+          var hit = svgEl('circle', {
+            cx: cx,
+            cy: cy,
+            r: Math.max(r, touchMinR).toFixed(3),
+            fill: 'transparent',
+            style: 'pointer-events:all',
+          });
+          hit.setAttribute('data-tip-label', p[3]);
+          hit.setAttribute('data-tip-tone', mode.tone || Chart.TONE.cy);
+          frag.appendChild(hit);
+        }
       }
       markers.appendChild(frag);
 
-      hud.innerHTML = mode.hud
+      hudBody.innerHTML = mode.hud
         ? '<div class="map-hud-value hud-value" style="color:' +
           (mode.tone || Chart.TONE.cy) +
           '">' +

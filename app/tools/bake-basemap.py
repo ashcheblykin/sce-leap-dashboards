@@ -5,7 +5,9 @@ The prototypes drew a real Carto basemap through Leaflet, which a conference
 machine with no internet cannot do. Rather than fall back to a bare country
 outline, this pulls the raster once, stitches it, grades it into the SCE navy
 palette and writes it out as one WebP data URI. The app then has a real map --
-coastlines, roads, borders, city labels -- and still never opens a socket.
+coastlines, roads, borders -- and still never opens a socket. No place-name
+labels: the same "nolabels" tile the reference boards use, so a name never
+reads upside-down or collides with a bubble drawn over it.
 
     python3 tools/bake-basemap.py
 
@@ -43,7 +45,6 @@ TILE = 512
 RETINA = "@2x"
 
 BASE_URL = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}%s.png" % RETINA
-LABEL_URL = "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}%s.png" % RETINA
 SUBDOMAINS = "abcd"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,9 +57,6 @@ DESERT = (13, 38, 58)
 WATER = (3, 13, 25)
 INK = (56, 124, 158)  # roads, borders, urban fabric
 INK_WEIGHT = 0.6
-
-LABEL_TINT = (186, 224, 240)
-LABEL_ALPHA = 0.62
 
 
 def lonlat_to_tile(lon, lat, zoom):
@@ -134,7 +132,6 @@ def main():
     )
 
     base = mosaic(BASE_URL, x0, x1, y0, y1)
-    labels = mosaic(LABEL_URL, x0, x1, y0, y1)
 
     # Crop to the exact bbox so the app can place the plate by coordinates
     # alone, with no tile arithmetic at runtime.
@@ -145,18 +142,13 @@ def main():
         round((fy1 - y0) * TILE),
     )
     base = base.crop(box)
-    labels = labels.crop(box)
 
     if base.size[0] > MAX_WIDTH:
         height = round(base.size[1] * MAX_WIDTH / base.size[0])
         base = base.resize((MAX_WIDTH, height), Image.LANCZOS)
-        labels = labels.resize((MAX_WIDTH, height), Image.LANCZOS)
     print("plate: %dx%d px" % base.size)
 
     plate = grade(base)
-
-    tint = Image.new("RGB", labels.size, LABEL_TINT)
-    plate.paste(tint, (0, 0), labels.split()[3].point(lambda a: int(round(a * LABEL_ALPHA))))
 
     buffer = io.BytesIO()
     plate.save(buffer, format="WEBP", quality=84, method=6)

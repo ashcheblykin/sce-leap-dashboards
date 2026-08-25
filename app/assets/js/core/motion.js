@@ -7,9 +7,9 @@
 (function (global) {
   'use strict';
 
-  var ENTER_STAGGER = 55;
-  var EXIT_STAGGER = 35;
-  var EXIT_FADE = 200;
+  var ENTER_STAGGER = 30;
+  var EXIT_STAGGER = 12;
+  var EXIT_FADE = 120;
 
   function readingOrder(items) {
     return items.slice().sort(function (a, b) {

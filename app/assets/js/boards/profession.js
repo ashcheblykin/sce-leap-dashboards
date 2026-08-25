@@ -181,7 +181,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               showAnnotations: true,
               showLegend: false,
@@ -200,6 +200,7 @@
         x: 0, y: 5, w: 10, h: 3, minW: 5, minH: 2,
         titleKey: 'w.spec',
         chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
+        stackChips: true,
         views: [
           function (el) {
             Chart.mount(el, {
@@ -227,7 +228,7 @@
             Chart.mount(el, {
               chart: 'cartesian',
               horizontal: true,
-              series: Kit.barSeries(Data.spec5, T.purple),
+              series: Kit.barSeries(Data.spec5, Kit.CLASS_TONE.Specialist),
               xAxis: { type: 'band', tickFormat: Labels.t },
               yAxis: { type: 'linear', tickFormat: 'compact', numTicks: 4 },
               showLegend: false,
@@ -258,7 +259,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
               data: Data.nat5.map(function (r, i) {
@@ -285,7 +286,7 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.register.total, format: 'grouped', label: t('m.reg'), color: T.cy, valueFontSize: 'small' },
+                { value: Data.register.total, format: 'grouped', label: t('m.reg'), color: T.green, valueFontSize: 'small' },
                 { value: Data.register.active, format: 'grouped', label: t('m.active'), color: T.green, valueFontSize: 'small' },
                 { value: Data.register.near, format: 'grouped', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
                 { value: Data.register.lapsed, format: 'grouped', label: t('m.lapsed'), color: T.blue, valueFontSize: 'small' },

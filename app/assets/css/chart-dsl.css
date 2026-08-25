@@ -392,7 +392,7 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   padding: min(var(--sp-3), var(--cap-gap)) var(--sp-4);
   border: var(--hairline) solid rgba(var(--cy-rgb), 0.12);
   border-radius: var(--radius-md);
@@ -400,48 +400,49 @@
   container-type: size;
 }
 
+/* The value (+ delta pill, + note) as one unit: `space-between` on .ax-kpi
+   flexes the gap above this group with the tile's height, but everything
+   inside it stays put — a value never separates from its own note. */
+.ax-kpi-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* One rung only: every factoid on the wall reads at the same size and weight
+   regardless of which tile it sits in or what valueFontSize a board passes in
+   — `is-sm`/`is-lg` still get added to the tile by chart-dsl.js, but no longer
+   change the number's size, so a KPI row can never end up with one headline
+   number visually louder than its neighbours. */
 .ax-kpi-value {
+  margin-top: var(--sp-1);
   color: var(--tx);
-  font-size: min(var(--fs-kpi), var(--cap-kpi));
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1.04;
   white-space: nowrap;
-}
-
-.ax-kpi.is-sm .ax-kpi-value {
-  font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
-}
-
-/* Top rung. `is-xl` used to be a fourth one at 74u against this one's 70u —
-   5px apart on a 90px number — so chart-dsl.js now maps both 'large' and
-   'huge' here. Nothing on the four boards asks for either today. */
-.ax-kpi.is-lg .ax-kpi-value {
-  font-size: min(var(--fs-display), var(--cap-kpi-lg));
 }
 
 .ax-kpi-unit {
   margin-inline-start: 0.14em;
   font-size: 0.42em;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   opacity: 0.72;
 }
 
 .ax-kpi-label {
   overflow: hidden;
-  margin-top: min(var(--sp-1), var(--cap-gap));
   color: var(--mut);
   font-size: min(var(--fs-xs), var(--cap-label));
   font-weight: 500;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.01em;
   line-height: 1.28;
-  text-transform: uppercase;
 }
 
 .ax-kpi-note {
   overflow: hidden;
-  margin-top: min(var(--sp-1), var(--cap-gap));
+  margin-top: var(--sp-1);
   color: var(--mut-2);
   font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;

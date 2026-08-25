@@ -157,6 +157,20 @@
     return v < lo ? lo : v > hi ? hi : v;
   }
 
+  /** Stamp the shared tooltip's content onto a mark (core/tooltip.js) -- a
+      hover or a tap on `node` reads these back rather than either chart-dsl
+      or tooltip.js owning a per-mark tooltip instance. No-op if `value` is
+      empty: an unlabelled mark (a stack's inner segment, say) should not
+      become a dead hit target that opens an empty card. */
+  function tip(node, label, value, meta, tone) {
+    if (!value) return node;
+    node.setAttribute('data-tip-label', label || '');
+    node.setAttribute('data-tip-value', value);
+    if (meta) node.setAttribute('data-tip-meta', meta);
+    if (tone) node.setAttribute('data-tip-tone', tone);
+    return node;
+  }
+
   function sum(arr, pick) {
     var t = 0;
     for (var i = 0; i < arr.length; i++) t += pick ? pick(arr[i]) : arr[i];
@@ -480,19 +494,54 @@
   }
 
   /**
+   * Like sectorPath, but the inner and outer arcs each get their own angular
+   * span. Needed because a constant-angle inset (sectorPath) corresponds to a
+   * shrinking physical gap toward the centre — the same degrees cover far
+   * less arc length at r0 than at r1 — so a single shared inset either
+   * starves the outer edge or overruns the inner one.
+   */
+  function sectorPathAsym(cx, cy, r0, r1, a0in, a1in, a0out, a1out) {
+    if (r1 <= 0 || a1out - a0out <= 1e-9) return '';
+    var large = a1out - a0out > Math.PI ? 1 : 0;
+    var o0 = polar(cx, cy, r1, a0out),
+      o1 = polar(cx, cy, r1, a1out);
+    var d = 'M' + o0[0].toFixed(3) + ',' + o0[1].toFixed(3) +
+      'A' + r1 + ',' + r1 + ' 0 ' + large + ' 1 ' + o1[0].toFixed(3) + ',' + o1[1].toFixed(3);
+    if (r0 > 0) {
+      var largeIn = a1in - a0in > Math.PI ? 1 : 0;
+      var i1 = polar(cx, cy, r0, a1in),
+        i0 = polar(cx, cy, r0, a0in);
+      d += 'L' + i1[0].toFixed(3) + ',' + i1[1].toFixed(3) +
+        'A' + r0 + ',' + r0 + ' 0 ' + largeIn + ' 0 ' + i0[0].toFixed(3) + ',' + i0[1].toFixed(3);
+    } else {
+      d += 'L' + cx + ',' + cy;
+    }
+    return d + 'Z';
+  }
+
+  /**
    * A sector with `cornerRadius` rounding: inset the geometry by cr and give
-   * the path a cr-wide round-joined stroke of its own colour.
+   * the path a cr-wide round-joined stroke of its own colour. The inner and
+   * outer edges are inset by their own local radius (see sectorPathAsym) so
+   * the gap between neighbouring sectors stays a constant width from hub to
+   * rim instead of pinching shut near the centre.
    */
   function sectorNode(cx, cy, r0, r1, a0, a1, cornerRadius, fill, opacity) {
     var cr = Math.max(0, Math.min(cornerRadius || 0, (r1 - r0) / 2));
     var span = a1 - a0;
     var node;
     if (cr > 0 && span > 1e-9) {
-      var mid = (r0 + r1) / 2;
-      var angInset = Math.min(cr / Math.max(mid, 1), span / 2 - 1e-6);
-      if (angInset > 0) {
+      var outerR = r1 - cr,
+        innerR = r0 + cr;
+      var angInsetOuter = Math.min(cr / Math.max(outerR, 1), span / 2 - 1e-6);
+      var angInsetInner = r0 > 0 ? Math.min(cr / Math.max(innerR, 1), span / 2 - 1e-6) : angInsetOuter;
+      if (angInsetOuter > 0) {
         node = svg('path', {
-          d: sectorPath(cx, cy, r0 + cr, r1 - cr, a0 + angInset, a1 - angInset),
+          d: sectorPathAsym(
+            cx, cy, innerR, outerR,
+            a0 + angInsetInner, a1 - angInsetInner,
+            a0 + angInsetOuter, a1 - angInsetOuter
+          ),
           fill: fill,
           stroke: fill,
           'stroke-width': cr * 2,
@@ -914,16 +963,55 @@
           });
           barsG.appendChild(body);
 
+          var barLabel = categoryFmt(categories[di]);
+          if (bars.length > 1) barLabel += ' · ' + (entry.def.label || entry.def.key);
+          var barValueText = (spec.barValueFormat ? fmtOf(spec.barValueFormat) : valueFmt)(datum.y);
+          tip(body, barLabel, barValueText, null, color);
+
+          /* A bar thinner than a comfortable fingertip (~28px) still gets a
+             fingertip-sized hit target: an invisible rect centred on the
+             same slot, padded out only in the THIN axis so it does not creep
+             into a neighbouring bar's own territory along the band. */
+          var thinAxis = horizontal ? h : w;
+          if (thinAxis < 28) {
+            var padded =
+              thinAxis === h
+                ? { x: x, y: y - (28 - h) / 2, w: w, h: 28 }
+                : { x: x - (28 - w) / 2, y: y, w: 28, h: h };
+            barsG.appendChild(
+              tip(
+                svg('rect', {
+                  x: padded.x,
+                  y: padded.y,
+                  width: padded.w,
+                  height: padded.h,
+                  fill: 'transparent',
+                  style: 'pointer-events:all',
+                }),
+                barLabel,
+                barValueText,
+                null,
+                color
+              )
+            );
+          }
+
           if (isOuter) {
             var sw = Math.min(stripe, horizontal ? w : h);
             barsG.appendChild(
-              svg('rect', {
-                x: horizontal ? x + w - sw : x,
-                y: horizontal ? y : y,
-                width: horizontal ? sw : w,
-                height: horizontal ? h : sw,
-                fill: color,
-              })
+              tip(
+                svg('rect', {
+                  x: horizontal ? x + w - sw : x,
+                  y: horizontal ? y : y,
+                  width: horizontal ? sw : w,
+                  height: horizontal ? h : sw,
+                  fill: color,
+                }),
+                barLabel,
+                barValueText,
+                null,
+                color
+              )
             );
           }
 
@@ -972,7 +1060,13 @@
             /* A point/linear category axis: spread evenly, as scalePoint does. */
             along = categories.length > 1 ? (i / (categories.length - 1)) * bandExtent : bandExtent / 2;
           }
-          pts.push(horizontal ? [value.scale(d.y), along] : [along, value.scale(d.y)]);
+          var pt = horizontal ? [value.scale(d.y), along] : [along, value.scale(d.y)];
+          /* Riding along on the same array `linePath`/`monotonePath` index
+             into by [0]/[1] -- the tooltip hit-circles below read these back
+             without a second pass over `entry.def.data`. */
+          pt.category = d.x;
+          pt.value = d.y;
+          pts.push(pt);
         }
         return pts;
       }
@@ -1014,6 +1108,31 @@
               svg('circle', { cx: pts[p][0], cy: pts[p][1], r: m(3.5), fill: entry.color })
             );
           }
+        }
+
+        /* A line/area has no bar body to hover -- without this, the series
+           would be the one mark on the whole board a pointer can see but
+           not query. One invisible, fingertip-sized hit circle per data
+           point, on top of the stroke rather than dot-sized, so hovering
+           anywhere near the line (not just exactly on a visible dot) reads
+           the nearest point's value. */
+        var lineLabel = series.length > 1 ? ' · ' + (entry.def.label || entry.def.key) : '';
+        for (var hp = 0; hp < pts.length; hp++) {
+          plot.appendChild(
+            tip(
+              svg('circle', {
+                cx: pts[hp][0],
+                cy: pts[hp][1],
+                r: 14,
+                fill: 'transparent',
+                style: 'pointer-events:all',
+              }),
+              categoryFmt(pts[hp].category) + lineLabel,
+              valueFmt(pts[hp].value),
+              null,
+              entry.color
+            )
+          );
         }
       });
 
@@ -1167,7 +1286,13 @@
           if (a1 <= a0) continue;
 
           g.appendChild(
-            sectorNode(cx, cy, inner, outer, a0, a1, m(spec.cornerRadius || 0), resolved[i])
+            tip(
+              sectorNode(cx, cy, inner, outer, a0, a1, m(spec.cornerRadius || 0), resolved[i]),
+              Labels.t(data[i].label),
+              valueFmt(data[i].value),
+              (share * 100).toFixed(share < 0.1 ? 1 : 0) + '%',
+              resolved[i]
+            )
           );
 
           if (showAnnotations && share > 0.02) {
@@ -1629,9 +1754,9 @@
           for (var j = 0; j < kids.length; j++) {
             var kid = kids[j];
             var kSpan = node.value ? (kid.value / node.value) * childSpan : 0;
-            var k0 = childAngle;
-            var k1 = childAngle + kSpan;
-            childAngle = k1;
+            var k0 = childAngle + pad / 2;
+            var k1 = childAngle + kSpan - pad / 2;
+            childAngle += kSpan;
             if (k1 - k0 <= 1e-6) continue;
             var r0 = inner + ringWidth;
             var r1 = inner + ringWidth * 2;
@@ -1796,6 +1921,14 @@
 
   function indicatorTile(item) {
     var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md'));
+
+    tile.appendChild(html('div', 'ax-kpi-label', item.label));
+
+    /* Grouped so the label-to-value gap can flex with the tile's own height
+       (`space-between` on .ax-kpi) while the value, delta pill and note stay
+       glued to one another regardless of how much room that leaves. */
+    var body = html('div', 'ax-kpi-body');
+
     var value = html('div', 'ax-kpi-value');
     if (item.color) value.style.color = item.color;
 
@@ -1811,7 +1944,7 @@
     num.setAttribute('dir', 'ltr');
     value.appendChild(num);
     if (item.unit) value.appendChild(html('span', 'ax-kpi-unit', item.unit));
-    tile.appendChild(value);
+    body.appendChild(value);
 
     if (item.delta !== undefined && item.delta !== null) {
       var pill = html('div', 'ax-kpi-delta' + (item.delta > 0 ? ' is-up' : item.delta < 0 ? ' is-down' : ''));
@@ -1823,11 +1956,11 @@
       var dv = html('span', 'ax-num', item.deltaText);
       dv.setAttribute('dir', 'ltr');
       pill.appendChild(dv);
-      tile.appendChild(pill);
+      body.appendChild(pill);
     }
 
-    tile.appendChild(html('div', 'ax-kpi-label', item.label));
-    if (item.note) tile.appendChild(html('div', 'ax-kpi-note', item.note));
+    if (item.note) body.appendChild(html('div', 'ax-kpi-note', item.note));
+    tile.appendChild(body);
     return tile;
   }
 
@@ -1851,6 +1984,10 @@
     var areas = host.querySelectorAll('.ax-chart-area');
     for (var i = 0; i < areas.length; i++) unobserve(areas[i]);
     if (host.classList && host.classList.contains('ax-chart-area')) unobserve(host);
+    /* The board tearing this chart down is also the one moment a stray
+       hover/pinned tooltip is guaranteed to be pointing at a mark that is
+       about to stop existing. */
+    if (global.Tooltip) global.Tooltip.hide();
   }
 
   var KINDS = {

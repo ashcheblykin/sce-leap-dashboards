@@ -60,7 +60,7 @@
                 { value: Data.head.proact, format: 'grouped', label: t('m.proact'), color: T.cy, valueFontSize: 'small' },
                 { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), color: T.green, valueFontSize: 'small' },
                 { value: Data.register.near, format: 'grouped', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
-                { value: Data.register.active, format: 'grouped', label: t('m.active'), color: T.blue, valueFontSize: 'small' },
+                { value: Data.register.active, format: 'grouped', label: t('m.active'), color: T.green, valueFontSize: 'small' },
               ],
             });
           },
@@ -235,7 +235,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
               valueFormat: 'sar',

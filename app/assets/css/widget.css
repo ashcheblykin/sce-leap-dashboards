@@ -55,6 +55,28 @@ body.grid-dragging .widget-head {
   border-bottom: none;
 }
 
+[data-grid-item='eco-mon'] .widget-head {
+  border-bottom: none;
+}
+
+/* Three-plus tab labels never fit next to a title on one line without
+   crushing it to an ellipsis, so these widgets get their own full-width
+   tab row below the title instead — no header hairline needed once the
+   tabs themselves separate title from body. */
+.widget[data-chips-row] .widget-head {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.widget[data-chips-row] > .chips {
+  align-self: stretch;
+}
+
+.widget[data-chips-row] > .chips .chip {
+  flex: 1;
+  text-align: center;
+}
+
 /* Axion's card title is sentence case, near-white and quiet, so the numbers in
    the body are the loudest thing on the panel. The tracked cyan uppercase this
    replaces is the house style of a control room, not of a product; the cyan
@@ -118,6 +140,7 @@ body.grid-dragging .widget-head {
   flex: none;
   gap: var(--sp-1);
   padding: var(--track-pad);
+  border: var(--hairline) solid var(--panel-border);
   border-radius: var(--radius-pill);
   overflow: hidden;
   touch-action: pan-y;

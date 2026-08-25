@@ -62,6 +62,7 @@
         x: 0, y: 3, w: 6, h: 3, minW: 4, minH: 2,
         titleKey: 'w.spec',
         chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
+        stackChips: true,
         views: [
           function (el) {
             Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.eng5, T.cy), note: t('n.specNote') });
@@ -70,7 +71,7 @@
             Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.tech5, T.green), note: t('n.specNote') });
           },
           function (el) {
-            Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.spec5, T.purple), note: t('n.specNote') });
+            Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.spec5, Kit.CLASS_TONE.Specialist), note: t('n.specNote') });
           },
         ],
       },
@@ -123,7 +124,7 @@
                   label: t('c.saudishare'),
                   color: T.purple,
                 },
-                { value: Data.head.saudis, format: 'compact', label: t('m.saudis'), color: T.cy, valueFontSize: 'small' },
+                { value: Data.head.saudis, format: 'compact', label: t('m.saudis'), color: T.purple, valueFontSize: 'small' },
                 { value: Data.nonSaudi, format: 'compact', label: t('m.nonsaudi'), color: T.blue, valueFontSize: 'small' },
               ],
               note: t('n.saudiNote'),
@@ -195,7 +196,7 @@
             Chart.mount(el, {
               chart: 'pie',
               donut: true,
-              gap: 1.5,
+              gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
               data: Data.classes.map(function (r, i) {

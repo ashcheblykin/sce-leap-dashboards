@@ -7,6 +7,14 @@
   'use strict';
 
   var MINUS = '\u2212';
+  /* Narrow no-break space in place of the comma: reads as a digit grouping
+     without implying a decimal (some locales use comma there), and it can't
+     become a line-break point the way a plain space could on a big tile. */
+  var GROUP_SEP = '\u202f';
+
+  function degroup(s) {
+    return s.replace(/,/g, GROUP_SEP);
+  }
 
   /* The Axion wordmark, inlined so `currentColor` picks up whatever the
      surrounding credit line is styled with (shell.js's ticker, map.js's
@@ -21,7 +29,7 @@
   }
 
   function grouped(n) {
-    return withMinus(Math.round(n).toLocaleString('en-US'));
+    return withMinus(degroup(Math.round(n).toLocaleString('en-US')));
   }
 
   /* Trailing zeros are only ever noise after a decimal point. Stripping them
@@ -36,7 +44,7 @@
     var abs = Math.abs(n);
     if (abs < 10000) {
       var rounded = abs < 100 ? Math.round(n * 10) / 10 : Math.round(n);
-      return withMinus(rounded.toLocaleString('en-US'));
+      return withMinus(degroup(rounded.toLocaleString('en-US')));
     }
     var units = [
       [1e9, 'B'],

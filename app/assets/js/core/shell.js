@@ -96,6 +96,10 @@
   var switching = false;
   var slideStartedAt = 0;
   var navFills = [];
+  var navPill = null;
+  var navPillIndex = -1;
+  var navPillGen = 0;
+  var navPillTimers = [];
 
   /* --- Type scale --- */
   var scale = SCALE_DEFAULT;
@@ -114,6 +118,16 @@
        mounted chart has to repaint at the new geometry. */
     Chart.refreshUnit();
     for (var i = 0; i < boards.length; i++) if (boards[i]) redrawCharts(boards[i].surface);
+    resnapNavPill();
+  }
+
+  /* The pill's left/right are frozen px from the last glide, so anything that
+     reflows the nav (a window resize, a --u-scale nudge) has to re-anchor it
+     without replaying the travel animation. */
+  function resnapNavPill() {
+    if (!navPill || navPillIndex < 0) return;
+    var items = navHost.querySelectorAll('.nav-item');
+    if (items[navPillIndex]) snapNavPill(items[navPillIndex]);
   }
 
   function nudgeScale(delta) {
@@ -168,8 +182,18 @@
     holdUntil = lastInteraction + INTERACTION_PAUSE_MS;
   }
 
-  /* --- Navigation --- */
+  /* --- Navigation ---
+     The active-item highlight is the same liquid sliding pill the widgets'
+     .chips view switchers use (see attachChipTabs in board.js): a layer
+     behind the labels that glides to the new item instead of jump-cutting. */
   function buildNav() {
+    if (!navPill) {
+      navPill = document.createElement('div');
+      navPill.className = 'nav-pill';
+      navHost.insertBefore(navPill, navHost.firstChild);
+      navPillIndex = -1;
+    }
+
     var html = '';
     for (var i = 0; i < BOARDS.length; i++) {
       html +=
@@ -182,16 +206,89 @@
     var existing = navHost.querySelectorAll('.nav-item');
     for (var e = 0; e < existing.length; e++) existing[e].remove();
     navHost.insertAdjacentHTML('afterbegin', html);
+    navHost.insertBefore(navPill, navHost.firstChild);
     navFills = navHost.querySelectorAll('.nav-item-fill');
-    if (current >= 0) markNav(current);
+    if (current >= 0) markNav(current, false);
   }
 
-  function markNav(index) {
+  function navPillMs(name) {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
+  }
+
+  function navPillEdges(item) {
+    var wr = navHost.getBoundingClientRect();
+    var er = item.getBoundingClientRect();
+    return { left: er.left - wr.left, right: wr.right - er.right };
+  }
+
+  function clearNavPillTimers() {
+    for (var t = 0; t < navPillTimers.length; t++) clearTimeout(navPillTimers[t]);
+    navPillTimers = [];
+  }
+
+  function snapNavPill(item) {
+    var e = navPillEdges(item);
+    navPill.style.transition = 'none';
+    navPill.style.left = e.left + 'px';
+    navPill.style.right = e.right + 'px';
+    navPill.style.backgroundColor = 'var(--chip-fill)';
+    navPill.style.boxShadow = 'var(--glow-spectrum)';
+    void navPill.offsetWidth;
+    navPill.style.transition = '';
+  }
+
+  /* Same ghost -> bloom -> settle sequence as the chip pill: a hairline ring
+     while travelling, then a bloom on arrival that fades back to rest. */
+  function glideNavPill(item, movingRight) {
+    clearNavPillTimers();
+    var g = ++navPillGen;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      snapNavPill(item);
+      return;
+    }
+
+    var LEAD = navPillMs('--chip-dur-lead');
+    var TRAIL = navPillMs('--chip-dur-trail');
+    var HOLD = navPillMs('--chip-hold');
+    var lDur = movingRight ? TRAIL : LEAD;
+    var rDur = movingRight ? LEAD : TRAIL;
+    var e = navPillEdges(item);
+
+    navPill.style.backgroundColor = 'var(--chip-fill-ghost)';
+    navPill.style.boxShadow = 'var(--chip-rim)';
+    navPill.style.setProperty('--pl', lDur + 'ms');
+    navPill.style.setProperty('--pr', rDur + 'ms');
+    navPill.style.left = e.left + 'px';
+    navPill.style.right = e.right + 'px';
+
+    navPillTimers.push(
+      setTimeout(function () {
+        if (navPillGen !== g) return;
+        navPill.style.backgroundColor = 'var(--chip-fill)';
+        navPill.style.boxShadow = 'var(--chip-glow-bloom)';
+        navPillTimers.push(
+          setTimeout(function () {
+            if (navPillGen !== g) return;
+            navPill.style.backgroundColor = 'var(--chip-fill)';
+            navPill.style.boxShadow = 'var(--glow-spectrum)';
+          }, HOLD)
+        );
+      }, Math.max(lDur, rDur))
+    );
+  }
+
+  function markNav(index, animate) {
     var items = navHost.querySelectorAll('.nav-item');
     for (var i = 0; i < items.length; i++) {
       if (i === index) items[i].setAttribute('data-on', '');
       else items[i].removeAttribute('data-on');
       navFills[i].style.width = '0%';
+    }
+    if (items[index]) {
+      if (animate && navPillIndex >= 0) glideNavPill(items[index], index > navPillIndex);
+      else snapNavPill(items[index]);
+      navPillIndex = index;
     }
   }
 
@@ -271,7 +368,7 @@
       current = index;
       next.surface.style.display = '';
       measure();
-      markNav(index);
+      markNav(index, true);
       Motion.enter(next.surface);
       slideStartedAt = Date.now();
       switching = false;
@@ -494,6 +591,7 @@
     });
 
     window.addEventListener('resize', measure);
+    window.addEventListener('resize', resnapNavPill);
   }
 
   function start() {
