@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="2840" height="1111" viewBox="0 0 2840 1111" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="grid" clip-path="url(#clip0_0_66)">
+<path id="h1" d="M-20 555L3356 556" stroke="white" stroke-width="0.5"/>
+<path id="h1_2" d="M-268 93.0001L3108 93.9999" stroke="white" stroke-width="0.5"/>
+<path id="h1_3" d="M-268 1018L3108 1019" stroke="white" stroke-width="0.5"/>
+<path id="v2" d="M571 -20V1131" stroke="white" stroke-opacity="0.5" stroke-width="0.5" stroke-dasharray="2 2"/>
+<path id="v3" d="M1142 -20V1131" stroke="white" stroke-opacity="0.5" stroke-width="0.5" stroke-dasharray="2 2"/>
+<path id="v1" d="M1699 -20V1131" stroke="white" stroke-opacity="0.5" stroke-width="0.5" stroke-dasharray="2 2"/>
+<path id="v2_2" d="M2270 -20V1131" stroke="white" stroke-opacity="0.5" stroke-width="0.5" stroke-dasharray="2 2"/>
+</g>
+<defs>
+<clipPath id="clip0_0_66">
+<rect width="2840" height="1111" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -72,7 +72,7 @@ const evaluate = async (expression) => {
   return result.value;
 };
 
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1200);
 
 const geometry = () =>
@@ -140,7 +140,7 @@ const afterResize = await geometry();
 
 await send('Page.reload', {});
 await sleep(2500);
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1200);
 const afterReload = await geometry();
 

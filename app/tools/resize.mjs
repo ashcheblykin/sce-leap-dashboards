@@ -141,7 +141,7 @@ const TRANSITIONS = `(() => {
 await metrics(2880, 1152);
 await send('Page.navigate', { url: `file://${ROOT}/index.html` });
 await sleep(2200);
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1500);
 for (let i = 0; i < 20; i++) {
   await frame();

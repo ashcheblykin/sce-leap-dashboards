@@ -79,7 +79,7 @@ async function evaluate(expression) {
   return result.value;
 }
 
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1200);
 /* LOCALE=ar probes the RTL board, which is a different layout, not a
    translation of the same one. Pass it explicitly either way: the locale is

@@ -31,21 +31,10 @@
     'ctl.reset': ['Reset layout', 'استعادة الترتيب'],
     'ctl.lang': ['Language', 'اللغة'],
 
-    /* Splash */
-    'splash.eyebrow': [
-      'Saudi Council of Engineers · LEAP 2026',
-      'الهيئة السعودية للمهندسين · LEAP 2026',
-    ],
-    'splash.title1': ['AI-Driven Oversight', 'رقابة مدعومة بالذكاء الاصطناعي'],
-    'splash.title2': ['for Future Cities', 'لمدن المستقبل'],
-    'splash.sub': [
-      "One live picture of the Kingdom's engineering profession — the registered workforce, the renewal pipeline, enforcement delivery and every office verified at the door.",
-      'صورة حية واحدة لمهنة الهندسة في المملكة — القوى العاملة المسجلة، ومسار التجديد، والإنفاذ، وكل مكتب تم التحقق منه ميدانياً.',
-    ],
-    'splash.cta': ['Start exploration', 'ابدأ الاستعراض'],
-    'splash.stat1': ['Professionals in regulated roles', 'المهنيون في المهن المنظمة'],
-    'splash.stat2': ['Registered with SCE', 'المسجلون في الهيئة'],
-    'splash.stat3': ['Offices verified on the ground', 'المكاتب المتحقق منها ميدانياً'],
+    /* Splash. The headline pair is verbatim from the LEAP hero design
+       (Figma node 2421-648), casing included. */
+    'splash.title1': ['AI-driven oversight', 'الرقابة المدعومة بالذكاء الاصطناعي'],
+    'splash.title2': ['for future cities', 'من أجل مدن المستقبل'],
 
     /* Panel titles */
     'w.eco': ['National Ecosystem', 'المنظومة الوطنية'],

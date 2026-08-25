@@ -13,10 +13,12 @@ const ROOT = resolve('.');
 
 const MIME = {
   '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.mp4': 'video/mp4',
 };
 
 async function dataUri(path) {
@@ -59,7 +61,8 @@ for (const [match, src] of scripts) {
 // `src` and `href` both: the logo arrives on an <img src>, but the favicons and
 // the apple-touch icon arrive on <link href>, and matching only src left six
 // external references that failed the check below instead of being inlined.
-const images = [...html.matchAll(/(src|href)="(assets\/img\/[^"]+)"/g)];
+// `media/` holds the splash's palm still, loop and pattern plate.
+const images = [...html.matchAll(/(src|href)="(assets\/(?:img|media)\/[^"]+)"/g)];
 for (const [, attr, src] of images) {
   html = html.split(`${attr}="${src}"`).join(`${attr}="${await dataUri(join(ROOT, src))}"`);
 }

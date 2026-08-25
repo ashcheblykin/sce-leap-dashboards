@@ -163,7 +163,7 @@ await shot('0-splash-ar');
 await evaluate(`I18N.set('en')`);
 await sleep(400);
 
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1600);
 
 

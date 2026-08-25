@@ -83,7 +83,7 @@ await send('Page.addScriptToEvaluateOnNewDocument', {
 
 await send('Page.navigate', { url: `file://${ROOT}/index.html` });
 await sleep(1500);
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1000);
 
 const active = () =>

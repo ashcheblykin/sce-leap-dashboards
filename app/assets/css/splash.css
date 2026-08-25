@@ -1,14 +1,34 @@
-/* SCE start screen. Deliberately SCE-branded rather than Axion-branded: this is
-   the client's front door, so the only Axion mark is the small credit line. */
+/* SCE start screen — the LEAP hero frame (Figma node 2421-648), ported 1:1.
+
+   The frame is designed at 2880x1152, so the splash carries its own unit:
+   `--su` is one design pixel of that frame, from the viewport alone. It is
+   deliberately NOT `--u` — the splash is a poster, not a board, so the `[`/`]`
+   type-scale knob must not move its composition. Every coordinate below is
+   the Figma value times `--su`; where a value looks arbitrary (161, 942,
+   2498) it is the design's own, not something picked by eye.
+
+   The palm still + video cover the whole viewport; the composed scene
+   (grid, blur frame, headlines, logos) letterboxes inside it. */
+
+@font-face {
+  /* 29LT Bukra, variable. Shipped whole rather than subset: the variable
+     tables carry the weight axis the headline relies on, and this face only
+     loads behind the splash. */
+  font-family: '29LT Bukra';
+  src: url('../fonts/29LT-Bukra-VF.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
 
 .splash {
+  --su: min(100vw / 2880, 100vh / 1152);
+
   position: fixed;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(1800px 1100px at 50% 58%, #0a2742 0%, #051a2e 45%, #01060e 100%);
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
   inset: 0;
   opacity: 1;
   transition: opacity 520ms var(--ease);
@@ -23,163 +43,232 @@
   pointer-events: none;
 }
 
-.splash-canvas {
+/* --- The palm --- */
+
+/* Still under video: a browser that cannot decode the HEVC loop paints
+   nothing into the <video>, and the identical still shows through.
+   The design crops the 16:9 image 66px into its top edge — 14% of the
+   overflow — so both layers share that object-position. */
+.splash-bg,
+.splash-video {
   position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.splash-veil {
-  position: absolute;
-  background: radial-gradient(900px 520px at 50% 46%, rgba(1, 8, 18, 0.86) 0%, rgba(1, 8, 18, 0) 72%);
+  object-fit: cover;
+  object-position: 50% 14%;
   inset: 0;
 }
 
-.splash-inner {
-  position: relative;
+/* --- The blur frame --- */
+
+/* The design's background-mask: a backdrop-blur border with a sharp window
+   over the palm. The window is 591..2290 x 113..1038 of the frame — the
+   same lines the grid draws — held here as offsets from the viewport
+   centre so the bands still cover a viewport wider or taller than the
+   scene. Four bands rather than one evenodd clip-path: a band can never
+   fail closed and blur the whole screen. */
+.splash-blur {
+  position: absolute;
+  backdrop-filter: blur(calc(50 * var(--su)));
+}
+
+.splash-blur--top {
+  height: calc(50% - 463 * var(--su));
+  inset: 0 0 auto 0;
+}
+
+.splash-blur--bottom {
+  height: calc(50% - 462 * var(--su));
+  inset: auto 0 0 0;
+}
+
+.splash-blur--left,
+.splash-blur--right {
+  top: calc(50% - 463 * var(--su));
+  bottom: calc(50% - 462 * var(--su));
+}
+
+.splash-blur--left {
+  left: 0;
+  width: calc(50% - 849 * var(--su));
+}
+
+.splash-blur--right {
+  right: 0;
+  width: calc(50% - 850 * var(--su));
+}
+
+/* --- The scene --- */
+
+.splash-scene {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(2880 * var(--su));
+  height: calc(1152 * var(--su));
+  translate: -50% -50%;
+}
+
+/* Data-point scatter around the crown: a 1024px plate centred on
+   (1631, 270) of the frame. */
+.splash-pattern {
+  position: absolute;
+  top: calc(270 * var(--su));
+  left: calc(1631 * var(--su));
+  width: calc(1024 * var(--su));
+  height: calc(1024 * var(--su));
+  translate: -50% -50%;
+}
+
+.splash-grid {
+  position: absolute;
+  inset: calc(20 * var(--su));
+  width: calc(2840 * var(--su));
+  height: calc(1111 * var(--su));
+}
+
+/* Two survey glyphs pinned to the hillside. */
+.splash-spark {
+  position: absolute;
+  top: calc(794 * var(--su));
+  left: calc(1141 * var(--su));
+  width: calc(17 * var(--su));
+  height: calc(18 * var(--su));
+  translate: -50% -50%;
+  rotate: 135deg;
+}
+
+.splash-marker {
+  position: absolute;
+  top: calc(903 * var(--su));
+  left: calc(1425 * var(--su));
+  width: calc(34 * var(--su));
+  height: calc(34 * var(--su));
+}
+
+/* --- Headlines --- */
+
+/* One size, two staggered blocks. The English pair hangs off the frame's
+   left gridline; the Arabic pair mirrors onto the right one with the
+   design's own offsets — not a reflection, its own composition. */
+.splash-title {
+  position: absolute;
+  color: #fff;
+  font-family: '29LT Bukra', var(--font);
+  font-size: calc(116 * var(--su));
+  font-weight: 400;
+  line-height: calc(100 * var(--su));
+  text-box: trim-both cap alphabetic;
+}
+
+.splash-title--lead {
+  top: calc(227 * var(--su));
+  left: calc(299 * var(--su));
+  width: calc(556 * var(--su));
+}
+
+.splash-title--tail {
+  top: calc(697 * var(--su));
+  left: calc(588 * var(--su));
+  width: calc(644 * var(--su));
+}
+
+[dir='rtl'] .splash-title {
+  line-height: calc(122 * var(--su));
+  text-align: right;
+}
+
+[dir='rtl'] .splash-title--lead {
+  top: calc(114 * var(--su));
+  right: calc(578 * var(--su));
+  left: auto;
+  width: calc(606 * var(--su));
+}
+
+[dir='rtl'] .splash-title--tail {
+  top: calc(821 * var(--su));
+  right: calc(584 * var(--su));
+  left: auto;
+  width: calc(644 * var(--su));
+}
+
+/* --- Marks --- */
+
+/* Both marks hold their corners in both locales, as designed. */
+.splash-sce {
+  position: absolute;
+  top: calc(942 * var(--su));
+  left: calc(161 * var(--su));
+  width: calc(220 * var(--su));
+  height: calc(92 * var(--su));
+}
+
+.splash-credit {
+  position: absolute;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  gap: calc(10 * var(--su));
+  top: calc(960 * var(--su));
+  left: calc(2498 * var(--su));
+  width: calc(187 * var(--su));
+  color: #fff;
+  text-align: left;
 }
 
-.splash-logo {
-  height: calc(96 * var(--u));
-  filter: drop-shadow(0 0 var(--sp-8) rgba(var(--cy-rgb), 0.2));
-}
-
-.splash-eyebrow {
-  margin-top: var(--sp-7);
-  color: var(--cy);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-}
-
-.splash-title {
-  max-width: calc(1500 * var(--u));
-  margin-top: var(--sp-5);
-  background: linear-gradient(180deg, #ffffff 0%, #9dd6ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-size: var(--fs-splash);
+.splash-credit span {
+  opacity: 0.6;
+  font-size: calc(21 * var(--su));
   font-weight: 300;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  line-height: calc(25 * var(--su));
 }
 
-.splash-title b {
-  font-weight: 700;
+.splash-credit img {
+  width: calc(186 * var(--su));
+  height: calc(32 * var(--su));
 }
 
-.splash-sub {
-  max-width: calc(880 * var(--u));
-  margin-top: var(--sp-5);
-  color: var(--tx-2);
-  font-size: var(--fs-md);
-  font-weight: 300;
-  line-height: 1.55;
+/* --- Entrance --- */
+
+/* The palm fades up once; type and marks rise over it. A re-show after idle
+   replays both, which is the attract loop doing its job. */
+.splash-bg,
+.splash-video,
+.splash-pattern {
+  animation: splash-fade 900ms var(--ease) backwards;
 }
 
-.splash-cta {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-5) var(--sp-10);
-  border: var(--hairline) solid rgba(var(--cy-rgb), 0.55);
-  border-radius: var(--radius-pill);
-  margin-top: var(--sp-9);
-  background: rgba(var(--cy-rgb), 0.12);
-  box-shadow:
-    0 0 var(--sp-8) rgba(var(--cy-rgb), 0.16),
-    var(--glow-spectrum);
-  backdrop-filter: var(--blur-glass);
-  color: var(--tx);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  transition:
-    background var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
-    scale var(--dur) var(--ease);
-}
+.splash-title--lead { animation: splash-rise 700ms var(--ease) 200ms backwards; }
+.splash-title--tail { animation: splash-rise 700ms var(--ease) 320ms backwards; }
+.splash-sce { animation: splash-fade 700ms var(--ease) 440ms backwards; }
+.splash-credit { animation: splash-fade 700ms var(--ease) 440ms backwards; }
 
-.splash-cta:hover {
-  background: rgba(var(--cy-rgb), 0.2);
-  box-shadow: 0 0 var(--sp-11) rgba(var(--cy-rgb), 0.28);
-  scale: 1.02;
+@keyframes splash-fade {
+  from {
+    opacity: 0;
+  }
 }
-
-.splash-cta svg {
-  width: var(--sp-5);
-  height: var(--sp-5);
-  fill: var(--cy);
-}
-
-.splash-stats {
-  display: flex;
-  gap: var(--sp-11);
-  margin-top: var(--sp-10);
-}
-
-.splash-stat-value {
-  color: var(--tx);
-  font-size: var(--fs-kpi-sm);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-
-.splash-stat-label {
-  margin-top: var(--sp-1);
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.splash-foot {
-  position: absolute;
-  bottom: var(--sp-7);
-  left: 50%;
-  color: rgba(var(--cy-rgb), 0.34);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  translate: -50% 0;
-}
-
-/* Content rises once, on first paint. */
-.splash-inner > * {
-  animation: splash-rise 700ms var(--ease) backwards;
-}
-
-.splash-inner > *:nth-child(1) { animation-delay: 60ms; }
-.splash-inner > *:nth-child(2) { animation-delay: 140ms; }
-.splash-inner > *:nth-child(3) { animation-delay: 220ms; }
-.splash-inner > *:nth-child(4) { animation-delay: 300ms; }
-.splash-inner > *:nth-child(5) { animation-delay: 380ms; }
-.splash-inner > *:nth-child(6) { animation-delay: 460ms; }
 
 @keyframes splash-rise {
   from {
     opacity: 0;
-    translate: 0 var(--sp-4);
+    translate: 0 calc(16 * var(--su));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-inner > * {
+  .splash-bg,
+  .splash-video,
+  .splash-pattern,
+  .splash-title--lead,
+  .splash-title--tail,
+  .splash-sce,
+  .splash-credit {
     animation: none;
   }
 }
 
-/* The attract screen's own language switch, in the corner opposite the logo's
-   optical centre so it never competes with the headline. */
+/* The attract screen's own language switch, opposite the reading corner so
+   it never competes with the headline. */
 .lang--splash {
   z-index: 3;
   position: absolute;
@@ -187,4 +276,5 @@
   inset-inline-end: var(--sp-7);
   background: var(--plate);
   backdrop-filter: var(--blur-glass);
+  cursor: default;
 }

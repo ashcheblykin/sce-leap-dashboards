@@ -266,7 +266,7 @@ await send('Emulation.setDeviceMetricsOverride', {
 });
 await send('Page.navigate', { url: `file://${TARGET}` });
 await sleep(2200);
-await evaluate(`document.getElementById('splashStart').click()`);
+await evaluate(`document.getElementById('splash').click()`);
 await sleep(1400);
 
 /* Every board, every locale, every chip view — a view that is never opened is
