@@ -1,0 +1,176 @@
+.map {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  border: var(--hairline) solid rgba(var(--cy-rgb), 0.16);
+  border-radius: var(--radius-md);
+  background: #03101f;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Fades the plate into the panel. It belongs here rather than baked into the
+   image: the renderer crops the plate differently for every panel shape, so a
+   vignette painted into the pixels would drift off the visible edges. */
+.map::after {
+  position: absolute;
+  background: radial-gradient(120% 110% at 50% 48%, transparent 52%, rgba(2, 10, 20, 0.82) 100%);
+  content: '';
+  inset: 0;
+  pointer-events: none;
+}
+
+.map-ground {
+  fill: #020a14;
+}
+
+.map-plate {
+  opacity: 0.96;
+}
+
+/* Knocks back everything the mask leaves showing, i.e. every country that is
+   not Saudi Arabia. */
+.map-scrim {
+  fill: rgba(2, 10, 20, 0.62);
+}
+
+.map-focus {
+  fill: rgba(var(--cy-rgb), 0.05);
+  stroke: rgba(var(--cy-rgb), 0.6);
+  stroke-width: 0.03;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+/* The bubbles now sit on a real basemap rather than an empty silhouette, so
+   they carry more fill and a glow to stay clearly in front of it. */
+.map-dot {
+  fill: currentColor;
+  fill-opacity: 0.3;
+  stroke: currentColor;
+  stroke-opacity: 0.95;
+  stroke-width: 0.022;
+  filter: drop-shadow(0 0 0.06px currentColor);
+}
+
+.map-dot--solid {
+  fill-opacity: 0.8;
+  stroke-opacity: 1;
+}
+
+.map-dot--muted {
+  color: var(--gold) !important;
+  fill-opacity: 0.35;
+}
+
+/* Field-verification variants: the dot's colour carries the licence state, so
+   it overrides the mode tone rather than shading it. */
+.map-dot--ok {
+  color: var(--green) !important;
+}
+
+.map-dot--mid {
+  color: #a3d977 !important;
+}
+
+.map-dot--warn {
+  color: var(--gold) !important;
+}
+
+.map-hud {
+  z-index: 1;
+  position: absolute;
+  top: calc(14 * var(--u));
+  inset-inline-start: calc(16 * var(--u));
+  padding: calc(10 * var(--u)) calc(18 * var(--u));
+  border: var(--hairline) solid var(--panel-border-strong);
+  border-radius: var(--radius-md);
+  background: rgba(4, 24, 43, 0.72);
+  box-shadow: var(--glow-spectrum);
+  backdrop-filter: var(--blur-glass);
+}
+
+.map-hud-value {
+  font-size: var(--fs-hud);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.map-hud-value .unit {
+  margin-left: 0.1em;
+  font-size: 0.42em;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.map-hud-label {
+  margin-top: calc(6 * var(--u));
+  color: var(--mut);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-foot {
+  z-index: 1;
+  position: absolute;
+  bottom: calc(12 * var(--u));
+  inset-inline-start: calc(16 * var(--u));
+  max-width: 76%;
+  display: flex;
+  gap: calc(14 * var(--u));
+  padding: calc(7 * var(--u)) calc(14 * var(--u));
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: rgba(4, 24, 43, 0.78);
+  backdrop-filter: var(--blur-glass);
+  color: var(--mut);
+  font-size: var(--fs-note);
+  letter-spacing: 0.02em;
+}
+
+.map-foot .key {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+}
+
+.map-foot .key i {
+  width: calc(8 * var(--u));
+  height: calc(8 * var(--u));
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The only Axion mark anywhere in the experience, tucked into the map corner
+   exactly as agreed in the kick-off — the corner opposite the HUD, so the whole
+   bottom edge stays free for the panel's note. (It used to share the bottom
+   with the note and the two ran into each other on a wide map.) */
+.map-credit {
+  z-index: 1;
+  position: absolute;
+  inset-inline-end: calc(16 * var(--u));
+  top: calc(16 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--u));
+  color: rgba(var(--cy-rgb), 0.38);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Carto and OSM require the credit; it sits with the Axion mark rather than
+   competing with it. */
+.map-attr {
+  color: rgba(var(--cy-rgb), 0.22);
+  letter-spacing: 0.06em;
+  text-transform: none;
+}

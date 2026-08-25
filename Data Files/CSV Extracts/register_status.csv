@@ -1,0 +1,13 @@
+class,status,count
+Engineer,active,304504
+Engineer,expired,250104
+Engineer,frozen,6006
+Engineer,near_expiry,35992
+Specialist,active,44023
+Specialist,expired,38025
+Specialist,frozen,502
+Specialist,near_expiry,6912
+Technician,active,137421
+Technician,expired,263721
+Technician,frozen,7096
+Technician,near_expiry,21880

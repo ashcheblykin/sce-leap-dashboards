@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SCE · Smart Monitoring Center — LEAP 2026</title>
+    <meta name="description" content="Saudi Council of Engineers national monitoring dashboards, LEAP 2026." />
+
+    <!-- Everything below is local. The wall has no internet: no CDN, no fonts
+         from the network, no map tiles. -->
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/grid.css" />
+    <link rel="stylesheet" href="assets/css/widget.css" />
+    <link rel="stylesheet" href="assets/css/chart-dsl.css" />
+    <link rel="stylesheet" href="assets/css/map.css" />
+    <link rel="stylesheet" href="assets/css/motion.css" />
+    <link rel="stylesheet" href="assets/css/shell.css" />
+    <link rel="stylesheet" href="assets/css/splash.css" />
+  </head>
+
+  <body>
+    <div class="shell">
+      <div class="ticker" id="ticker"></div>
+
+      <main class="stage" id="stage"></main>
+
+      <footer class="hdr">
+        <div class="hdr-brand">
+          <img class="hdr-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
+          <span class="hdr-rule"></span>
+          <div>
+            <div class="hdr-title" data-i18n="app.title">Smart Monitoring Center</div>
+            <div class="hdr-sub" data-i18n-gloss="app.title"></div>
+          </div>
+        </div>
+
+        <nav class="nav" id="nav">
+          <button class="nav-play" id="navPlay" type="button" aria-label="Play or pause the slideshow">
+            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
+          </button>
+        </nav>
+
+        <div class="hdr-meta">
+          <button class="hdr-reset" id="reset" type="button">Reset layout</button>
+          <!-- Language switch. Arabic is a full second locale, not a label
+               swap: it flips the document direction, which moves every chart's
+               category axis to the other side. A single button toggles
+               between the two. -->
+          <div class="lang" id="lang"></div>
+        </div>
+      </footer>
+    </div>
+
+    <section class="splash" id="splash">
+      <canvas class="splash-canvas" id="splashCanvas"></canvas>
+      <div class="splash-veil"></div>
+
+      <!-- The attract screen carries its own language switch: an Arabic-reading
+           visitor should not have to start in English to find the other one. -->
+      <div class="lang lang--splash"></div>
+
+      <div class="splash-inner">
+        <img class="splash-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
+        <div class="splash-eyebrow" data-i18n="splash.eyebrow"></div>
+        <h1 class="splash-title">
+          <span data-i18n="splash.title1"></span><br /><b data-i18n="splash.title2"></b>
+        </h1>
+        <p class="splash-sub" data-i18n="splash.sub"></p>
+
+        <button class="splash-cta" id="splashStart" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+          <span data-i18n="splash.cta"></span>
+        </button>
+
+        <div class="splash-stats">
+          <div>
+            <div class="splash-stat-value ax-num" id="splashStat1" dir="ltr">—</div>
+            <div class="splash-stat-label" data-i18n="splash.stat1"></div>
+          </div>
+          <div>
+            <div class="splash-stat-value ax-num" id="splashStat2" dir="ltr">—</div>
+            <div class="splash-stat-label" data-i18n="splash.stat2"></div>
+          </div>
+          <div>
+            <div class="splash-stat-value ax-num" id="splashStat3" dir="ltr">—</div>
+            <div class="splash-stat-label" data-i18n="splash.stat3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="splash-foot">Powered by Axion</div>
+    </section>
+
+    <script src="assets/js/data/leap_data.js"></script>
+    <script src="assets/js/data/ksa-geo.js"></script>
+    <script src="assets/js/data/ksa-basemap.js"></script>
+    <script src="assets/js/core/i18n.js"></script>
+    <script src="assets/js/core/format.js"></script>
+    <script src="assets/js/data/labels.js"></script>
+    <script src="assets/js/data/derive.js"></script>
+    <script src="assets/js/core/counter.js"></script>
+    <script src="assets/js/core/chart-dsl.js"></script>
+    <script src="assets/js/core/map.js"></script>
+    <script src="assets/js/core/grid.js"></script>
+    <script src="assets/js/core/motion.js"></script>
+    <script src="assets/js/core/board.js"></script>
+    <script src="assets/js/boards/kit.js"></script>
+    <script src="assets/js/boards/ecosystem.js"></script>
+    <script src="assets/js/boards/profession.js"></script>
+    <script src="assets/js/boards/operations.js"></script>
+    <script src="assets/js/boards/field.js"></script>
+    <script src="assets/js/core/shell.js"></script>
+    <script src="assets/js/core/splash.js"></script>
+    <script>
+      document.getElementById('splashStat1').textContent = Fmt.grouped(Data.head.eco);
+      document.getElementById('splashStat2').textContent = Fmt.grouped(Data.head.reg);
+      document.getElementById('splashStat3').textContent = Fmt.grouped(Data.tuv.surveyed);
+
+      Shell.init();
+      Splash.init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,446 @@
+/* Chart DSL styling — the CSS half of assets/js/core/chart-dsl.js.
+
+   Only two jobs here. The SVG kinds get a frame that hands the renderer an
+   exact pixel box and nothing else (all their geometry is computed in JS, from
+   Axion's own constants). The HTML kinds — progress bars, table, indicator —
+   ARE styling, so their anatomy lives here, matching
+   ProgressBarsChart.tsx / TableChart.tsx / IndicatorChart.tsx and the shadcn
+   table those two lean on.
+
+   Everything that can dominate a panel is capped against its own container
+   (`min(token, N cqh)`): the same markup runs one-up in a tall panel and
+   four-up in a short one, so a headline has to measure itself against the box
+   it landed in rather than against the design unit alone. */
+
+/* --- Frame ---------------------------------------------------------------- */
+
+/* Always a column: the plot row (which may carry a side legend) and the note
+   under it. Without this shell a side legend and a note become two columns
+   flanking the plot, and the plot gets nothing. */
+.ax-chart-shell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.ax-chart {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.ax-chart--h {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.ax-chart--right {
+  flex-direction: row-reverse;
+}
+
+/* A panel taller than it is wide has no room for a legend beside the plot, so
+   it goes underneath — the adaptive donut layout from the SCE prototypes. */
+[data-orient='col'] .ax-chart--h {
+  flex-direction: column;
+}
+
+[data-orient='col'] .ax-chart--right {
+  flex-direction: column;
+}
+
+/* The renderer is handed this box's size and paints absolutely inside it, so
+   the SVG can never feed its own height back into layout and oscillate. */
+.ax-chart-area {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.ax-svg {
+  position: absolute;
+  inset: 0;
+  /* Charts are laid out in LTR space and mirror their coordinates explicitly,
+     so pin the frame the way SVG_LTR_FRAME does and the ambient dir can never
+     flip text-anchor semantics out from under the renderer. */
+  direction: ltr;
+  overflow: visible;
+}
+
+.ax-grid line,
+.ax-grid path {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  fill: none;
+}
+
+.ax-axis-line {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.ax-chart-note {
+  flex: none;
+  padding-top: calc(6 * var(--u));
+  color: var(--mut-2);
+  font-size: min(var(--fs-micro), 11cqh);
+  line-height: 1.3;
+}
+
+/* --- Legend (shared/legend.tsx) ------------------------------------------ */
+
+.ax-legend {
+  display: flex;
+  overflow: hidden;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(3 * var(--u)) calc(16 * var(--u));
+  color: var(--mut);
+  font-size: min(var(--fs-note), 13cqh);
+}
+
+.ax-legend--bottom {
+  padding-top: calc(10 * var(--u));
+}
+
+.ax-legend--top {
+  padding-bottom: calc(10 * var(--u));
+}
+
+/* A side legend is a column that shares the row with the plot. */
+.ax-legend--left,
+.ax-legend--right {
+  display: flex;
+  min-width: 0;
+  max-width: 42%;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: calc(7 * var(--u));
+  padding-inline-start: calc(14 * var(--u));
+}
+
+.ax-legend--left {
+  padding-inline-start: 0;
+  padding-inline-end: calc(14 * var(--u));
+}
+
+[data-orient='col'] .ax-legend--left,
+[data-orient='col'] .ax-legend--right {
+  max-width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: calc(10 * var(--u)) 0 0;
+}
+
+.ax-legend-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.ax-legend-dot {
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+  flex: none;
+}
+
+.ax-legend-label {
+  overflow: hidden;
+  flex: 1;
+  color: var(--tx-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-legend-value {
+  flex: none;
+  color: var(--tx);
+  font-weight: 600;
+}
+
+/* --- Entry animation -----------------------------------------------------
+   Marks arrive once, on the render that mounts them. A resize redraw paints
+   the final state, so dragging a panel edge never replays the growth. */
+
+.ax-mark,
+.ax-mark-label,
+.ax-mark-radial,
+.ax-sankey-links,
+.ax-line {
+  transition:
+    transform var(--dur-enter) var(--ease),
+    opacity var(--dur-enter) var(--ease),
+    stroke-dashoffset var(--dur-enter) var(--ease);
+}
+
+.ax-mark.is-entering {
+  transform: var(--ax-grow, scale(1, 0.001));
+}
+
+.ax-mark-label.is-entering {
+  opacity: 0;
+}
+
+.ax-mark-radial.is-entering {
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+.ax-sankey-links.is-entering {
+  opacity: 0;
+}
+
+.ax-line.is-entering {
+  stroke-dashoffset: 1;
+}
+
+.ax-line {
+  stroke-dashoffset: 0;
+}
+
+/* --- Progress bars (ProgressBarsChart.tsx) -------------------------------
+   Equal grid rows rather than a stack: the same list renders three deep in a
+   two-row panel and six deep in a four-row one, so the rows are handed their
+   height by the panel instead of asking for it. Each row is then its own
+   container and its label and track measure against that. */
+
+.ax-bars {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  padding: calc(4 * var(--u)) 0;
+  gap: calc(8 * var(--u));
+  grid-auto-rows: 1fr;
+}
+
+.ax-bars-row {
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+}
+
+.ax-bars-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(10 * var(--u));
+  margin-bottom: min(calc(6 * var(--u)), 12cqh);
+  font-size: min(var(--fs-body), 46cqh);
+}
+
+.ax-bars-label {
+  overflow: hidden;
+  color: var(--tx);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-bars-value {
+  flex: none;
+  color: var(--mut);
+}
+
+.ax-bars-track {
+  display: flex;
+  overflow: hidden;
+  height: min(calc(9 * var(--u)), 24cqh);
+  flex: none;
+  border-radius: calc(4 * var(--u));
+}
+
+/* The fill hugs the inline start, so it grows from the right in RTL with no
+   coordinate mirroring — the reason the original renders this in HTML. */
+.ax-bars-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--dur-enter) var(--ease);
+}
+
+.ax-bars-note {
+  overflow: hidden;
+  margin-top: min(calc(4 * var(--u)), 10cqh);
+  color: var(--mut-2);
+  font-size: min(var(--fs-micro), 22cqh);
+  white-space: nowrap;
+}
+
+/* --- Table (TableChart.tsx over the shadcn table) ----------------------- */
+
+.ax-table-wrap {
+  display: flex;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+/* `--ax-rows` is written by the renderer. The header counts as a row and a row
+   is about 1.9x its type, so the fit is ~100cqh / ((rows + 1) * 1.9). */
+.ax-table {
+  width: 100%;
+  flex: 1;
+  border-collapse: collapse;
+  font-size: min(var(--fs-body), calc(50cqh / (var(--ax-rows, 6) + 1)));
+  table-layout: fixed;
+}
+
+.ax-table th {
+  padding-bottom: min(calc(7 * var(--u)), 2cqh);
+  border-bottom: var(--hairline) solid var(--separator);
+  color: var(--mut);
+  font-size: 0.84em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ax-table td {
+  overflow: hidden;
+  padding: min(calc(4 * var(--u)), 1cqh) 0;
+  border-bottom: var(--hairline) solid var(--separator);
+  color: var(--tx-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ax-table th.is-end,
+.ax-table td.is-end {
+  padding-inline-start: calc(10 * var(--u));
+  text-align: end;
+}
+
+.ax-table td.is-end {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+.ax-table-rank {
+  width: calc(26 * var(--u));
+  color: var(--mut-2);
+  font-size: 0.84em;
+}
+
+/* --- Indicator tiles (IndicatorChart.tsx) -------------------------------- */
+
+.ax-kpis {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  gap: calc(8 * var(--u));
+  grid-auto-rows: 1fr;
+}
+
+/* Size containment as well as overflow: a long label must not push the tile
+   past its grid row, which is what made four-up panels spill. */
+.ax-kpi {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: min(calc(12 * var(--u)), 10cqh) calc(16 * var(--u));
+  border: var(--hairline) solid rgba(var(--cy-rgb), 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(var(--cy-rgb), 0.04);
+  container-type: size;
+}
+
+.ax-kpi-value {
+  color: var(--tx);
+  font-size: min(var(--fs-kpi), 46cqh);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  white-space: nowrap;
+}
+
+.ax-kpi.is-sm .ax-kpi-value {
+  font-size: min(var(--fs-kpi-sm), 40cqh);
+}
+
+.ax-kpi.is-lg .ax-kpi-value {
+  font-size: min(var(--fs-kpi-lg), 46cqh);
+}
+
+.ax-kpi.is-xl .ax-kpi-value {
+  font-size: min(var(--fs-hud), 54cqh);
+}
+
+.ax-kpi-unit {
+  margin-inline-start: 0.14em;
+  font-size: 0.42em;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.72;
+}
+
+.ax-kpi-label {
+  overflow: hidden;
+  margin-top: min(calc(6 * var(--u)), 8cqh);
+  color: var(--mut);
+  font-size: min(var(--fs-label), 19cqh);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1.28;
+  text-transform: uppercase;
+}
+
+.ax-kpi-note {
+  overflow: hidden;
+  margin-top: min(calc(3 * var(--u)), 5cqh);
+  color: var(--mut-2);
+  font-size: min(var(--fs-micro), 11cqh);
+  line-height: 1.3;
+}
+
+/* The delta pill, from IndicatorChart's rounded-full chip. */
+.ax-kpi-delta {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  margin-top: min(calc(6 * var(--u)), 8cqh);
+  padding: calc(2 * var(--u)) calc(10 * var(--u));
+  border-radius: var(--radius-pill);
+  background: var(--control);
+  color: var(--mut);
+  font-size: min(var(--fs-note), 12cqh);
+  font-weight: 500;
+}
+
+.ax-kpi-delta-arrow {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+/* --- Reduced motion ----------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ax-mark,
+  .ax-mark-label,
+  .ax-mark-radial,
+  .ax-sankey-links,
+  .ax-line,
+  .ax-bars-fill {
+    transition-duration: 1ms;
+  }
+}

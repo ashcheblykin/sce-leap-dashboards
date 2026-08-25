@@ -1,0 +1,42 @@
+/* Tile stagger. `--enter-delay` is written per widget in reading order on the
+   way in and in reverse on the way out. */
+
+[data-grid-item] {
+  opacity: 1;
+  transition:
+    opacity var(--dur) var(--ease) var(--enter-delay, 0ms),
+    translate var(--dur) var(--ease) var(--enter-delay, 0ms);
+  translate: 0 0;
+}
+
+[data-grid-item][data-entering] {
+  opacity: 0;
+  transition: none;
+  translate: 0 calc(10 * var(--u));
+}
+
+[data-grid-item][data-leaving] {
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease) var(--enter-delay, 0ms),
+    translate 200ms var(--ease) var(--enter-delay, 0ms);
+  translate: 0 calc(-6 * var(--u));
+}
+
+/* Geometry transitions during a drag must not inherit the stagger delay. */
+body.grid-dragging [data-grid-item] {
+  transition-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-grid-item],
+  [data-grid-item][data-entering],
+  [data-grid-item][data-leaving] {
+    transition-duration: 1ms;
+    translate: 0 0;
+  }
+
+  .ax-bars-fill {
+    transition-duration: 1ms;
+  }
+}

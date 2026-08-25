@@ -1,0 +1,216 @@
+/* Widget card anatomy mirrors axion.gen.web
+   frontend/src/shared/ui/grid/Widget.tsx: 16px radius, 0.5px hairline, 12px
+   padding, a header row separated by a hairline that doubles as the drag
+   handle, and a flex body that owns all remaining height. */
+
+/* The card is the grid item's only in-flow child and must take all of it —
+   otherwise short content shrinks the card and tall content spills past it. */
+.widget {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--pad-card);
+  overflow: hidden;
+  padding: var(--pad-card);
+  border: var(--hairline) solid var(--panel-border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow:
+    var(--glow-spectrum),
+    inset 0 0 30px rgba(var(--cy-rgb), 0.03);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+
+[data-grid-item][data-moving] .widget,
+[data-grid-item][data-resizing] .widget {
+  border-color: var(--panel-border-strong);
+  box-shadow:
+    var(--glow-drag),
+    0 0 0 1px rgba(var(--cy-rgb), 0.4);
+}
+
+.widget-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--u));
+  padding-bottom: var(--pad-card);
+  border-bottom: var(--hairline) solid var(--separator);
+  cursor: grab;
+  user-select: none;
+}
+
+body.grid-dragging .widget-head {
+  cursor: grabbing;
+}
+
+/* Axion's card title is sentence case, near-white and quiet, so the numbers in
+   the body are the loudest thing on the panel. The tracked cyan uppercase this
+   replaces is the house style of a control room, not of a product; the cyan
+   moves to the mark on the left, where it still says SCE without shouting. */
+.widget-title {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  color: var(--tx);
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+
+.widget-title::before {
+  width: calc(3 * var(--u));
+  height: calc(15 * var(--u));
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--cy);
+  box-shadow: 0 0 calc(8 * var(--u)) rgba(var(--cy-rgb), 0.55);
+  content: '';
+}
+
+.widget-title .label {
+  overflow: hidden;
+  min-width: 0;
+  flex-shrink: 1;
+  text-overflow: ellipsis;
+}
+
+/* Shrinks far faster than the primary label, so a narrow header gives up the
+   other-language gloss rather than truncating the name of the panel. */
+.widget-title .gloss {
+  overflow: hidden;
+  min-width: 0;
+  /* Absorbs essentially all the shrink: the panel's own name is the last thing
+     a narrow header gives up. */
+  flex-shrink: 1000;
+  color: var(--mut-2);
+  font-size: 0.85em;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+}
+
+/* Body height is fixed by flex before any view renders, so switching a view
+   swaps only the inner content and the panel geometry never moves.
+
+   It is also the container the body's own type measures against: with the
+   scale raised to product size, a headline that fits a three-row panel would
+   burst a two-row one, so the pieces that can dominate a panel -- indicator
+   values, gauge and donut centres -- are capped against this box rather than
+   trusting the design unit alone. */
+.widget-body {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  container-type: size;
+}
+
+.widget-view {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+/* --- Frosted chips, from Axion's FROSTED_PILL --- */
+/* One segmented control rather than loose buttons, which is how Axion switches
+   a widget's view and what makes the row read as a product affordance. */
+.chips {
+  display: flex;
+  flex: none;
+  gap: calc(2 * var(--u));
+  padding: calc(3 * var(--u));
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--track);
+}
+
+.chip {
+  padding: calc(5 * var(--u)) calc(13 * var(--u));
+  border: var(--hairline) solid transparent;
+  border-radius: calc(var(--radius-sm) - 2 * var(--u));
+  color: var(--mut);
+  font-size: var(--fs-chip);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.chip:hover {
+  background: var(--control-hover);
+  color: var(--tx);
+}
+
+.chip[data-on] {
+  border-color: rgba(var(--cy-rgb), 0.34);
+  background: rgba(var(--cy-rgb), 0.16);
+  box-shadow: var(--glow-spectrum);
+  color: var(--cy);
+  font-weight: 600;
+}
+
+/* --- Short cards ---------------------------------------------------------
+   At the raised type scale a two-row panel spends a quarter of its height on
+   the header and its own padding, which left the chart 84px and a donut the
+   size of a coin. The card is a size container, so a short one tightens its
+   chrome and hands the difference to the content. The thresholds are in px
+   because they are about how much room is left, not about the design unit. */
+
+[data-grid-item] {
+  container-type: size;
+}
+
+@container (max-height: 280px) {
+  .widget {
+    gap: calc(9 * var(--u));
+    padding: calc(11 * var(--u));
+  }
+
+  .widget-head {
+    padding-bottom: calc(8 * var(--u));
+  }
+
+  .widget-title {
+    font-size: calc(16 * var(--u));
+    gap: calc(7 * var(--u));
+  }
+
+  .widget-title::before {
+    height: calc(12 * var(--u));
+  }
+
+  .chip {
+    padding: calc(3 * var(--u)) calc(9 * var(--u));
+    font-size: calc(13 * var(--u));
+  }
+
+  .chips {
+    padding: calc(2 * var(--u));
+  }
+}
+
+/* A narrow card with three chips spends two-thirds of its header on them and
+   truncates its own name. Chips are the smaller thing on the row, so they are
+   the ones that give way. */
+@container (max-width: 760px) {
+  .chip {
+    padding: calc(4 * var(--u)) calc(9 * var(--u));
+    font-size: calc(13.5 * var(--u));
+  }
+
+  .chips {
+    padding: calc(2 * var(--u));
+  }
+}

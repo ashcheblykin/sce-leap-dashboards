@@ -1,0 +1,124 @@
+/* Design tokens: SCE colour story on Axion structure.
+   Colours come from Data Files/cc.css, everything structural (radii, hairlines,
+   spacing, motion, glass) from axion.gen.web frontend/src/app/globals.css. */
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('../fonts/noto-sans-latin.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  src: url('../fonts/noto-sans-arabic.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  /* --- SCE palette --- */
+  --cy: #39d7f5;
+  --gold: #d4af5a;
+  --green: #3ee6a4;
+  --purple: #b48af5;
+  --tx: #e9f4fb;
+  --tx-2: #bcd8ea;
+  --mut: #7fa8c2;
+  --mut-2: #5d86a3;
+  --sce-navy: #233755;
+
+  --cy-rgb: 57, 215, 245;
+  --ink: #03101f;
+
+  --bg: radial-gradient(1900px 1100px at 50% 26%, #062036 0%, #03101f 55%, #020813 100%);
+  --scanline: repeating-linear-gradient(0deg, transparent 0 3px, rgba(var(--cy-rgb), 0.012) 3px 4px);
+
+  /* --- Axion structure --- */
+  --radius-card: 16px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  --hairline: 0.5px;
+  --panel-border: rgba(var(--cy-rgb), 0.18);
+  --panel-border-strong: rgba(var(--cy-rgb), 0.3);
+  --separator: rgba(var(--cy-rgb), 0.12);
+
+  --surface: linear-gradient(165deg, rgba(7, 34, 58, 0.72), rgba(4, 21, 37, 0.82));
+  --surface-flat: rgba(4, 24, 43, 0.84);
+  --control: rgba(var(--cy-rgb), 0.06);
+  --control-hover: rgba(var(--cy-rgb), 0.12);
+  --track: rgba(var(--cy-rgb), 0.1);
+
+  /* One scaling unit drives every size, so the board is designed once at
+     2880x1152 and still reads on a laptop preview.
+
+     `--u-scale` is the only knob the room ever needs: the wall's real viewing
+     distance is not known until the stand is built, so `[` and `]` nudge it
+     live (see shell.js) and the choice is remembered. 1.3 is the default —
+     Axion's product scale proportionally upscaled to 2880, then a quarter
+     larger again, which is the difference between "a dashboard on a big
+     monitor" and something readable from across a stand. */
+  --u-scale: 1.3;
+  --u: clamp(0.74px, min(100vw / 2880, 100vh / 1152) * var(--u-scale), 2.4px);
+
+  --pad-card: calc(16 * var(--u));
+  --gap-grid: calc(8 * var(--u));
+
+  /* Axion's own type scale, expressed in units instead of px: a 14px card
+     title becomes 20u, a 12px chip 16u, an 11px axis tick 11 chart-units. At
+     the default --u-scale the wall lands on 26px titles and 75px indicators. */
+  --fs-title: calc(20 * var(--u));
+  --fs-chip: calc(16 * var(--u));
+  --fs-label: calc(16.5 * var(--u));
+  --fs-body: calc(20 * var(--u));
+  --fs-note: calc(17 * var(--u));
+  --fs-micro: calc(14 * var(--u));
+  --fs-kpi: calc(58 * var(--u));
+  --fs-kpi-sm: calc(42 * var(--u));
+  --fs-kpi-lg: calc(70 * var(--u));
+  --fs-hud: calc(74 * var(--u));
+
+  /* Chart geometry unit. Every px constant in chart-dsl.js is multiplied by
+     this, so Axion's ratios survive and only the scale changes: an 11px axis
+     tick, a 3px bar radius and a 16px group gap keep their relationship at any
+     resolution. Read once per resize by Chart.refreshUnit(). */
+  --chart-u: calc(var(--u) * 1.45);
+
+  --chart-grid: rgba(var(--cy-rgb), 0.1);
+  --chart-tick: var(--mut);
+  --chart-label: var(--tx-2);
+  --chart-value: var(--tx);
+  /* The ground a sunburst's sibling hairline is drawn in — the page behind the
+     card, so the separator reads as a gap rather than a stroke. */
+  --chart-ground: #051b30;
+
+  /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
+     digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */
+  --font: 'Noto Sans', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-ar: 'Noto Sans Arabic', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur: 200ms;
+  /* Marks and counters share one duration so a bar finishes growing on the
+     same frame its number lands (Counter.DURATION). */
+  --dur-enter: 600ms;
+
+  --glow-spectrum: 0 0 0.5px 0.5px rgba(var(--cy-rgb), 0.12);
+  --glow-drag: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --blur-glass: blur(24px);
+
+  /* --- Shell geometry --- */
+  --shell-header: calc(96 * var(--u));
+  --shell-ticker: calc(52 * var(--u));
+  --shell-pad: calc(14 * var(--u));
+  --grid-cols: 24;
+  --grid-rows: 8;
+  /* Fixed rather than scaled: the gesture maths reads it as a constant, and
+     Axion's 8px gutter is right at any of the sizes this ever runs at. */
+  --grid-gap: 8px;
+}

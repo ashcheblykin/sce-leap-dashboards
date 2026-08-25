@@ -1,0 +1,17 @@
+grade,class,count
+Associate,active,13831
+Associate,expired,11597
+Associate,frozen,227
+Associate,near_expiry,1264
+Consultant,active,14230
+Consultant,expired,11186
+Consultant,frozen,366
+Consultant,near_expiry,936
+Engineer,active,250331
+Engineer,expired,214142
+Engineer,frozen,5113
+Engineer,near_expiry,31862
+Professional,active,26112
+Professional,expired,13179
+Professional,frozen,300
+Professional,near_expiry,1930

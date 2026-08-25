@@ -1,0 +1,346 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+}
+
+/* --- Footer bar ---
+   Brand, navigation and controls all live in one bar docked under the stage;
+   the class is still `.hdr` since it's the same chrome, just relocated. */
+.hdr {
+  position: relative;
+  display: flex;
+  height: var(--shell-header);
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 calc(24 * var(--u));
+  border-top: var(--hairline) solid var(--panel-border);
+  background: linear-gradient(0deg, rgba(4, 24, 43, 0.9), rgba(4, 24, 43, 0));
+}
+
+.hdr-brand {
+  display: flex;
+  min-width: calc(360 * var(--u));
+  align-items: center;
+  gap: calc(16 * var(--u));
+}
+
+.hdr-logo {
+  height: calc(54 * var(--u));
+  filter: drop-shadow(0 0 18px rgba(var(--cy-rgb), 0.22));
+}
+
+.hdr-rule {
+  width: var(--hairline);
+  height: calc(44 * var(--u));
+  background: var(--panel-border);
+}
+
+.hdr-title {
+  color: var(--tx);
+  font-size: calc(22 * var(--u));
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* The other-language gloss under the centre name. It shrinks and gives way
+   before the name does, and carries the script it is actually written in. */
+.hdr-sub {
+  overflow: hidden;
+  max-width: calc(420 * var(--u));
+  margin-top: calc(3 * var(--u));
+  color: var(--mut);
+  font-size: calc(15 * var(--u));
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[dir='ltr'] .hdr-sub {
+  font-family: var(--font-ar);
+}
+
+.hdr-meta {
+  display: flex;
+  min-width: calc(360 * var(--u));
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(18 * var(--u));
+  text-align: right;
+}
+
+/* --- Cross-cutting navigation ---
+   A bar of its own, docked under the stage and above the ticker, rather than
+   floating over the header. */
+.nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: calc(6 * var(--u));
+  padding: calc(10 * var(--u)) calc(24 * var(--u));
+  border-top: var(--hairline) solid var(--panel-border);
+  background: rgba(4, 24, 43, 0.6);
+  backdrop-filter: var(--blur-glass);
+}
+
+.nav-item {
+  position: relative;
+  overflow: hidden;
+  padding: calc(10 * var(--u)) calc(26 * var(--u));
+  border-radius: var(--radius-pill);
+  color: var(--mut);
+  font-size: calc(17 * var(--u));
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.nav-item:hover {
+  background: var(--control-hover);
+  color: var(--tx);
+}
+
+.nav-item[data-on] {
+  background: rgba(var(--cy-rgb), 0.14);
+  color: var(--cy);
+  font-weight: 600;
+}
+
+/* The slideshow's remaining time reads as a fill under the active label, so the
+   room can see the board is about to change without a countdown number. */
+.nav-item-fill {
+  position: absolute;
+  z-index: -1;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: rgba(var(--cy-rgb), 0.16);
+}
+
+.nav-play {
+  display: flex;
+  width: calc(46 * var(--u));
+  height: calc(46 * var(--u));
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-left: calc(4 * var(--u));
+  background: rgba(var(--cy-rgb), 0.12);
+  color: var(--cy);
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.nav-play:hover {
+  background: rgba(var(--cy-rgb), 0.22);
+}
+
+.nav-play svg {
+  width: calc(19 * var(--u));
+  height: calc(19 * var(--u));
+  fill: currentColor;
+}
+
+.nav-play .icon-pause {
+  display: none;
+}
+
+.nav-play[data-playing] .icon-play {
+  display: none;
+}
+
+.nav-play[data-playing] .icon-pause {
+  display: block;
+}
+
+/* --- Language switch ---
+   A single button, always naming the *other* locale — pressing it is the
+   whole interaction, so there is no on/off state to show. */
+.lang {
+  display: flex;
+  flex: none;
+}
+
+.lang-btn {
+  min-width: calc(38 * var(--u));
+  padding: calc(5 * var(--u)) calc(14 * var(--u));
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  color: var(--mut);
+  font-size: var(--fs-chip);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.lang-btn:hover {
+  background: var(--control-hover);
+  color: var(--cy);
+}
+
+/* The Arabic label is a single glyph and needs the Arabic face plus a little
+   more room to sit on the same optical baseline as "EN". */
+.lang-btn[lang='ar'] {
+  font-family: var(--font-ar);
+  font-size: calc(var(--fs-chip) * 1.25);
+  letter-spacing: 0;
+  line-height: 0.9;
+}
+
+/* --- Scale readout ---
+   `[` and `]` retune the type scale on the stand; this is the only feedback,
+   and it disappears on its own so it can never be left on screen. */
+.shell-toast {
+  z-index: 1000;
+  position: fixed;
+  bottom: calc(var(--shell-ticker) + 18 * var(--u));
+  left: 50%;
+  padding: calc(9 * var(--u)) calc(20 * var(--u));
+  border: var(--hairline) solid var(--panel-border-strong);
+  border-radius: var(--radius-pill);
+  background: rgba(4, 24, 43, 0.86);
+  box-shadow: var(--glow-spectrum);
+  backdrop-filter: var(--blur-glass);
+  color: var(--cy);
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+  translate: -50% 0;
+}
+
+.shell-toast[data-on] {
+  opacity: 1;
+}
+
+/* Layout reset stays out of the way — the wall must not show product chrome. */
+.hdr-reset {
+  color: var(--mut-2);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.1em;
+  opacity: 0;
+  text-transform: uppercase;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.hdr:hover .hdr-reset {
+  opacity: 1;
+}
+
+.hdr-reset:hover {
+  color: var(--gold);
+}
+
+/* --- Board stage --- */
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: var(--shell-pad) calc(24 * var(--u));
+}
+
+/* width/height must be released explicitly: the grid's own rule sets both to
+   100%, which would otherwise beat these insets and overhang the stage. */
+.stage > [data-grid-surface] {
+  position: absolute;
+  top: var(--shell-pad);
+  right: calc(24 * var(--u));
+  bottom: var(--shell-pad);
+  left: calc(24 * var(--u));
+  width: auto;
+  height: auto;
+}
+
+/* --- Ticker ---
+   The prototype restarted a single copy, which left a visible hole crossing the
+   screen. Two identical halves translated by exactly -50% never show a gap. */
+.ticker {
+  display: flex;
+  overflow: hidden;
+  height: var(--shell-ticker);
+  flex: none;
+  align-items: center;
+  border-top: var(--hairline) solid var(--panel-border);
+  background: rgba(3, 20, 36, 0.94);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  flex: none;
+  animation: ticker-scroll 90s linear infinite;
+}
+
+.ticker-half {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  padding: 0 calc(26 * var(--u));
+  color: var(--mut);
+  font-size: calc(19 * var(--u));
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ticker-item::after {
+  position: absolute;
+  content: '';
+}
+
+.ticker-item b {
+  color: var(--cy);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.ticker-item .g {
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.ticker-item .y {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.ticker-sep {
+  color: rgba(var(--cy-rgb), 0.3);
+}
+
+.ticker-item--credit {
+  color: rgba(var(--cy-rgb), 0.4);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+@keyframes ticker-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+body.grid-dragging .ticker-track {
+  animation-play-state: paused;
+}

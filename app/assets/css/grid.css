@@ -1,0 +1,138 @@
+/* Ported from axion.gen.web frontend/src/shared/ui/grid/grid.css.
+   Geometry is a CSS calc() over container-query units, so a horizontal resize
+   relays out entirely in CSS and only the row height is touched by JS. */
+
+/* `container-type: size` (not just inline-size) so the row pitch can be derived
+   from 100cqh. The board then fills its stage exactly, at 2880x1152 or any
+   other height, with no JavaScript in the loop. */
+[data-grid-surface] {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  container-type: size;
+}
+
+[data-grid-item] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  --grid-unit-x: calc((100cqw + var(--grid-gap)) / var(--grid-cols));
+  --grid-unit-y: calc((100cqh + var(--grid-gap)) / var(--grid-rows));
+  width: calc(var(--grid-item-w) * var(--grid-unit-x) - var(--grid-gap));
+  height: calc(var(--grid-item-h) * var(--grid-unit-y) - var(--grid-gap));
+  transform: translate(
+    calc(var(--grid-item-x) * var(--grid-unit-x)),
+    calc(var(--grid-item-y) * var(--grid-unit-y))
+  );
+}
+
+/* Only during a gesture do widgets ease between snap steps. At rest there is
+   deliberately no geometry transition, so a window resize tracks 100cqw
+   instantly and the gaps never breathe. */
+body.grid-dragging [data-grid-item] {
+  transition:
+    transform var(--dur-fast) var(--ease),
+    width var(--dur-fast) var(--ease),
+    height var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+
+body.grid-dragging {
+  user-select: none;
+  cursor: grabbing;
+}
+
+[data-grid-item][data-moving] {
+  z-index: 40;
+}
+
+[data-resize-handle] {
+  position: absolute;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+[data-grid-item]:hover [data-resize-handle],
+[data-grid-item][data-resizing] [data-resize-handle] {
+  opacity: 1;
+}
+
+[data-resize-handle='s'] {
+  left: 14px;
+  right: 14px;
+  bottom: -3px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+[data-resize-handle='e'] {
+  top: 14px;
+  bottom: 14px;
+  right: -3px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+[data-resize-handle='w'] {
+  top: 14px;
+  bottom: 14px;
+  left: -3px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+[data-resize-handle='se'] {
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+
+[data-resize-handle='sw'] {
+  left: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  cursor: nesw-resize;
+}
+
+/* Axion's resize affordance: a short dash that grows while dragging. */
+[data-resize-handle]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: var(--radius-pill);
+  background: rgba(var(--cy-rgb), 0.55);
+  transition:
+    width var(--dur) cubic-bezier(0.34, 1.56, 0.64, 1),
+    height var(--dur) cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter var(--dur) ease;
+}
+
+[data-resize-handle='s']::after,
+[data-resize-handle='n']::after {
+  width: 28px;
+  height: 3px;
+}
+
+[data-resize-handle='e']::after,
+[data-resize-handle='w']::after {
+  width: 3px;
+  height: 28px;
+}
+
+[data-resize-handle='se']::after,
+[data-resize-handle='sw']::after {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(var(--cy-rgb), 0.4);
+}
+
+[data-grid-item][data-resizing] [data-resize-handle]::after {
+  filter: drop-shadow(0 0 8px rgba(var(--cy-rgb), 0.6));
+}

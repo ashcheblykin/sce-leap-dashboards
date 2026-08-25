@@ -1,0 +1,92 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg) fixed;
+  color: var(--tx);
+  font: 400 14px/1.45 var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Command-centre scanline, above content but inert. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--scanline);
+  pointer-events: none;
+  z-index: 900;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Numbers must never reflow while a counter runs, and a numeric run keeps its
+   own LTR order inside Arabic copy — Axion's NUMERIC_ISOLATE. */
+.num,
+.ax-num,
+.ax-kpi-value,
+.hud-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.ax-num,
+.num {
+  unicode-bidi: isolate;
+}
+
+/* The Arabic subset carries no Latin glyphs, so the stack keeps 'Noto Sans'
+   behind it for digits, "LEAP 2026" and "SAR". */
+[dir='rtl'],
+.ar {
+  font-family: var(--font-ar);
+}
+
+/* Arabic sits lower and taller than Latin at the same size; a touch less
+   letter-spacing and a touch more leading keeps the two boards the same
+   density rather than making the Arabic one look crowded. */
+[dir='rtl'] body,
+.ar {
+  letter-spacing: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--cy-rgb), 0.2);
+  border-radius: 3px;
+}
+
+::selection {
+  background: rgba(var(--cy-rgb), 0.3);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
