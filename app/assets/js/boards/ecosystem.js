@@ -135,7 +135,7 @@
       /* ------------------------------------------------------------- centre */
       {
         id: 'eco-map',
-        x: 6, y: 0, w: 12, h: 8, minW: 6, minH: 4,
+        x: 6, y: 0, w: 11, h: 8, minW: 6, minH: 4,
         titleKey: 'w.map',
         chipKeys: ['c.workforce', 'c.registered', 'c.reach', 'c.enforcement'],
         views: [
@@ -187,7 +187,7 @@
       /* --------------------------------------------------------- right wing */
       {
         id: 'eco-struct',
-        x: 18, y: 0, w: 6, h: 3, minW: 4, minH: 2,
+        x: 17, y: 0, w: 7, h: 3, minW: 4, minH: 2,
         titleKey: 'w.struct',
         chipKeys: ['c.classes', 'c.nationalities'],
         views: [
@@ -221,7 +221,7 @@
 
       {
         id: 'eco-mon',
-        x: 18, y: 3, w: 6, h: 3, minW: 4, minH: 2,
+        x: 17, y: 3, w: 7, h: 3, minW: 4, minH: 2,
         titleKey: 'w.mon',
         chipKeys: ['c.pipeline', 'c.bytrack'],
         views: [
@@ -268,7 +268,7 @@
 
       {
         id: 'eco-enf',
-        x: 18, y: 6, w: 6, h: 2, minW: 4, minH: 2,
+        x: 17, y: 6, w: 7, h: 2, minW: 4, minH: 2,
         titleKey: 'w.enf',
         chipKeys: ['c.headline', 'c.trend'],
         views: [

@@ -314,7 +314,9 @@
         '</span><span class="ticker-sep">·</span></span>';
     }
     half +=
-      '<span class="ticker-item ticker-item--credit">Powered by Axion<span class="ticker-sep">·</span></span>';
+      '<span class="ticker-item ticker-item--credit">Powered by ' +
+      Fmt.axionMark +
+      '<span class="ticker-sep">·</span></span>';
 
     document.getElementById('ticker').innerHTML =
       '<div class="ticker-track"><div class="ticker-half">' +

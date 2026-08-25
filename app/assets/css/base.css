@@ -87,3 +87,12 @@ button {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* The Axion wordmark, sized to sit inline with a "Powered by" credit and
+   colored by the surrounding text (fill="currentColor" on its path). */
+.axion-mark {
+  height: 0.72em;
+  width: auto;
+  margin-inline-start: 0.35em;
+  vertical-align: -0.05em;
+}

@@ -287,12 +287,19 @@
 }
 
 /* `--ax-rows` is written by the renderer. The header counts as a row and a row
-   is about 1.9x its type, so the fit is ~100cqh / ((rows + 1) * 1.9). */
+   is about 1.9x its type, so the fit is ~100cqh / ((rows + 1) * 1.9) = 52cqh.
+
+   46, not 52, because the budget is not the whole panel: a table almost always
+   carries a footnote under it, and the note is `flex: none` while a <table> has
+   an intrinsic min-content height it will not shrink past — so an over-budget
+   table does not clip itself, it pushes the note out through the bottom of the
+   card. Reserving the note's own cap (--cap-note, 12cqh) leaves
+   (100 - 12) x 0.526 = 46cqh for the rows. */
 .ax-table {
   width: 100%;
   flex: 1;
   border-collapse: collapse;
-  font-size: min(var(--fs-sm), calc(50cqh / (var(--ax-rows, 6) + 1)));
+  font-size: min(var(--fs-sm), calc(46cqh / (var(--ax-rows, 6) + 1)));
   table-layout: fixed;
 }
 
@@ -310,7 +317,11 @@
 
 .ax-table td {
   overflow: hidden;
-  padding: min(var(--sp-1), 2cqh) 0;
+  /* 1cqh, not 2: a row's vertical padding is the one figure here that is
+     load-bearing rather than cosmetic. At 2cqh an eight-row table overruns its
+     own box by ~40px and silently loses its last row and its footnote — with
+     no overflow anywhere for a checker to see, because .widget-body clips. */
+  padding: min(var(--sp-1), 1cqh) 0;
   border-bottom: var(--hairline) solid var(--separator);
   color: var(--tx-2);
   text-overflow: ellipsis;

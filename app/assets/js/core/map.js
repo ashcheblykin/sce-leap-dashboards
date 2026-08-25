@@ -165,7 +165,11 @@
        read the way they wrote it in both locales. */
     credit.dir = 'ltr';
     credit.innerHTML =
-      '<span class="map-attr">' + KSA_BASEMAP.credit + '</span><span>Powered by Axion</span>';
+      '<span class="map-attr">' +
+      KSA_BASEMAP.credit +
+      '</span><span>Powered by ' +
+      Fmt.axionMark +
+      '</span>';
     container.appendChild(credit);
 
     /**
