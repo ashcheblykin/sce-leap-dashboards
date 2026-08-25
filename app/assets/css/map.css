@@ -174,3 +174,13 @@
   letter-spacing: 0.06em;
   text-transform: none;
 }
+
+.map-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.map-mark .axion-mark {
+  height: 1.1em;
+}

@@ -159,7 +159,11 @@
     var credit = document.createElement('div');
     credit.className = 'map-credit';
     credit.innerHTML =
-      '<span class="map-attr">' + KSA_BASEMAP.credit + '</span><span>Powered by Axion</span>';
+      '<span class="map-attr">' +
+      KSA_BASEMAP.credit +
+      '</span><span class="map-mark">Powered by ' +
+      AXION_MARK_SVG +
+      '</span>';
     container.appendChild(credit);
 
     /**

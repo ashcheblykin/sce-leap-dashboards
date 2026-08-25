@@ -85,6 +85,8 @@
      lives in has to outlive a chip switch. Stashing it on the body element is
      the same trick the prototypes used, minus Leaflet. */
   function mapView(el, mode) {
+    var widget = el.closest('.widget');
+    if (widget) widget.setAttribute('data-chart', 'map');
     if (!el._map) {
       Chart.unmount(el);
       el.innerHTML = '';

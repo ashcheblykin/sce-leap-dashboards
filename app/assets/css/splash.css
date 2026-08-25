@@ -146,11 +146,18 @@
   position: absolute;
   bottom: calc(28 * var(--u));
   left: 50%;
+  display: flex;
+  align-items: center;
+  gap: calc(7 * var(--u));
   color: rgba(var(--cy-rgb), 0.34);
   font-size: var(--fs-micro);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   translate: -50% 0;
+}
+
+.splash-foot .axion-mark {
+  height: 1.1em;
 }
 
 /* Content rises once, on first paint. */

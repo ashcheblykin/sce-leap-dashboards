@@ -20,6 +20,46 @@
   var SCALE_STEP = 0.05;
   var SCALE_DEFAULT = 1.3;
 
+  var SETTINGS_KEYS = {
+    tickerVisible: 'sce.leap.settings.tickerVisible',
+    tickerPaused: 'sce.leap.settings.tickerPaused',
+    splashEnabled: 'sce.leap.settings.splashEnabled',
+    autoplay: 'sce.leap.settings.autoplay',
+  };
+
+  function loadFlag(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw === null ? fallback : raw === '1';
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function saveFlag(key, value) {
+    try {
+      localStorage.setItem(key, value ? '1' : '0');
+    } catch (e) {
+      /* Storage can be unavailable (kiosk lockdown); the toggle still works
+         for the session, it just forgets on reload. */
+    }
+  }
+
+  var settings = {
+    tickerVisible: loadFlag(SETTINGS_KEYS.tickerVisible, true),
+    tickerPaused: loadFlag(SETTINGS_KEYS.tickerPaused, false),
+    splashEnabled: loadFlag(SETTINGS_KEYS.splashEnabled, true),
+    autoplay: loadFlag(SETTINGS_KEYS.autoplay, true),
+  };
+
+  /* Read by splash.js at its own init(), which runs after this file has
+     already set the flag — script order in index.html puts shell.js first. */
+  global.AppSettings = {
+    isSplashEnabled: function () {
+      return settings.splashEnabled;
+    },
+  };
+
   /* Two separate clocks. `holdUntil` parks the slideshow while somebody is
      working the board; `lastInteraction` decides when the wall goes back to
      the SCE attract screen. Sharing one clock made the first board sit for 90
@@ -37,8 +77,14 @@
   var stage = document.getElementById('stage');
   var navHost = document.getElementById('nav');
   var playBtn = document.getElementById('navPlay');
-  var clockEl = document.getElementById('clock');
   var resetBtn = document.getElementById('reset');
+  var tickerEl = document.getElementById('ticker');
+  var settingsBtn = document.getElementById('settingsBtn');
+  var settingsPanel = document.getElementById('settingsPanel');
+  var setTickerVisible = document.getElementById('setTickerVisible');
+  var setTickerPaused = document.getElementById('setTickerPaused');
+  var setSplashEnabled = document.getElementById('setSplashEnabled');
+  var setAutoplay = document.getElementById('setAutoplay');
   /* Two hosts: the header's and the splash's. Both are built from the same
      list, so the switch is in the same place in the same shape wherever the
      wall happens to be. */
@@ -156,23 +202,23 @@
      localStorage per board) and so does the board you were on. */
   var LOCALES = [
     { code: 'en', label: 'EN' },
-    { code: 'ar', label: 'ع' },
+    { code: 'ar', label: 'AR' },
   ];
 
   function buildLang() {
+    /* One button, showing the locale it switches TO — not the active one. */
+    var target = LOCALES[0].code === I18N.locale ? LOCALES[1] : LOCALES[0];
     for (var h = 0; h < langHosts.length; h++) {
       var host = langHosts[h];
       host.innerHTML = '';
-      for (var i = 0; i < LOCALES.length; i++) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'lang-btn' + (LOCALES[i].code === I18N.locale ? ' is-on' : '');
-        btn.setAttribute('data-locale', LOCALES[i].code);
-        btn.setAttribute('lang', LOCALES[i].code);
-        btn.setAttribute('aria-label', I18N.t('ctl.lang') + ': ' + LOCALES[i].label);
-        btn.textContent = LOCALES[i].label;
-        host.appendChild(btn);
-      }
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lang-btn';
+      btn.setAttribute('data-locale', target.code);
+      btn.setAttribute('lang', target.code);
+      btn.setAttribute('aria-label', I18N.t('ctl.lang') + ': ' + target.label);
+      btn.textContent = target.label;
+      host.appendChild(btn);
     }
   }
 
@@ -253,6 +299,13 @@
       for (var i = 0; i < navFills.length; i++) navFills[i].style.width = '0%';
     }
     playBtn.setAttribute('aria-label', I18N.t(on ? 'ctl.pause' : 'ctl.play'));
+
+    /* The play/pause button and the settings checkbox are two faces of the
+       same switch — whichever one moves, the other and the saved preference
+       follow, so pausing from the nav also sticks across a reload. */
+    settings.autoplay = on;
+    saveFlag(SETTINGS_KEYS.autoplay, on);
+    if (setAutoplay) setAutoplay.checked = on;
   }
 
   function slideshowTick() {
@@ -263,7 +316,7 @@
       return;
     }
 
-    if (now - lastInteraction > IDLE_TO_SPLASH_MS) {
+    if (settings.splashEnabled && now - lastInteraction > IDLE_TO_SPLASH_MS) {
       global.Splash.show();
       return;
     }
@@ -314,7 +367,9 @@
         '</span><span class="ticker-sep">·</span></span>';
     }
     half +=
-      '<span class="ticker-item ticker-item--credit">Powered by Axion<span class="ticker-sep">·</span></span>';
+      '<span class="ticker-item ticker-item--credit">Powered by ' +
+      AXION_MARK_SVG +
+      '<span class="ticker-sep">·</span></span>';
 
     document.getElementById('ticker').innerHTML =
       '<div class="ticker-track"><div class="ticker-half">' +
@@ -324,19 +379,56 @@
       '</div></div>';
   }
 
-  /* --- Clock --- */
-  function startClock() {
-    function paint() {
-      var d = new Date();
-      /* en-GB in both locales: the wall shows one unambiguous 24h clock, and
-         an ar-SA date would switch calendars mid-demo. */
-      clockEl.textContent =
-        d.toLocaleDateString('en-GB') +
-        ' · ' +
-        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    }
-    paint();
-    setInterval(paint, 10000);
+  /* --- Settings --- */
+  function applySettings() {
+    tickerEl.hidden = !settings.tickerVisible;
+    tickerEl.classList.toggle('is-paused', settings.tickerPaused);
+  }
+
+  function bindSettings() {
+    setTickerVisible.checked = settings.tickerVisible;
+    setTickerPaused.checked = settings.tickerPaused;
+    setSplashEnabled.checked = settings.splashEnabled;
+    setAutoplay.checked = settings.autoplay;
+    applySettings();
+
+    settingsBtn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      noteInteraction();
+      settingsPanel.hidden = !settingsPanel.hidden;
+    });
+
+    // Anything outside the panel closes it; the panel's own clicks never
+    // bubble here because they land on the checkboxes/labels, not the button.
+    document.addEventListener('click', function (ev) {
+      if (!settingsPanel.hidden && !settingsPanel.contains(ev.target)) {
+        settingsPanel.hidden = true;
+      }
+    });
+
+    setTickerVisible.addEventListener('change', function () {
+      settings.tickerVisible = setTickerVisible.checked;
+      saveFlag(SETTINGS_KEYS.tickerVisible, settings.tickerVisible);
+      applySettings();
+    });
+
+    setTickerPaused.addEventListener('change', function () {
+      settings.tickerPaused = setTickerPaused.checked;
+      saveFlag(SETTINGS_KEYS.tickerPaused, settings.tickerPaused);
+      applySettings();
+    });
+
+    setSplashEnabled.addEventListener('change', function () {
+      settings.splashEnabled = setSplashEnabled.checked;
+      saveFlag(SETTINGS_KEYS.splashEnabled, settings.splashEnabled);
+      if (!settings.splashEnabled && global.Splash.visible()) global.Splash.hide();
+    });
+
+    setAutoplay.addEventListener('change', function () {
+      noteInteraction();
+      setPlaying(setAutoplay.checked);
+      if (setAutoplay.checked) holdUntil = 0;
+    });
   }
 
   function bindControls() {
@@ -415,7 +507,7 @@
     lastInteraction = Date.now();
     holdUntil = 0;
     slideStartedAt = lastInteraction;
-    setPlaying(true);
+    setPlaying(settings.autoplay);
   }
 
   function init() {
@@ -425,9 +517,9 @@
     buildLang();
     buildTicker();
     localizeStatic();
-    startClock();
     bindControls();
-    setPlaying(true);
+    bindSettings();
+    setPlaying(settings.autoplay);
     setInterval(slideshowTick, 200);
   }
 

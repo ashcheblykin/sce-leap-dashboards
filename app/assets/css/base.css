@@ -89,3 +89,16 @@ button {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* The Axion wordmark, wherever a "Powered by" credit renders it (splash
+   footer, ticker, map corner). Sized off the surrounding text's line-height
+   and coloured by it too, so one mark works on light and dark credit lines
+   alike. */
+.axion-mark {
+  display: inline-block;
+  height: 0.8em;
+  width: auto;
+  flex: none;
+  vertical-align: -0.1em;
+  fill: currentColor;
+}

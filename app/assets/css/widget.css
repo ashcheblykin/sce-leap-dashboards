@@ -14,7 +14,6 @@
   gap: var(--pad-card);
   overflow: hidden;
   padding: var(--pad-card);
-  border: var(--hairline) solid var(--panel-border);
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow:
@@ -25,7 +24,6 @@
 
 [data-grid-item][data-moving] .widget,
 [data-grid-item][data-resizing] .widget {
-  border-color: var(--panel-border-strong);
   box-shadow:
     var(--glow-drag),
     0 0 0 1px rgba(var(--cy-rgb), 0.4);
@@ -47,6 +45,16 @@ body.grid-dragging .widget-head {
   cursor: grabbing;
 }
 
+/* Stat cards and the map already read as their own block against the panel
+   background, so the header's hairline is redundant weight — dropping it
+   (and the padding it was spacing out) hands that height back to the cards
+   or the map instead of sitting empty. */
+.widget[data-chart='indicator'] .widget-head,
+.widget[data-chart='map'] .widget-head {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 /* Axion's card title is sentence case, near-white and quiet, so the numbers in
    the body are the loudest thing on the panel. The tracked cyan uppercase this
    replaces is the house style of a control room, not of a product; the cyan
@@ -64,35 +72,10 @@ body.grid-dragging .widget-head {
   white-space: nowrap;
 }
 
-.widget-title::before {
-  width: calc(3 * var(--u));
-  height: calc(15 * var(--u));
-  flex: none;
-  border-radius: var(--radius-pill);
-  background: var(--cy);
-  box-shadow: 0 0 calc(8 * var(--u)) rgba(var(--cy-rgb), 0.55);
-  content: '';
-}
-
 .widget-title .label {
   overflow: hidden;
   min-width: 0;
   flex-shrink: 1;
-  text-overflow: ellipsis;
-}
-
-/* Shrinks far faster than the primary label, so a narrow header gives up the
-   other-language gloss rather than truncating the name of the panel. */
-.widget-title .gloss {
-  overflow: hidden;
-  min-width: 0;
-  /* Absorbs essentially all the shrink: the panel's own name is the last thing
-     a narrow header gives up. */
-  flex-shrink: 1000;
-  color: var(--mut-2);
-  font-size: 0.85em;
-  font-weight: 400;
-  letter-spacing: 0;
   text-overflow: ellipsis;
 }
 
@@ -135,11 +118,8 @@ body.grid-dragging .widget-head {
   flex: none;
   gap: calc(2 * var(--u));
   padding: var(--track-pad);
-  border: var(--hairline) solid var(--separator);
-  border-radius: var(--radius-md);
-  background: var(--track);
-  /* the pill can pop slightly past its own edges on press */
-  overflow: visible;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
   touch-action: pan-y;
 }
 
@@ -154,7 +134,7 @@ body.grid-dragging .widget-head {
   left: 0;
   right: 0;
   z-index: 0;
-  border-radius: calc(var(--radius-md) - var(--track-pad));
+  border-radius: var(--radius-pill);
   background-color: var(--chip-fill);
   pointer-events: none;
   transform: translateZ(0);
@@ -182,7 +162,7 @@ body.grid-dragging .widget-head {
   z-index: 1;
   padding: calc(5 * var(--u)) calc(13 * var(--u));
   border: var(--hairline) solid transparent;
-  border-radius: calc(var(--radius-md) - var(--track-pad));
+  border-radius: var(--radius-pill);
   color: var(--mut);
   font-size: var(--fs-chip);
   font-weight: 500;
@@ -226,36 +206,5 @@ body.grid-dragging .widget-head {
   .widget-head {
     padding-bottom: calc(8 * var(--u));
   }
-
-  .widget-title {
-    font-size: calc(16 * var(--u));
-    gap: calc(7 * var(--u));
-  }
-
-  .widget-title::before {
-    height: calc(12 * var(--u));
-  }
-
-  .chip {
-    padding: calc(3 * var(--u)) calc(9 * var(--u));
-    font-size: calc(13 * var(--u));
-  }
-
-  .chips {
-    --track-pad: calc(2 * var(--u));
-  }
 }
 
-/* A narrow card with three chips spends two-thirds of its header on them and
-   truncates its own name. Chips are the smaller thing on the row, so they are
-   the ones that give way. */
-@container (max-width: 760px) {
-  .chip {
-    padding: calc(4 * var(--u)) calc(9 * var(--u));
-    font-size: calc(13.5 * var(--u));
-  }
-
-  .chips {
-    --track-pad: calc(2 * var(--u));
-  }
-}

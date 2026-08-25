@@ -116,6 +116,11 @@
     global.addEventListener('resize', function () {
       if (!el.hidden) resize();
     });
+    if (global.AppSettings && !global.AppSettings.isSplashEnabled()) {
+      el.hidden = true;
+      Shell.start();
+      return;
+    }
     attract = setTimeout(hide, ATTRACT_MS);
     play();
   }

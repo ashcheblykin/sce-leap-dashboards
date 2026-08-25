@@ -1917,6 +1917,11 @@
     var render = KINDS[spec.chart];
     if (!render) throw new Error('Chart DSL: unknown kind ' + spec.chart);
     recordSpec(spec);
+    /* A stat-card grid already reads as separated from the title without a
+       rule underneath it — tagging the card lets the header give that hairline
+       and its padding back to the cards instead. */
+    var widget = host.closest('.widget');
+    if (widget) widget.setAttribute('data-chart', spec.chart);
     return render(host, spec);
   }
 

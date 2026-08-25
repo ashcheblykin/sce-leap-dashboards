@@ -9,12 +9,7 @@
    Views receive their body element and render into it — normally by handing a
    chart spec to `Chart.mount`. Because the body is a flex child whose height is
    already settled, swapping a view cannot move the panel: the "everything
-   jumps" bug from the prototypes.
-
-   Panel titles are bilingual in both directions, the way the four source
-   dashboards title theirs ("National Ecosystem · المنظومة"): the active locale
-   sets the name, the other locale rides behind it as a gloss and is the first
-   thing to give way when the header runs out of room. */
+   jumps" bug from the prototypes. */
 
 (function (global) {
   'use strict';
@@ -402,13 +397,11 @@
       chips += '</div>';
     }
 
-    var gloss = I18N.other(def.titleKey);
     return (
       '<div class="widget"><div class="widget-head" data-drag-handle>' +
       '<div class="widget-title"><span class="label">' +
       Fmt.escapeHtml(I18N.t(def.titleKey)) +
       '</span>' +
-      (gloss ? '<span class="gloss">' + Fmt.escapeHtml(gloss) + '</span>' : '') +
       '</div>' +
       chips +
       '</div><div class="widget-body"></div></div>' +
@@ -418,42 +411,6 @@
       '<div data-resize-handle="se"></div>' +
       '<div data-resize-handle="sw"></div>'
     );
-  }
-
-  /**
-   * Show the other-language gloss only when it fits WHOLE. A truncated Arabic
-   * gloss with an ellipsis reads as a defect rather than as a subtitle, and
-   * `text-overflow` cannot express "all or nothing".
-   *
-   * The natural width is measured once, while the gloss is still visible, and
-   * cached on the element: re-measuring after hiding it would read 0, and
-   * deciding from the title's own width would oscillate (hide -> room appears
-   * -> show -> no room -> hide). The head's width minus its chips is stable
-   * either way, so the decision is stable too.
-   */
-  function fitGloss(head) {
-    var gloss = head.querySelector('.gloss');
-    if (!gloss) return;
-    var label = head.querySelector('.label');
-    var chips = head.querySelector('.chips');
-    if (gloss.dataset.natural === undefined) {
-      gloss.dataset.natural = gloss.scrollWidth;
-    }
-    var title = head.querySelector('.widget-title');
-    var gap = parseFloat(getComputedStyle(title).columnGap) || 0;
-    /* The accent bar is a flex item of the title, so it and its gap count
-       toward what the title needs; erring a hair conservative just means the
-       gloss disappears slightly early, which is the harmless direction. */
-    var accent = parseFloat(getComputedStyle(title, '::before').width) || 0;
-    /* clientWidth is 0 while the board is still display:none, and deciding
-       from that would latch "hidden" until something else resized the head. */
-    if (head.clientWidth === 0) return;
-    var available = head.clientWidth - (chips ? chips.offsetWidth + gap : 0);
-    var needed = accent + gap * 2 + label.scrollWidth + parseFloat(gloss.dataset.natural);
-    /* A few px of slack. The estimate is within ~5px of what the browser lays
-       out, and right at the boundary "fits" turns into a one-glyph ellipsis —
-       which is the exact thing this function exists to avoid. */
-    gloss.hidden = needed + 10 > available;
   }
 
   function create(def, host) {
@@ -492,7 +449,6 @@
     var headObserver = new ResizeObserver(function (entries) {
       for (var i = 0; i < entries.length; i++) {
         var head = entries[i].target;
-        fitGloss(head);
         var chipsEl = head.querySelector('.chips');
         if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
       }
