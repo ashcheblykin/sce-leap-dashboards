@@ -33,10 +33,12 @@
   opacity: 0.96;
 }
 
-/* Knocks back everything the mask leaves showing, i.e. every country that is
-   not Saudi Arabia. */
+/* Fully hides everything the mask leaves showing, i.e. every country that is
+   not Saudi Arabia -- including the roads/borders baked into that part of the
+   raster. Matches .map-ground so the neighbours read as empty background
+   rather than a still-visible, just-darkened plate. */
 .map-scrim {
-  fill: rgba(2, 10, 20, 0.62);
+  fill: #020a14;
 }
 
 .map-focus {

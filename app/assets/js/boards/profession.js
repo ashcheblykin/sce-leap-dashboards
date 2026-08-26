@@ -262,11 +262,16 @@
               gap: 3,
               cornerRadius: 3,
               legendPosition: 'right',
+              /* One hue, faded by rank — not five borrowed tones. cy/green/gold/
+                 blue already mean Engineer/Technician/near-expiry/expired
+                 elsewhere on this board; a nationality has no such recurring
+                 identity, so it gets a fade of the bar tab's own purple
+                 instead of colours that mean something else here. */
               data: Data.nat5.map(function (r, i) {
                 return {
                   label: r[0],
                   value: r[1],
-                  color: [T.purple, T.cy, T.green, T.gold, T.blue][i],
+                  color: 'rgba(180, 138, 245, ' + (1 - i * 0.18).toFixed(2) + ')',
                 };
               }),
               note: t('n.natNote'),

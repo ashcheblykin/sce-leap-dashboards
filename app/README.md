@@ -29,20 +29,80 @@ are five (the document itself and its data URIs).
 
 ## The four boards
 
+The four surfaces of the source deliverable, in its own order and under its own
+names — `bigscreen.html`, `index.html`, `kpis.html`, `field-survey.html`:
+
 | Board | What it answers |
 | --- | --- |
-| National Ecosystem | How big is the profession, and where is it? |
-| Profession | Who is on the register — class, status, grade, specialty, nationality |
-| Operations | Renewal pipeline, Efaa enforcement, where it lands |
+| Big Screen | The wall's main screen: ecosystem, enforcement and the field survey at once, over three self-cycling scenes |
+| Ecosystem | How big is the profession, and where is it? |
+| KPI Library | Every indicator in the set as its own card, filterable by family |
 | Field Verification | What the field teams found at 6,371 offices |
 
-Each fills all 24 × 8 cells: no empty space on the wall.
+**Profession and Operations are not missing.** In the source they were never
+boards — they were scenes two and three of the Big Screen, and that is where
+they live here, with the sankey, the sunburst, the class radar and the
+enforcement money donut intact. Reading the nav as "two boards were dropped"
+gets the structure backwards.
+
+Each of the three panel boards fills all 24 × 8 cells: no empty space on the
+wall. The KPI Library is the exception, and deliberately — see below.
+
+### Big Screen
+
+Seven panels: `National Ecosystem`, `Top Specialties`, `Profession Structure`
+in the left wing, one map in the centre, `Proactive Monitoring`,
+`Enforcement Delivery`, `Field Verification` in the right. The panel set and
+its order are the prototype's, and two of the seven exist nowhere else in the
+app:
+
+- the **map with all six modes** on one widget — workforce, SCE-registered,
+  reach %, enforcement, field survey, survey coverage. Four of those also sit
+  on the Ecosystem board and two on Field Verification, but only here can you
+  step through the whole set without changing board;
+- the **Field Verification panel**, which is the only place a visitor sees the
+  door-to-door survey standing next to the register and the fines.
+
+It **cannot be dragged or resized**. The prototype fixed its panels because a
+wall runs unattended, and this board ships without the handles at all rather
+than with the gestures merely ignored. The other three boards keep them.
+
+Scenes advance on their own every **25 s**, so the board's slot in the rotation
+is **75 s** — three scenes — before the wall moves on. The scene switcher sits
+in the header next to the wall title, where the prototype put it; it is hidden
+on every other board.
+
+### KPI Library
+
+Twenty cards, five families plus **All**, each card offering the two or three
+readings of its figure that the source file offered. It is the one board that
+is not on the 24 × 8 grid: its card count changes with the filter (20 / 5 / 5 /
+3 / 3 / 4), so the column count is derived from the count instead and every
+filter lands on a grid that is exactly full — no ragged last row, and nothing
+scrolls on a wall that has no scrollbar.
+
+Two departures from the prototype, both deliberate:
+
+- **The views are chart specs, not bespoke HTML.** The source drew its own
+  `bignum`, conic `gauge` and `donut`; here a library card and the same figure
+  on the Big Screen go through one renderer and cannot drift apart. The GAUGE
+  becomes the two-slice donut Field Verification already uses for those same
+  percentages.
+- **Row-based views show their leading three rows in the All grid.** A
+  progress-bar row caps its type against its own height, and five rows in the
+  ~100px a card gets at five columns come out at eight-point text — drawn, but
+  not readable at a stand. The All grid therefore shows three rows and drops
+  the footnote that counts the rest; pick a family and the grid becomes one
+  tall row where every card shows its full list with its footnote back. No
+  card title claims a total, so nothing on screen is ever wrong — but if you
+  are checking a figure, check it filtered.
 
 ## Controls
 
 | Input | Effect |
 | --- | --- |
 | Board pills | Jump to a board |
+| Scene pills (Big Screen only) | Jump to Overview / Profession / Operations |
 | `EN` / `ع` | Switch language (also on the splash) |
 | Play/pause | Stop or resume the 45-second rotation |
 | `←` `→` | Previous / next board |
@@ -61,7 +121,8 @@ press `R` and `\` and switch back to `EN`.
 
 ## Timing
 
-- Boards rotate every **45 s**; the active pill fills to show the time left.
+- Boards rotate every **45 s**, except the Big Screen, which holds **75 s** to
+  play its three 25-second scenes; the active pill fills to show the time left.
 - Touching anything holds the rotation for **90 s**.
 - **5 min** with no interaction returns to the SCE splash.
 - The splash hands back to the boards after **40 s** if nobody presses Start,
@@ -72,10 +133,13 @@ press `R` and `\` and switch back to `EN`.
 ```
 index.html            markup and load order
 assets/css/           tokens -> base -> grid -> widget -> chart-dsl -> map
-                      -> motion -> shell -> splash
+                      -> library -> tooltip -> motion -> shell -> splash
 assets/js/core/       i18n, format, counter, chart-dsl, map, grid, motion,
                       board, shell, splash
-assets/js/boards/     kit.js plus one file per board: layout and view specs only
+assets/js/boards/     kit.js plus one file per board: layout and view specs
+                      only. profession.js and operations.js define the widget
+                      sets bigscreen.js mounts as its scenes, so both load
+                      before it.
 assets/js/data/       leap_data.js (verbatim), derive.js (aggregations),
                       labels.js (Latin glosses for the Arabic data labels),
                       ksa-geo.js (country outlines), ksa-basemap.js (the basemap)

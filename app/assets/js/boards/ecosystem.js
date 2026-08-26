@@ -162,7 +162,10 @@
                 var pct = (c[4] / c[3]) * 100;
                 return [c[1], c[2], pct, Labels.t(c[0]) + ' · ' + Fmt.pct(pct)];
               }),
-              tone: T.gold,
+              /* Matches eco-reach's own cy for the same metric (nationalReach) —
+                 a bubble tab and a KPI tile for one figure must read as one
+                 colour, not two. */
+              tone: T.cy,
               maxRadius: 0.9,
               hud: { value: Math.round(Data.nationalReach * 10) / 10, format: 'pct', label: t('m.natreach') },
               note: t('n.bubbleReach'),
@@ -174,7 +177,11 @@
               points: Data.regions.map(function (r) {
                 return [r[1], r[2], r[3], Labels.t(r[0]) + ' · ' + Fmt.grouped(r[3]) + ' · ' + Fmt.grouped(r[4]) + ' SAR'];
               }),
-              tone: T.purple,
+              /* Not purple: eco-kpis/eco-reach already spend purple on Saudi
+                 talent, and this bubble layer is enforcement cases — an
+                 unrelated figure that happens to sit right next to those
+                 tiles on the same board. */
+              tone: T.pink,
               hud: { value: Data.regionActions, format: 'grouped', label: t('s.cases') },
               note: t('n.bubbleRegions', {
                 n: Fmt.grouped(Data.regionActions),

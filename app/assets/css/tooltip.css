@@ -51,7 +51,7 @@
 .ax-tooltip.is-label-only .ax-tooltip-label {
   color: var(--tip-tone, var(--tx));
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .ax-tooltip-value {
@@ -61,7 +61,7 @@
   margin-top: var(--sp-1);
   color: var(--tip-tone, var(--tx));
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .ax-tooltip-num {

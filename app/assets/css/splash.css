@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(1800px 1100px at 50% 58%, #0a2742 0%, #051a2e 45%, #01060e 100%);
+  background: var(--ink);
   inset: 0;
   opacity: 1;
   transition: opacity 520ms var(--ease);
@@ -61,10 +61,7 @@
 .splash-title {
   max-width: calc(1500 * var(--u));
   margin-top: var(--sp-5);
-  background: linear-gradient(180deg, #ffffff 0%, #9dd6ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--tx);
   font-size: var(--fs-splash);
   font-weight: 300;
   letter-spacing: -0.02em;
@@ -72,7 +69,7 @@
 }
 
 .splash-title b {
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .splash-sub {
@@ -99,7 +96,7 @@
   backdrop-filter: var(--blur-glass);
   color: var(--tx);
   font-size: var(--fs-md);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   transition:
@@ -129,7 +126,7 @@
 .splash-stat-value {
   color: var(--tx);
   font-size: var(--fs-kpi-sm);
-  font-weight: 700;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }

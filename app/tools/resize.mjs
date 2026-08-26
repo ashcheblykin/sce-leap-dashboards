@@ -193,7 +193,8 @@ const STEPS = [
 
 console.log('\n=== charts track their container, same frame ===');
 let failures = 0;
-const BOARDS = ['ecosystem', 'profession', 'operations', 'field'];
+/* Nav order, matching the original deliverable's four surfaces. */
+const BOARDS = ['bigscreen', 'ecosystem', 'library', 'field'];
 for (let b = 0; b < BOARDS.length; b++) {
   await goto(b);
   for (const [w, h] of STEPS) {

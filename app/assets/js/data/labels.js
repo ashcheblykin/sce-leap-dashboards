@@ -152,9 +152,20 @@
     return { en: ALL[ar] || ar, ar: ar };
   }
 
-  /** True when the label rendered for the active locale is Arabic script. */
-  function isArabic(ar) {
-    return I18N.locale === 'ar' || !ALL[ar];
+  /* Arabic script in the range Almarai actually covers, plus the presentation
+     forms a copy-paste can carry. */
+  var ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]/;
+
+  /** True when the label rendered for the active locale is Arabic script.
+
+     Tests the rendered string, not the table. The old form — "Arabic if the
+     locale is Arabic, or if this key has no gloss" — is right for the data
+     labels this file exists for, but every caller passes it whatever a chart
+     is about to draw, and a translated UI string is in no gloss table either.
+     So "≤ 30 days" came back as Arabic, took `dir="rtl"`, and rendered as
+     "days 30 ≥": the neutral ≤ jumps the run under RTL resolution. */
+  function isArabic(label) {
+    return ARABIC.test(String(t(label)));
   }
 
   global.Labels = { t: t, pair: pair, isArabic: isArabic, table: ALL };

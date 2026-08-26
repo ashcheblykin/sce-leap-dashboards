@@ -50,7 +50,7 @@ button {
   unicode-bidi: isolate;
 }
 
-/* The Arabic subset carries no Latin glyphs, so the stack keeps 'Noto Sans'
+/* The Arabic subset carries no Latin glyphs, so the stack keeps 'Roboto Flex'
    behind it for digits, "LEAP 2026" and "SAR". */
 [dir='rtl'],
 .ar {

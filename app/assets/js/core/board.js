@@ -100,7 +100,6 @@
     var TRAIL = ms('--chip-dur-trail');
     var HOLD = ms('--chip-hold');
     var POP = ms('--chip-dur-pop');
-    var GLOW = 'var(--glow-spectrum)';
     var BLOOM = 'var(--chip-glow-bloom)';
     var RIM = 'var(--chip-rim)';
 
@@ -135,7 +134,7 @@
 
     function setNormal() {
       pill.style.backgroundColor = 'var(--chip-fill)';
-      pill.style.boxShadow = GLOW;
+      pill.style.boxShadow = 'none';
     }
     /* Travelling state: keeps a hairline cyan ring so the move is something
        you can actually watch, then blooms back to the full fill on arrival. */
@@ -377,10 +376,16 @@
       snap: function () {
         snap(active);
       },
+      /* Programmatic selection, so the Big Screen's own 25s scene cycle drives
+         the same pill through the same travel animation a tap would. */
+      select: selectTab,
+      index: function () {
+        return active;
+      },
     };
   }
 
-  function widgetMarkup(def) {
+  function widgetMarkup(def, kiosk) {
     var chips = '';
     if (def.chipKeys && def.chipKeys.length > 1) {
       chips = '<div class="chips" data-no-drag>';
@@ -414,94 +419,172 @@
       '</div>' +
       (stacked ? chips : '') +
       '<div class="widget-body"></div></div>' +
-      '<div data-resize-handle="s"></div>' +
-      '<div data-resize-handle="e"></div>' +
-      '<div data-resize-handle="w"></div>' +
-      '<div data-resize-handle="se"></div>' +
-      '<div data-resize-handle="sw"></div>'
+      /* A wall board has no operator: the original BigScreen deliberately
+         fixed its panels, and a visitor who drags one on an unattended stand
+         has broken the screen until somebody finds the reset. Kiosk boards
+         therefore ship without handles at all, not merely with drag ignored. */
+      (kiosk
+        ? ''
+        : '<div data-resize-handle="s"></div>' +
+          '<div data-resize-handle="e"></div>' +
+          '<div data-resize-handle="w"></div>' +
+          '<div data-resize-handle="se"></div>' +
+          '<div data-resize-handle="sw"></div>')
     );
   }
 
+  /* A board is either
+       - a widget board:  { widgets: [...] }
+       - a scene board:   { scenes: [{ key, labelKey, widgets }, ...] }   or
+       - a custom board:  { render: fn(surface) }   — the KPI Library, whose
+                          twenty cards are a flow layout, not a 24x8 grid.
+
+     Scenes exist because the original BigScreen was one screen that cycled
+     OVERVIEW / PROFESSION / OPERATIONS rather than three pages. Switching a
+     scene tears its widgets down and builds the next set into the same
+     surface: the charts re-enter with their normal 600ms arrival, which is the
+     behaviour you want every 25 seconds on a wall anyway. */
   function create(def, host) {
+    var scenes =
+      def.scenes && def.scenes.length ? def.scenes : [{ key: def.id, widgets: def.widgets }];
+    var multiScene = scenes.length > 1;
+
     var surface = document.createElement('div');
     surface.setAttribute('data-grid-surface', '');
     surface.setAttribute('data-board', def.id);
+    if (def.kiosk) surface.setAttribute('data-kiosk', '');
+    if (def.render) surface.setAttribute('data-custom', '');
     host.appendChild(surface);
 
-    var state = { layout: loadLayout(def.id, def.widgets) };
-
-    var views = {};
-    /* Some views pick a layout from the panel's proportions (a donut sits
-       beside its legend in a wide panel and above it in a tall one), so the
-       body carries its own orientation as an attribute. */
-    var orientObserver = new ResizeObserver(function (entries) {
-      for (var i = 0; i < entries.length; i++) {
-        var box = entries[i].contentRect;
-        entries[i].target.setAttribute('data-orient', box.width >= box.height * 1.35 ? 'row' : 'col');
-      }
-    });
-
-    // Chip switching re-renders only the body of its own widget. Looked up
-    // dynamically (not captured per loop iteration) since it's shared by
-    // every widget's attachChipTabs() callback below.
-    function onChipSelect(index, chipsEl) {
-      var item = chipsEl.closest('[data-grid-item]');
-      var entry = views[item.getAttribute('data-grid-item')];
-      if (!entry || entry.current === index) return;
-
-      entry.current = index;
-      entry.def.views[index](entry.body);
-      Motion.animate(entry.body);
-      if (def.onInteract) def.onInteract();
+    /* Each scene keeps its own stored arrangement, so a reset or a drag on one
+       cannot silently reshuffle another. */
+    function sceneStorageId(scene) {
+      return multiScene ? def.id + ':' + scene.key : def.id;
     }
 
-    var headObserver = new ResizeObserver(function (entries) {
-      for (var i = 0; i < entries.length; i++) {
-        var chipsEl = entries[i].target.querySelector('.chips');
-        if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
-      }
-    });
+    var sceneIndex = 0;
+    var mounted = null;
 
-    for (var i = 0; i < def.widgets.length; i++) {
-      var w = def.widgets[i];
-      var item = document.createElement('div');
-      item.setAttribute('data-grid-item', w.id);
-      item.innerHTML = widgetMarkup(w);
-      surface.appendChild(item);
+    function mountScene(index) {
+      var scene = scenes[index];
+      var storageId = sceneStorageId(scene);
+      var state = { layout: loadLayout(storageId, scene.widgets) };
+      var views = {};
+      /* Some views pick a layout from the panel's proportions (a donut sits
+         beside its legend in a wide panel and above it in a tall one), so the
+         body carries its own orientation as an attribute. */
+      var orientObserver = new ResizeObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          var box = entries[i].contentRect;
+          entries[i].target.setAttribute(
+            'data-orient',
+            box.width >= box.height * 1.35 ? 'row' : 'col'
+          );
+        }
+      });
 
-      var body = item.querySelector('.widget-body');
-      orientObserver.observe(body);
-      headObserver.observe(item.querySelector('.widget'));
+      // Chip switching re-renders only the body of its own widget. Looked up
+      // dynamically (not captured per loop iteration) since it's shared by
+      // every widget's attachChipTabs() callback below.
+      function onChipSelect(index, chipsEl) {
+        var item = chipsEl.closest('[data-grid-item]');
+        var entry = views[item.getAttribute('data-grid-item')];
+        if (!entry || entry.current === index) return;
 
-      var chipsEl = item.querySelector('.chips');
-      if (chipsEl) chipsEl._tabs = attachChipTabs(chipsEl, onChipSelect);
-
-      views[w.id] = { def: w, body: body, current: 0 };
-      w.views[0](body);
-    }
-
-    var grid = AxGrid.attachInteraction(surface, state, {
-      cols: AxGrid.COLS,
-      rows: AxGrid.ROWS,
-      onCommit: function (layout) {
-        saveLayout(def.id, layout);
+        entry.current = index;
+        entry.def.views[index](entry.body);
+        Motion.animate(entry.body);
         if (def.onInteract) def.onInteract();
-      },
-    });
+      }
 
-    grid.paint(state.layout);
+      var headObserver = new ResizeObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          var chipsEl = entries[i].target.querySelector('.chips');
+          if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
+        }
+      });
+
+      for (var i = 0; i < scene.widgets.length; i++) {
+        var w = scene.widgets[i];
+        var item = document.createElement('div');
+        item.setAttribute('data-grid-item', w.id);
+        item.innerHTML = widgetMarkup(w, def.kiosk);
+        surface.appendChild(item);
+
+        var body = item.querySelector('.widget-body');
+        orientObserver.observe(body);
+        headObserver.observe(item.querySelector('.widget'));
+
+        var chipsEl = item.querySelector('.chips');
+        if (chipsEl) chipsEl._tabs = attachChipTabs(chipsEl, onChipSelect);
+
+        views[w.id] = { def: w, body: body, current: 0 };
+        w.views[0](body);
+      }
+
+      /* Kiosk boards still need paint() to place the widgets; they just never
+         get the pointer handlers that would move them. */
+      var grid = def.kiosk
+        ? { paint: function (layout) {
+            for (var p = 0; p < layout.length; p++) {
+              var el = surface.querySelector('[data-grid-item="' + layout[p].id + '"]');
+              if (el) AxGrid.applyGeometry(el, layout[p]);
+            }
+          } }
+        : AxGrid.attachInteraction(surface, state, {
+            cols: AxGrid.COLS,
+            rows: AxGrid.ROWS,
+            onCommit: function (layout) {
+              saveLayout(storageId, layout);
+              if (def.onInteract) def.onInteract();
+            },
+          });
+
+      grid.paint(state.layout);
+
+      mounted = {
+        scene: scene,
+        storageId: storageId,
+        state: state,
+        views: views,
+        grid: grid,
+        orientObserver: orientObserver,
+        headObserver: headObserver,
+      };
+    }
+
+    function unmountScene() {
+      if (!mounted) return;
+      mounted.orientObserver.disconnect();
+      mounted.headObserver.disconnect();
+      for (var id in mounted.views) {
+        if (mounted.views.hasOwnProperty(id)) Chart.unmount(mounted.views[id].body);
+      }
+      surface.innerHTML = '';
+      mounted = null;
+    }
+
+    function setScene(index) {
+      index = ((index % scenes.length) + scenes.length) % scenes.length;
+      if (mounted && index === sceneIndex) return;
+      sceneIndex = index;
+      unmountScene();
+      mountScene(index);
+      Motion.enter(surface);
+    }
+
+    if (def.render) def.render(surface);
+    else mountScene(0);
 
     function reset() {
-      state.layout = loadLayout(def.id, def.widgets);
-      grid.paint(state.layout);
+      if (def.render || !mounted) return;
+      mounted.state.layout = loadLayout(mounted.storageId, mounted.scene.widgets);
+      mounted.grid.paint(mounted.state.layout);
     }
 
     function destroy() {
-      orientObserver.disconnect();
-      headObserver.disconnect();
-      for (var id in views) {
-        if (views.hasOwnProperty(id)) Chart.unmount(views[id].body);
-      }
+      if (def.render && def.teardown) def.teardown(surface);
+      unmountScene();
       surface.remove();
     }
 
@@ -509,6 +592,12 @@
       id: def.id,
       def: def,
       surface: surface,
+      scenes: scenes,
+      sceneCount: scenes.length,
+      sceneIndex: function () {
+        return sceneIndex;
+      },
+      setScene: setScene,
       reset: reset,
       destroy: destroy,
     };
@@ -516,6 +605,10 @@
 
   global.Board = {
     create: create,
+    /* The KPI Library builds its own cards rather than grid widgets, but its
+       view switchers must be the same control as everywhere else. */
+    attachChipTabs: attachChipTabs,
+    widgetMarkup: widgetMarkup,
     clearLayouts: clearLayouts,
     loadLayout: loadLayout,
   };

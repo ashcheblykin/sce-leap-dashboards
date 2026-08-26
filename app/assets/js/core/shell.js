@@ -67,10 +67,14 @@
   var holdUntil = 0;
   var lastInteraction = 0;
 
+  /* The four surfaces of the original deliverable, in its own order:
+     bigscreen.html, index.html, kpis.html, field-survey.html. Profession and
+     Operations are not missing — in the source they were scenes of the Big
+     Screen, and that is where they live here too (see boards/bigscreen.js). */
   var BOARDS = [
+    global.BOARD_BIGSCREEN,
     global.BOARD_ECOSYSTEM,
-    global.BOARD_PROFESSION,
-    global.BOARD_OPERATIONS,
+    global.BOARD_LIBRARY,
     global.BOARD_FIELD,
   ];
 
@@ -79,6 +83,8 @@
   var playBtn = document.getElementById('navPlay');
   var resetBtn = document.getElementById('reset');
   var tickerEl = document.getElementById('ticker');
+  var sceneHost = document.getElementById('scenes');
+  var clockEl = document.getElementById('clock');
   var settingsBtn = document.getElementById('settingsBtn');
   var settingsPanel = document.getElementById('settingsPanel');
   var setTickerVisible = document.getElementById('setTickerVisible');
@@ -95,6 +101,7 @@
   var playing = true;
   var switching = false;
   var slideStartedAt = 0;
+  var sceneStartedAt = 0;
   var navFills = [];
   var navPill = null;
   var navPillIndex = -1;
@@ -292,6 +299,60 @@
     }
   }
 
+  /* --- Big Screen scenes ---
+     A second segmented control, shown only while a board that has scenes is on
+     screen. The original put it in the header's top left, beside the title,
+     with the cross-dashboard links on the other side; ours keeps that
+     placement and lets the board pills hold the middle. */
+  var sceneTabs = null;
+
+  function buildScenes() {
+    var board = current >= 0 ? boards[current] : null;
+    var hasScenes = !!(board && board.sceneCount > 1);
+
+    sceneHost.hidden = !hasScenes;
+    sceneHost.innerHTML = '';
+    sceneTabs = null;
+    if (!hasScenes) return;
+
+    for (var i = 0; i < board.scenes.length; i++) {
+      sceneHost.insertAdjacentHTML(
+        'beforeend',
+        '<button class="chip" type="button" data-scene="' +
+          i +
+          '"' +
+          (i === board.sceneIndex() ? ' data-on' : '') +
+          '>' +
+          Fmt.escapeHtml(I18N.t(board.scenes[i].labelKey)) +
+          '</button>'
+      );
+    }
+
+    /* No noteInteraction() here: the document-level pointer listener already
+       registers a tap, and calling it from the auto-cycle would park the
+       slideshow the moment the wall advanced a scene by itself. */
+    sceneTabs = Board.attachChipTabs(sceneHost, function (index) {
+      board.setScene(index);
+      sceneStartedAt = Date.now();
+    });
+  }
+
+  /* --- Header clock ---
+     The original printed the date and the time next to LEAP 2026 on every one
+     of its four screens. Western digits in both locales, like every other
+     number on the wall; minutes only, so ten seconds is a fine tick. */
+  function startClock() {
+    function paint() {
+      var d = new Date();
+      clockEl.textContent =
+        d.toLocaleDateString('en-GB') +
+        ' · ' +
+        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    paint();
+    setInterval(paint, 10000);
+  }
+
   /* --- Language ---
      Switching locale rebuilds the boards: every label, every chip and every
      chart spec is produced from the message table at render time, and the RTL
@@ -362,6 +423,9 @@
 
     var next = mount(index);
     next.surface.style.display = 'none';
+    /* The wall's main screen always opens on OVERVIEW, wherever its cycle had
+       got to when the board was last on screen. */
+    if (next.sceneCount > 1) next.setScene(0);
 
     function reveal() {
       if (current >= 0 && boards[current]) boards[current].surface.style.display = 'none';
@@ -369,8 +433,10 @@
       next.surface.style.display = '';
       measure();
       markNav(index, true);
+      buildScenes();
       Motion.enter(next.surface);
       slideStartedAt = Date.now();
+      sceneStartedAt = slideStartedAt;
       switching = false;
     }
 
@@ -424,14 +490,27 @@
       }
       // Whatever is on screen gets a full slot once the hold lifts.
       slideStartedAt = now;
+      sceneStartedAt = now;
       return;
     }
 
+    /* A scene board runs its own inner cycle first: the Big Screen steps
+       OVERVIEW -> PROFESSION -> OPERATIONS every 25s and only then hands the
+       wall on, which is why its slot is three scenes long. */
+    var board = current >= 0 ? boards[current] : null;
+    if (board && board.sceneCount > 1 && sceneTabs) {
+      var sceneMs = BOARDS[current].sceneMs || SLIDE_MS;
+      if (now - sceneStartedAt >= sceneMs) {
+        sceneTabs.select((board.sceneIndex() + 1) % board.sceneCount);
+      }
+    }
+
+    var slideMs = current >= 0 && BOARDS[current].slideMs ? BOARDS[current].slideMs : SLIDE_MS;
     var elapsed = now - slideStartedAt;
     if (current >= 0 && navFills[current]) {
-      navFills[current].style.width = Math.min(100, (elapsed / SLIDE_MS) * 100) + '%';
+      navFills[current].style.width = Math.min(100, (elapsed / slideMs) * 100) + '%';
     }
-    if (elapsed >= SLIDE_MS) advance();
+    if (elapsed >= slideMs) advance();
   }
 
   /* --- Ticker ---
@@ -617,6 +696,7 @@
     localizeStatic();
     bindControls();
     bindSettings();
+    startClock();
     setPlaying(settings.autoplay);
     setInterval(slideshowTick, 200);
   }

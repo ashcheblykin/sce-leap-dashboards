@@ -19,12 +19,23 @@
   /* --- The message table --- */
   var M = {
     /* Shell */
-    'app.title': ['Smart Monitoring Center', 'مركز الرقابة الذكي'],
+    'app.title': ['Smart monitoring center', 'مركز الرقابة الذكي'],
 
+    /* The four surfaces of the original deliverable, in its own order and its
+       own words: bigscreen.html, index.html, kpis.html, field-survey.html.
+       Arabic taken verbatim from the translators' `pages` table — see
+       i18n-source/SCE_LEAP_*_AR.html. */
+    'nav.bigscreen': ['Big Screen', 'الشاشة الكبرى'],
     'nav.ecosystem': ['Ecosystem', 'المنظومة'],
-    'nav.profession': ['Profession', 'المهنة'],
-    'nav.operations': ['Operations', 'العمليات'],
-    'nav.field': ['Field', 'التحقق الميداني'],
+    'nav.library': ['KPI Library', 'مكتبة المؤشرات'],
+    'nav.field': ['Field Verification', 'التحقق الميداني'],
+
+    /* Big Screen scenes — the wall cycles these three, as the original did. */
+    'sc.overview': ['Overview', 'نظرة عامة'],
+    'sc.profession': ['Profession', 'المهن'],
+    'sc.operations': ['Operations', 'العمليات'],
+
+    'hdr.event': ['LEAP 2026', 'LEAP 2026'],
 
     'ctl.play': ['Play', 'تشغيل'],
     'ctl.pause': ['Pause', 'إيقاف'],
@@ -48,28 +59,28 @@
     'splash.stat3': ['Offices verified on the ground', 'المكاتب المتحقق منها ميدانياً'],
 
     /* Panel titles */
-    'w.eco': ['National Ecosystem', 'المنظومة الوطنية'],
-    'w.spec': ['Top Specialties', 'أبرز التخصصات'],
-    'w.reach': ['National Reach', 'التغطية الوطنية'],
-    'w.map': ['National Map', 'الخريطة الوطنية'],
-    'w.struct': ['Profession Structure', 'البنية المهنية'],
-    'w.mon': ['Proactive Monitoring', 'المراقبة الاستباقية'],
-    'w.enf': ['Enforcement Delivery', 'أداء الإنفاذ'],
-    'w.register': ['The Register', 'السجل'],
-    'w.flow': ['Register Flow', 'توزيع السجل'],
-    'w.grades': ['Career Grades', 'الدرجات المهنية'],
-    'w.nat': ['Global Talent Base', 'قاعدة الكفاءات العالمية'],
-    'w.compare': ['Class Profile', 'ملامح الفئات'],
-    'w.pipeline': ['Renewal Pipeline', 'مسار التجديد'],
-    'w.trend': ['Enforcement Activity', 'نشاط الإنفاذ'],
-    'w.regions': ['Regional Enforcement', 'الإنفاذ حسب المنطقة'],
-    'w.money': ['Enforced vs Collected', 'القيمة المنفَّذة والمحصَّلة'],
-    'w.field': ['Field Verification', 'التحقق الميداني'],
-    'w.fieldmap': ['Verified Offices', 'المكاتب المتحقق منها'],
-    'w.coverage': ['Licensing Coverage', 'تغطية الترخيص'],
-    'w.topcities': ['Top Cities', 'أبرز المدن'],
-    'w.capture': ['What the Field Captured', 'نتائج المسح'],
-    'w.staffcities': ['Cities by Size', 'المدن حسب الحجم'],
+    'w.eco': ['National ecosystem', 'المنظومة الوطنية'],
+    'w.spec': ['Top specialties', 'أبرز التخصصات'],
+    'w.reach': ['National reach', 'التغطية الوطنية'],
+    'w.map': ['National map', 'الخريطة الوطنية'],
+    'w.struct': ['Profession structure', 'البنية المهنية'],
+    'w.mon': ['Proactive monitoring', 'المراقبة الاستباقية'],
+    'w.enf': ['Enforcement delivery', 'أداء الإنفاذ'],
+    'w.register': ['The register', 'السجل'],
+    'w.flow': ['Register flow', 'توزيع السجل'],
+    'w.grades': ['Career grades', 'الدرجات المهنية'],
+    'w.nat': ['Global talent base', 'قاعدة الكفاءات العالمية'],
+    'w.compare': ['Class profile', 'ملامح الفئات'],
+    'w.pipeline': ['Renewal pipeline', 'مسار التجديد'],
+    'w.trend': ['Enforcement activity', 'نشاط الإنفاذ'],
+    'w.regions': ['Regional enforcement', 'الإنفاذ حسب المنطقة'],
+    'w.money': ['Enforced vs collected', 'القيمة المنفَّذة والمحصَّلة'],
+    'w.field': ['Field verification', 'التحقق الميداني'],
+    'w.fieldmap': ['Verified offices', 'المكاتب المتحقق منها'],
+    'w.coverage': ['Licensing coverage', 'تغطية الترخيص'],
+    'w.topcities': ['Top cities', 'أبرز المدن'],
+    'w.capture': ['What the field captured', 'نتائج المسح'],
+    'w.staffcities': ['Cities by size', 'المدن حسب الحجم'],
 
     /* Chips */
     'c.totals': ['Totals', 'الإجماليات'],
@@ -107,6 +118,19 @@
     'c.staff': ['Staff', 'الموارد البشرية'],
     'c.table': ['Table', 'الجدول'],
     'c.dual': ['Dual licence', 'ترخيص مزدوج'],
+    'c.grades': ['Grades', 'الرتب'],
+    'c.fieldsurvey': ['Field survey', 'التحقق الميداني'],
+    'c.surveycov': ['Survey coverage', 'نطاق التحقق'],
+    'c.topcities': ['Top cities', 'أبرز المدن'],
+    'c.number': ['Number', 'الرقم'],
+    'c.bycity': ['By city', 'حسب المدينة'],
+    'c.byclass': ['By class', 'حسب الفئة'],
+    'c.registermix': ['Register mix', 'توزيع التسجيل'],
+    'c.donut': ['Donut', 'دائري'],
+    'c.gauge': ['Gauge', 'مقياس'],
+    'c.split': ['Split', 'التوزيع'],
+    'c.more': ['More', 'أخرى'],
+    'c.trendshort': ['Trend', 'الاتجاه'],
 
     /* Metric labels */
     'm.eco': ['Professionals in regulated roles', 'المهنيون في الأدوار المنظمة'],
@@ -258,6 +282,85 @@
 
     'n.inCollection': ['In collection', 'قيد التحصيل'],
     'n.underReview': ['Under review', 'قيد المراجعة'],
+
+    /* --- KPI Library ---
+       Categories, the twenty card titles and the line each NUMBER view prints
+       under its figure. Every Arabic string is the translators' own, lifted
+       from i18n-source/SCE_LEAP_KPI_Library_AR.html card for card. */
+    'lib.all': ['All', 'الكل'],
+    'lib.ecosystem': ['Ecosystem', 'المنظومة'],
+    'lib.profession': ['Profession', 'المهنة'],
+    'lib.monitoring': ['Monitoring', 'الرصد'],
+    'lib.enforcement': ['Enforcement', 'الإنفاذ'],
+    'lib.field': ['Field Verification', 'التحقق الميداني'],
+    'lib.count': ['{n} indicators', '{n} مؤشراً'],
+
+    'k.ecosize': ['Engineering ecosystem size', 'حجم منظومة المهن الهندسية'],
+    'k.registered': ['Registered with SCE', 'المسجلون لدى الهيئة'],
+    'k.offices': ['Offices & firms network', 'شبكة المكاتب والمنشآت'],
+    'k.saudis': ['Saudi engineering talent', 'الكفاءات الهندسية السعودية'],
+    'k.activemem': ['Active memberships', 'العضويات الفعالة'],
+    'k.engspec': ['Top engineering specialties', 'أبرز التخصصات الهندسية'],
+    'k.techspec': ['Top technician specialties', 'أبرز تخصصات التقنيين'],
+    'k.specfields': ['Top specialist fields', 'أبرز مجالات الأخصائيين'],
+    'k.grades': ['Career-grade pipeline', 'مسار الدرجات المهنية'],
+    'k.nat': ['Global talent base', 'قاعدة الكفاءات العالمية'],
+    'k.proact': ['Licences tracked proactively', 'التراخيص المتابَعة استباقيًا'],
+    'k.engage': ['Renewal engagement', 'التفاعل مع التجديد'],
+    'k.pipeline': ['Renewal outreach pipeline', 'مسار التواصل للتجديد'],
+    'k.cases': ['Enforcement actions', 'إجراءات الإنفاذ'],
+    'k.money': ['Value enforced & collected', 'القيمة المنفَّذة والمحصَّلة'],
+    'k.regions': ['Enforcement by region', 'الإنفاذ حسب المنطقة'],
+    'k.surveyed': ['Offices field-surveyed', 'المكاتب التي شملها المسح الميداني'],
+    'k.coverage': ['SCE licensing coverage', 'نطاق تراخيص الهيئة'],
+    'k.onsite': ['Verified on site', 'التحقق الميداني في الموقع'],
+    'k.records': ['Records verified in the field', 'السجلات المُحقّقة ميدانيًا'],
+
+    'kn.ecosize': [
+      'professionals in regulated engineering roles',
+      'من المهنيين في الأدوار الهندسية المنظمة',
+    ],
+    'kn.registered': [
+      'professionals ever registered across all classes',
+      'مهنيًا سبق تسجيلهم ضمن جميع الفئات',
+    ],
+    'kn.saudis': [
+      'Saudi professionals in the regulated workforce',
+      'مهنيًا سعوديًا ضمن القوى العاملة المنظمة',
+    ],
+    'kn.saudishare': ['share of the in-scope workforce', 'من نسبة القوى العاملة المستهدفة'],
+    'kn.activemem': ['in good standing today', 'بحالة سارية حاليًا'],
+    'kn.proact': [
+      'flagged in advance for renewal by digital monitoring',
+      'تم رصدها استباقيًا للتجديد عبر الرصد الرقمي',
+    ],
+    'kn.engage': [
+      'professionals engaged per renewal cycle',
+      'مهنيًا تم التواصل معهم في كل دورة تجديد',
+    ],
+    'kn.cases': [
+      'violation cases processed through Efaa',
+      'قضية مخالفة تمت معالجتها عبر منصة إفعاء',
+    ],
+    'kn.money': ['SAR enforced · {n} SAR collected', 'ريال سعودي منفَّذ · {n} ريال محصَّل'],
+    'kn.surveyed': ['across {r} regions · {c} cities', 'عبر {r} منطقة · {c} مدينة'],
+    'kn.coverage': [
+      'of verified active offices hold an SCE licence',
+      'من المكاتب النشطة المتحقق منها تحمل ترخيص الهيئة',
+    ],
+    'kn.dual': [
+      'hold both SCE and municipal licences',
+      'تحمل ترخيصًا من الهيئة وترخيصًا بلديًا معًا',
+    ],
+    'kn.onsite': [
+      'professionals counted at active offices · avg {n} per office',
+      'مهنيًا في المكاتب النشطة · بمعدل {n} لكل مكتب',
+    ],
+    'kn.records': [
+      'SCE licence numbers updated at the door',
+      'أرقام ترخيص الهيئة المحدَّثة ميدانيًا',
+    ],
+    'kn.actions': ['{n} actions', '{n} إجراء'],
 
     /* Ticker */
     't.eco': ['professionals in the national engineering ecosystem', 'مهني في المنظومة الهندسية الوطنية'],

@@ -390,7 +390,7 @@
     return w;
   }
 
-  var FONT_FAMILY = "'Noto Sans','Noto Sans Arabic',sans-serif";
+  var FONT_FAMILY = "'Roboto Flex','Almarai Arabic',sans-serif";
 
   /** resolveTextAnchor from shared/ChartText.tsx. */
   function anchorFor(align, rtl) {
@@ -651,7 +651,7 @@
     var wrap = html('div', 'ax-legend ax-legend--' + (position || 'bottom'));
     for (var i = 0; i < items.length; i++) {
       var row = html('div', 'ax-legend-item');
-      var dot = svg('svg', { width: 10, height: 10, class: 'ax-legend-dot' });
+      var dot = svg('svg', { width: 10, height: 10, viewBox: '0 0 10 10', class: 'ax-legend-dot' });
       dot.appendChild(svg('circle', { cx: 5, cy: 5, r: 4.5, fill: items[i].color }));
       row.appendChild(dot);
       var label = html('span', 'ax-legend-label', items[i].label);
@@ -1349,7 +1349,7 @@
             align: 'middle',
             value: '0',
             size: big,
-            weight: 700,
+            weight: 400,
             fill: 'var(--chart-value)',
             kind: 'numeric',
             baseline: 'middle',

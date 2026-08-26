@@ -169,16 +169,19 @@ await sleep(1600);
 
 const PROBE = `(() => {
   const out = { overflow: [], clipping: [], inventory: [] };
+  const cellId = (el) => el.getAttribute('data-grid-item') || el.getAttribute('data-card');
   const stage = document.querySelector('.stage').getBoundingClientRect();
   document.querySelectorAll('[data-grid-surface]').forEach((s) => {
     if (s.style.display === 'none') return;
-    const items = s.querySelectorAll('[data-grid-item]');
+    // The KPI Library lays its cards out itself rather than on the 24x8
+    // grid, so both kinds of cell feed the same overflow and clipping probe.
+    const items = s.querySelectorAll('[data-grid-item], .lib-cell');
     out.inventory.push(s.getAttribute('data-board') + ' items=' + items.length +
       ' faded=' + Array.from(items).filter(i => +getComputedStyle(i).opacity < 0.99).length);
     items.forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.bottom > stage.bottom + 1 || r.right > stage.right + 1 || r.width < 2 || r.height < 2) {
-        out.overflow.push(el.getAttribute('data-grid-item') + ' ' + JSON.stringify({
+        out.overflow.push(cellId(el) + ' ' + JSON.stringify({
           w: Math.round(r.width), h: Math.round(r.height),
           overBottom: Math.round(r.bottom - stage.bottom),
           overRight: Math.round(r.right - stage.right),
@@ -191,7 +194,7 @@ const PROBE = `(() => {
       const cell = el.getBoundingClientRect();
       const card = el.querySelector('.widget').getBoundingClientRect();
       if (Math.abs(cell.height - card.height) > 1 || Math.abs(cell.width - card.width) > 1) {
-        out.clipping.push(el.getAttribute('data-grid-item') +
+        out.clipping.push(cellId(el) +
           ' card ' + Math.round(card.width) + 'x' + Math.round(card.height) +
           ' in cell ' + Math.round(cell.width) + 'x' + Math.round(cell.height));
       }
@@ -212,7 +215,7 @@ const PROBE = `(() => {
         // taller than its line box, so every one of them reads as overflowing.
         if (o.whiteSpace === 'nowrap' || o.overflowY === 'visible') return;
         if (b.scrollHeight <= b.clientHeight + 2) return;
-        out.clipping.push(el.getAttribute('data-grid-item') + ' ' +
+        out.clipping.push(cellId(el) + ' ' +
           (b.className || b.tagName) + ' content h' + b.scrollHeight +
           ' vs box h' + b.clientHeight);
       });
@@ -237,12 +240,41 @@ async function walk(locale) {
     await sleep(900);
     await shot(`${locale}-${i + 1}-${BOARD_IDS[i]}`);
 
-    const chipCount = await evaluate(
-      `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chip').length`,
+    /* A scene board is three screens wearing one nav pill. Shooting only the
+       one that happens to be up leaves two thirds of the wall unrecorded --
+       which is exactly how the Big Screen went missing from the mockups in the
+       first place. */
+    const scenes = await evaluate(
+      `Array.from(document.querySelectorAll('#scenes .chip')).map(c => c.textContent.trim())`,
     );
+    for (let sc = 1; sc < scenes.length; sc++) {
+      await evaluate(
+        `(() => { const n = document.querySelectorAll('#scenes .chip')[${sc}]; if (n) n.click(); })()`,
+      );
+      await sleep(900);
+      await pump(10);
+      await shot(`${locale}-${i + 1}-${BOARD_IDS[i]}-scene${sc + 1}`);
+
+      const sp = await evaluate(PROBE);
+      findings.overflow.push(...sp.overflow.map((r) => `${locale} scene${sc + 1} ${r}`));
+      findings.clipping.push(...sp.clipping.map((r) => `${locale} scene${sc + 1} ${r}`));
+      findings.inventory.push(`${locale} scene${sc + 1} ${sp.inventory.join(' ')}`);
+    }
+    if (scenes.length) {
+      await evaluate(
+        `(() => { const n = document.querySelectorAll('#scenes .chip')[0]; if (n) n.click(); })()`,
+      );
+      await sleep(700);
+    }
+
+    /* Re-queried on every step, never indexed off a stale list: the KPI
+       Library's filter chips rebuild the whole card grid underneath them, so
+       the chip at index c may not exist by the time it is clicked. */
+    const SEL = '[data-grid-surface]:not([style*="none"]) .chip';
+    const chipCount = await evaluate(`document.querySelectorAll('${SEL}').length`);
     for (let c = 0; c < chipCount; c++) {
       await evaluate(
-        `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chip')[${c}].click()`,
+        `(() => { const n = document.querySelectorAll('${SEL}')[${c}]; if (n) n.click(); })()`,
       );
     }
     await pump(10);
@@ -252,12 +284,15 @@ async function walk(locale) {
     findings.inventory.push(`${locale} ${probe.inventory.join(' ')}`);
 
     await evaluate(
-      `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chips').forEach(c => c.firstElementChild.click())`,
+      /* .chip, not firstElementChild: the sliding pill is the track's first
+         child, so clicking that reset nothing. */
+      `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chips').forEach(c => { const f = c.querySelector('.chip'); if (f) f.click(); })`,
     );
   }
 }
 
-const BOARD_IDS = ['ecosystem', 'profession', 'operations', 'field'];
+/* The four surfaces of the original deliverable, in nav order. */
+const BOARD_IDS = ['bigscreen', 'ecosystem', 'library', 'field'];
 
 for (const locale of ['en', 'ar']) await walk(locale);
 

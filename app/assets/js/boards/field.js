@@ -30,7 +30,11 @@
               items: [
                 { value: Data.tuv.surveyed, format: 'grouped', label: t('m.surveyed'), color: T.cy, valueFontSize: 'small' },
                 { value: Data.tuv.active, format: 'grouped', label: t('m.activeoff'), color: T.green, valueFontSize: 'small' },
-                { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov'), color: T.gold, valueFontSize: 'small' },
+                /* Green, not gold: the coverage donut below and the Field
+                   Verification panel on the Big Screen both draw this same
+                   93.1% in green, and one figure in two colours on one wall
+                   reads as two different figures. */
+                { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov'), color: T.green, valueFontSize: 'small' },
                 { value: Data.tuv.dual, format: 'pct', label: t('m.dual'), color: T.purple, valueFontSize: 'small' },
               ],
             });
@@ -68,7 +72,10 @@
               valueFormat: 'pct',
               data: [
                 { label: t('s.licensed'), value: Data.tuv.scecov, color: T.green },
-                { label: t('s.unlicensed'), value: 100 - Data.tuv.scecov, color: T.gold },
+                /* Neutral, not gold: fv-kpis already uses gold for scecov
+                   itself (the licensed share), so a gold "unlicensed" slice
+                   here would read as the opposite of what it means there. */
+                { label: t('s.unlicensed'), value: 100 - Data.tuv.scecov, color: '#7fa8c2' },
               ],
               centerLabel: t('m.scecov'),
               centerValue: Data.tuv.scecov,
@@ -86,7 +93,7 @@
               valueFormat: 'pct',
               data: [
                 { label: t('m.dual'), value: Data.tuv.dual, color: T.purple },
-                { label: t('s.unlicensed'), value: 100 - Data.tuv.dual, color: T.gold },
+                { label: t('s.unlicensed'), value: 100 - Data.tuv.dual, color: '#7fa8c2' },
               ],
               centerLabel: t('m.dual'),
               centerValue: Data.tuv.dual,

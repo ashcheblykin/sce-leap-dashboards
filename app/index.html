@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="assets/css/widget.css" />
     <link rel="stylesheet" href="assets/css/chart-dsl.css" />
     <link rel="stylesheet" href="assets/css/map.css" />
+    <link rel="stylesheet" href="assets/css/library.css" />
     <link rel="stylesheet" href="assets/css/tooltip.css" />
     <link rel="stylesheet" href="assets/css/motion.css" />
     <link rel="stylesheet" href="assets/css/shell.css" />
@@ -34,8 +35,16 @@
       <main class="stage" id="stage"></main>
 
       <header class="hdr">
+        <!-- The wall's own identity, as the source dashboards printed it: the
+             centre's name with the other language underneath, and — while the
+             Big Screen is on — its three scenes beside it. -->
         <div class="hdr-brand">
           <img class="hdr-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
+          <div class="hdr-title">
+            <div class="hdr-title-main" data-i18n="app.title"></div>
+            <div class="hdr-title-alt" data-i18n-gloss="app.title"></div>
+          </div>
+          <div class="chips scenes" id="scenes" hidden></div>
         </div>
 
         <nav class="nav" id="nav">
@@ -46,6 +55,11 @@
         </nav>
 
         <div class="hdr-meta">
+          <div class="hdr-event">
+            <div class="hdr-event-name" data-i18n="hdr.event"></div>
+            <div class="hdr-event-clock ax-num" id="clock" dir="ltr">·</div>
+          </div>
+
           <button class="hdr-reset" id="reset" type="button">Reset layout</button>
 
           <div class="settings">
@@ -148,8 +162,12 @@
     <script src="assets/js/core/board.js"></script>
     <script src="assets/js/boards/kit.js"></script>
     <script src="assets/js/boards/ecosystem.js"></script>
+    <!-- profession.js and operations.js define the widget sets the Big Screen
+         mounts as its second and third scenes, so both must load before it. -->
     <script src="assets/js/boards/profession.js"></script>
     <script src="assets/js/boards/operations.js"></script>
+    <script src="assets/js/boards/bigscreen.js"></script>
+    <script src="assets/js/boards/library.js"></script>
     <script src="assets/js/boards/field.js"></script>
     <script src="assets/js/core/shell.js"></script>
     <script src="assets/js/core/splash.js"></script>

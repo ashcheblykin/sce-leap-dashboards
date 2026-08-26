@@ -275,17 +275,41 @@ for (const locale of ['en', 'ar']) {
   await evaluate(`I18N.set('${locale}')`);
   await sleep(800);
   const boards = await evaluate(`document.querySelectorAll('.nav-item').length`);
+  const SEL = '[data-grid-surface]:not([style*="none"]) .chip';
+
+  /* Re-queried per click, never indexed off a stale list: the KPI Library's
+     filter chips rebuild the card grid beneath them, so the chip at index c
+     may be gone by the time it is clicked. */
+  async function walkChips() {
+    const chips = await evaluate(`document.querySelectorAll('${SEL}').length`);
+    for (let c = 0; c < chips; c++) {
+      await evaluate(
+        `(() => { const n = document.querySelectorAll('${SEL}')[${c}]; if (n) n.click(); })()`,
+      );
+      await sleep(60);
+    }
+  }
+
   for (let b = 0; b < boards; b++) {
     await evaluate(`document.querySelectorAll('.nav-item')[${b}].click()`);
     await sleep(700);
-    const chips = await evaluate(
-      `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chip').length`,
-    );
-    for (let c = 0; c < chips; c++) {
+    await walkChips();
+
+    /* A scene board hides two thirds of its views behind its own switcher, and
+       a view that is never opened is a view that was never audited. */
+    const scenes = await evaluate(`document.querySelectorAll('#scenes .chip').length`);
+    for (let sc = 1; sc < scenes; sc++) {
       await evaluate(
-        `document.querySelectorAll('[data-grid-surface]:not([style*="none"]) .chip')[${c}].click()`,
+        `(() => { const n = document.querySelectorAll('#scenes .chip')[${sc}]; if (n) n.click(); })()`,
       );
-      await sleep(60);
+      await sleep(700);
+      await walkChips();
+    }
+    if (scenes) {
+      await evaluate(
+        `(() => { const n = document.querySelectorAll('#scenes .chip')[0]; if (n) n.click(); })()`,
+      );
+      await sleep(500);
     }
   }
 }

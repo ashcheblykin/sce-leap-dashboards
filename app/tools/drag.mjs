@@ -73,6 +73,11 @@ const evaluate = async (expression) => {
 };
 
 await evaluate(`document.getElementById('splashStart').click()`);
+await sleep(900);
+/* Board 0 is the Big Screen, which ships without drag or resize handles on
+   purpose (kiosk). Move to the Ecosystem dashboard, which is what this harness
+   is here to exercise. */
+await evaluate(`document.querySelectorAll('.nav-item')[1].click()`);
 await sleep(1200);
 
 const geometry = () =>
@@ -141,6 +146,11 @@ const afterResize = await geometry();
 await send('Page.reload', {});
 await sleep(2500);
 await evaluate(`document.getElementById('splashStart').click()`);
+await sleep(900);
+/* Board 0 is the Big Screen, which ships without drag or resize handles on
+   purpose (kiosk). Move to the Ecosystem dashboard, which is what this harness
+   is here to exercise. */
+await evaluate(`document.querySelectorAll('.nav-item')[1].click()`);
 await sleep(1200);
 const afterReload = await geometry();
 

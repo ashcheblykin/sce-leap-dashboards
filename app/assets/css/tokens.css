@@ -9,17 +9,41 @@
    `--grid-gap` (read as a constant by the drag maths). */
 
 @font-face {
-  font-family: 'Noto Sans';
-  src: url('../fonts/noto-sans-latin.woff2') format('woff2');
-  font-weight: 300 700;
+  font-family: 'Roboto Flex';
+  src: url('../fonts/roboto-flex-latin.woff2') format('woff2');
+  font-weight: 100 1000;
   font-style: normal;
   font-display: block;
 }
 
 @font-face {
-  font-family: 'Noto Sans Arabic';
-  src: url('../fonts/noto-sans-arabic.woff2') format('woff2');
-  font-weight: 300 700;
+  font-family: 'Almarai Arabic';
+  src: url('../fonts/almarai-arabic-300.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Almarai Arabic';
+  src: url('../fonts/almarai-arabic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Almarai Arabic';
+  src: url('../fonts/almarai-arabic-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Almarai Arabic';
+  src: url('../fonts/almarai-arabic-800.woff2') format('woff2');
+  font-weight: 800;
   font-style: normal;
   font-display: block;
 }
@@ -49,7 +73,7 @@
   --cy-rgb: 57, 215, 245;
   --ink: #03101f;
 
-  --bg: radial-gradient(1900px 1100px at 50% 26%, #062036 0%, var(--ink) 55%, #020813 100%);
+  --bg: var(--ink);
 
   /* --- Axion structure ---
      One 4-unit-stepped scale (4/8/12/16) so nested corners are derived from it
@@ -68,7 +92,7 @@
   --panel-border-strong: rgba(var(--cy-rgb), 0.3);
   --separator: rgba(var(--cy-rgb), 0.12);
 
-  --surface: linear-gradient(165deg, rgba(7, 34, 58, 0.72), rgba(4, 21, 37, 0.82));
+  --surface: rgba(6, 28, 48, 0.78);
   --plate: rgba(4, 24, 43, 0.72);
   --control: rgba(var(--cy-rgb), 0.06);
   --control-hover: rgba(var(--cy-rgb), 0.12);
@@ -156,8 +180,8 @@
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */
-  --font: 'Noto Sans', 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-ar: 'Noto Sans Arabic', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font: 'Roboto Flex', 'Almarai Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-ar: 'Almarai Arabic', 'Roboto Flex', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-fast: 160ms;
@@ -184,11 +208,10 @@
   --chip-dur-pop: 220ms;
   --chip-hold: 100ms;
   --chip-fill: rgba(var(--cy-rgb), 0.16);
-  /* In flight the pill thins out to a hairline ring rather than vanishing.
-     A fully transparent travelling pill animates correctly but is invisible
-     the whole way, which reads as no animation at all — the highlight simply
-     blinks from one segment to the next. */
-  --chip-fill-ghost: rgba(var(--cy-rgb), 0.06);
+  /* In flight the pill sheds its fill entirely, leaving just the hairline
+     rim so the travel reads as a ring gliding across rather than a filled
+     plate. */
+  --chip-fill-ghost: transparent;
   --chip-rim: 0 0 0 0.5px rgba(var(--cy-rgb), 0.5);
   /* resting active state matches the steady spectrum glow every other
      active control on the dashboard uses (.lang-btn.is-on, [data-on] nav

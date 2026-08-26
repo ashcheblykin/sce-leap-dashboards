@@ -163,8 +163,8 @@
 }
 
 .ax-legend-dot {
-  width: var(--sp-3);
-  height: var(--sp-3);
+  width: var(--sp-2);
+  height: var(--sp-2);
   flex: none;
 }
 
@@ -179,7 +179,7 @@
 .ax-legend-value {
   flex: none;
   color: var(--tx);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* --- Entry animation -----------------------------------------------------
@@ -365,7 +365,7 @@
 
 .ax-table td.is-end {
   color: var(--tx);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .ax-table-rank {
@@ -394,7 +394,6 @@
   flex-direction: column;
   justify-content: space-between;
   padding: min(var(--sp-3), var(--cap-gap)) var(--sp-4);
-  border: var(--hairline) solid rgba(var(--cy-rgb), 0.12);
   border-radius: var(--radius-md);
   background: rgba(var(--cy-rgb), 0.04);
   container-type: size;
