@@ -1,15 +1,14 @@
 /* Board 3 — KPI Library.
 
    The original's kpis.html: every indicator in the deliverable as its own card,
-   filterable by family, each card offering the two or three ways of reading the
-   same figure. Twenty cards, five families plus "All" — the same twenty, in the
-   same order, with the same view names as the source file.
+   each card offering the two or three ways of reading the same figure. Twenty
+   cards, in the same order, with the same view names as the source file.
 
    Why this board is not on the 24x8 grid. The other three boards are fixed
-   arrangements of six or seven panels; this one is a browse surface whose card
-   count changes with the filter (20, 5, 5, 3, 3, 4). So it renders its own
-   grid and picks the column count from the count, which keeps every filter
-   exactly full — no half-empty last row, no scrolling on a wall.
+   arrangements of six or seven panels; this one is a browse surface with a
+   fixed count of twenty cards. So it renders its own grid and picks the
+   column count from that count, which keeps it exactly full — no half-empty
+   last row, no scrolling on a wall.
 
    The prototype drew its cards with bespoke HTML (`bignum`, `gauge`, conic
    donuts). Here each view is an ordinary chart spec, so a card in the library
@@ -180,15 +179,6 @@
   }
 
   /* --- the twenty cards, in the source file's order --- */
-
-  var CATS = [
-    { key: 'all', labelKey: 'lib.all' },
-    { key: 'eco', labelKey: 'lib.ecosystem' },
-    { key: 'prof', labelKey: 'lib.profession' },
-    { key: 'mon', labelKey: 'lib.monitoring' },
-    { key: 'enf', labelKey: 'lib.enforcement' },
-    { key: 'fv', labelKey: 'lib.field' },
-  ];
 
   function cards() {
     return [
@@ -516,32 +506,13 @@
 
   function render(surface) {
     var all = cards();
-    var active = 'all';
 
     var root = document.createElement('div');
     root.className = 'lib';
-    root.innerHTML =
-      '<div class="lib-bar"><div class="chips lib-filters" data-no-drag></div>' +
-      '<div class="lib-count"></div></div>' +
-      '<div class="lib-grid"></div>';
+    root.innerHTML = '<div class="lib-grid"></div>';
     surface.appendChild(root);
 
-    var filters = root.querySelector('.lib-filters');
-    var countEl = root.querySelector('.lib-count');
     var grid = root.querySelector('.lib-grid');
-
-    for (var c = 0; c < CATS.length; c++) {
-      filters.insertAdjacentHTML(
-        'beforeend',
-        '<button class="chip" type="button" data-cat="' +
-          CATS[c].key +
-          '"' +
-          (c === 0 ? ' data-on' : '') +
-          '>' +
-          Fmt.escapeHtml(I18N.t(CATS[c].labelKey)) +
-          '</button>'
-      );
-    }
 
     var mountedBodies = [];
 
@@ -550,21 +521,13 @@
       mountedBodies = [];
       grid.innerHTML = '';
 
-      var shown = all.filter(function (card) {
-        return active === 'all' || card.cat === active;
-      });
-      var cols = columnsFor(shown.length);
+      var cols = columnsFor(all.length);
       grid.style.setProperty('--lib-cols', cols);
-      countEl.textContent = I18N.t('lib.count', { n: shown.length });
 
-      shown.forEach(function (card) {
+      all.forEach(function (card) {
         var cell = document.createElement('div');
         cell.className = 'lib-cell';
         cell.setAttribute('data-card', card.id);
-        /* A fifth of the stage is not wide enough for "Top engineering
-           specialties" and two tab labels on one line, so the full grid gives
-           the tabs their own row; a filtered grid of three or four cards has
-           the width and keeps them inline. */
         cell.innerHTML = Board.widgetMarkup(
           {
             titleKey: card.titleKey,
@@ -574,19 +537,6 @@
           true
         );
         grid.appendChild(cell);
-
-        /* The family eyebrow the source printed above each title. It only
-           earns its place while "All" is selected — inside a filter every
-           card would repeat the same word. */
-        if (active === 'all') {
-          var title = cell.querySelector('.widget-title');
-          title.insertAdjacentHTML(
-            'afterbegin',
-            '<span class="lib-cat">' +
-              Fmt.escapeHtml(I18N.t(catLabelKey(card.cat))) +
-              '</span>'
-          );
-        }
 
         var body = cell.querySelector('.widget-body');
         mountedBodies.push(body);
@@ -605,17 +555,6 @@
 
       Motion.animate(grid);
     }
-
-    function catLabelKey(key) {
-      for (var i = 0; i < CATS.length; i++) if (CATS[i].key === key) return CATS[i].labelKey;
-      return 'lib.all';
-    }
-
-    Board.attachChipTabs(filters, function (index) {
-      active = CATS[index].key;
-      paint();
-      if (LIBRARY.onInteract) LIBRARY.onInteract();
-    });
 
     paint();
   }

@@ -81,6 +81,7 @@
   var stage = document.getElementById('stage');
   var navHost = document.getElementById('nav');
   var playBtn = document.getElementById('navPlay');
+  var langBtn = document.getElementById('navLang');
   var resetBtn = document.getElementById('reset');
   var tickerEl = document.getElementById('ticker');
   var sceneHost = document.getElementById('scenes');
@@ -100,6 +101,7 @@
   var current = -1;
   var playing = true;
   var switching = false;
+  var pendingIndex = -1;
   var slideStartedAt = 0;
   var sceneStartedAt = 0;
   var navFills = [];
@@ -203,19 +205,39 @@
 
     var html = '';
     for (var i = 0; i < BOARDS.length; i++) {
+      if (i > 0) html += '<span class="nav-divider" aria-hidden="true"></span>';
       html +=
         '<button class="nav-item" type="button" data-board="' +
         i +
         '"><span class="nav-item-fill"></span>' +
         Fmt.escapeHtml(I18N.t(BOARDS[i].labelKey)) +
+        /* Only the Big Screen tab carries a page badge (Figma node
+           5065:82899) — the others have no scenes to count. */
+        (i === 0 ? '<span class="nav-badge" hidden></span>' : '') +
         '</button>';
     }
-    var existing = navHost.querySelectorAll('.nav-item');
+    var existing = navHost.querySelectorAll('.nav-item, .nav-divider');
     for (var e = 0; e < existing.length; e++) existing[e].remove();
     navHost.insertAdjacentHTML('afterbegin', html);
     navHost.insertBefore(navPill, navHost.firstChild);
     navFills = navHost.querySelectorAll('.nav-item-fill');
     if (current >= 0) markNav(current, false);
+    updateNavBadge();
+  }
+
+  /* The Big Screen tab's badge stands in for the header's own scene chips
+     (see buildScenes below): it shows the scene the wall is on and, clicked,
+     advances to the next one the same way the auto-cycle does. */
+  function updateNavBadge() {
+    var badge = navHost.querySelector('.nav-badge');
+    if (!badge) return;
+    var board = boards[0];
+    if (board && board.sceneCount > 1) {
+      badge.hidden = false;
+      badge.textContent = String(board.sceneIndex() + 1);
+    } else {
+      badge.hidden = true;
+    }
   }
 
   function navPillMs(name) {
@@ -300,20 +322,24 @@
   }
 
   /* --- Big Screen scenes ---
-     A second segmented control, shown only while a board that has scenes is on
-     screen. The original put it in the header's top left, beside the title,
-     with the cross-dashboard links on the other side; ours keeps that
-     placement and lets the board pills hold the middle. */
+     The Figma dock (node 5057:82427) folds the scene indicator into the nav
+     tab's own page badge (see updateNavBadge above) instead of a second
+     segmented control in the header, so `sceneHost` is built exactly as
+     before — attachChipTabs still drives board.setScene and the auto-cycle
+     below still needs `sceneTabs` — but stays permanently hidden. */
   var sceneTabs = null;
 
   function buildScenes() {
     var board = current >= 0 ? boards[current] : null;
     var hasScenes = !!(board && board.sceneCount > 1);
 
-    sceneHost.hidden = !hasScenes;
+    sceneHost.hidden = true;
     sceneHost.innerHTML = '';
     sceneTabs = null;
-    if (!hasScenes) return;
+    if (!hasScenes) {
+      updateNavBadge();
+      return;
+    }
 
     for (var i = 0; i < board.scenes.length; i++) {
       sceneHost.insertAdjacentHTML(
@@ -334,7 +360,9 @@
     sceneTabs = Board.attachChipTabs(sceneHost, function (index) {
       board.setScene(index);
       sceneStartedAt = Date.now();
+      updateNavBadge();
     });
+    updateNavBadge();
   }
 
   /* --- Header clock ---
@@ -342,6 +370,7 @@
      of its four screens. Western digits in both locales, like every other
      number on the wall; minutes only, so ten seconds is a fine tick. */
   function startClock() {
+    if (!clockEl) return;
     function paint() {
       var d = new Date();
       clockEl.textContent =
@@ -406,6 +435,7 @@
     }
     resetBtn.textContent = I18N.t('ctl.reset');
     playBtn.setAttribute('aria-label', I18N.t(playing ? 'ctl.pause' : 'ctl.play'));
+    if (langBtn) langBtn.setAttribute('aria-label', I18N.t('ctl.lang'));
   }
 
   /* --- Board switching --- */
@@ -418,7 +448,19 @@
   }
 
   function show(index) {
-    if (switching || index === current) return;
+    if (index === current) {
+      pendingIndex = -1;
+      return;
+    }
+    /* A tab tapped mid-transition used to be dropped on the floor — the
+       switching guard just returned, so a click during the ~300ms exit/enter
+       animation had no effect and the wall looked like it "worked every
+       other time". Queue it instead: the transition in flight finishes
+       normally, then picks up the latest requested tab. */
+    if (switching) {
+      pendingIndex = index;
+      return;
+    }
     switching = true;
 
     var next = mount(index);
@@ -438,6 +480,12 @@
       slideStartedAt = Date.now();
       sceneStartedAt = slideStartedAt;
       switching = false;
+
+      if (pendingIndex >= 0) {
+        var target = pendingIndex;
+        pendingIndex = -1;
+        if (target !== current) show(target);
+      }
     }
 
     if (current >= 0 && boards[current]) {
@@ -622,11 +670,28 @@
     });
 
     navHost.addEventListener('click', function (ev) {
+      var badge = ev.target.closest('.nav-badge');
+      if (badge) {
+        ev.stopPropagation();
+        var board = boards[0];
+        if (board && board.sceneCount > 1 && sceneTabs) {
+          noteInteraction();
+          sceneTabs.select((board.sceneIndex() + 1) % board.sceneCount);
+        }
+        return;
+      }
       var item = ev.target.closest('.nav-item');
       if (!item) return;
       noteInteraction();
       show(parseInt(item.getAttribute('data-board'), 10));
     });
+
+    if (langBtn) {
+      langBtn.addEventListener('click', function () {
+        noteInteraction();
+        I18N.toggle();
+      });
+    }
 
     /* Delegated from the document so the splash's switch and the header's
        share one handler, and so a rebuilt switch stays live. */

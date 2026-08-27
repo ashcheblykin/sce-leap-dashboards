@@ -1,10 +1,10 @@
 /* KPI Library — the one board that is a browse surface rather than a fixed
    arrangement of panels.
 
-   It is not on the 24x8 grid because its card count changes with the filter
-   (20 / 5 / 5 / 3 / 3 / 4). The column count comes from that count instead, so
-   every filter lands on a grid that is exactly full: no ragged last row, and
-   nothing ever scrolls off a wall that has no scrollbar. */
+   It is not on the 24x8 grid because it holds all twenty cards at once. The
+   column count comes from that fixed count, so the grid is exactly full: no
+   ragged last row, and nothing ever scrolls off a wall that has no
+   scrollbar. */
 
 [data-grid-surface][data-custom] {
   overflow: hidden;
@@ -15,25 +15,6 @@
   height: 100%;
   flex-direction: column;
   gap: var(--sp-4);
-}
-
-.lib-bar {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-}
-
-.lib-filters {
-  flex: none;
-}
-
-.lib-count {
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
 }
 
 /* `minmax(0, 1fr)` on both axes, not `1fr`: a grid track's default minimum is
@@ -54,20 +35,13 @@
   min-height: 0;
 }
 
-/* Twenty cards on one board means twenty sets of card chrome, and a panel's
-   worth of padding on each leaves nothing for the figure: at five columns the
-   default header, tab row, padding and gaps come to more than the card is
-   tall, and `.widget-body` — the flex child that absorbs what is left — ends
-   up at zero height with the chart mounted inside it, invisible. So a library
-   card runs on a tighter rhythm than a board panel. */
+/* Card padding and radius are fixed everywhere (see --pad-card/--radius-card
+   in tokens.css), so a library card only tightens the internal rhythm below
+   the header — not the outer chrome — to make room across twenty cards. */
 .lib-cell .widget {
-  --pad-card: var(--sp-2);
   gap: var(--sp-1);
 }
 
-/* The family label sits on the title's own line rather than above it: a fifth
-   of the stage is wide enough for both, and the row it would otherwise take is
-   the difference between a legible bar list and an invisible one. */
 .lib-cell .widget-title {
   min-width: 0;
   font-size: var(--fs-sm);
@@ -77,21 +51,6 @@
 .lib-cell .chip {
   padding: calc(var(--sp-1) / 2) var(--sp-2);
   font-size: var(--fs-2xs);
-}
-
-.lib-cat {
-  overflow: hidden;
-  flex: none;
-  color: var(--mut-2);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.1em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-}
-
-.lib-cat::after {
-  padding-inline-start: var(--sp-1);
-  content: '·';
 }
 
 /* A kiosk board has no drag handle, so its header must not offer the grab

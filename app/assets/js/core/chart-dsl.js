@@ -1922,36 +1922,47 @@
   function indicatorTile(item) {
     var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md'));
 
-    tile.appendChild(html('div', 'ax-kpi-label', item.label));
-
-    /* Grouped so the label-to-value gap can flex with the tile's own height
-       (`space-between` on .ax-kpi) while the value, delta pill and note stay
-       glued to one another regardless of how much room that leaves. */
+    /* The number leads and the label trails directly under it (the Figma
+       "factoid" cell, node 5039:94565) — grouped so a delta pill stays
+       glued to the value it belongs to. */
     var body = html('div', 'ax-kpi-body');
 
     var value = html('div', 'ax-kpi-value');
-    if (item.color) value.style.color = item.color;
+    var format = item.format || 'grouped';
+    /* NUMERIC_ISOLATE on the whole value, not just each span: in the split
+       branch below, two sibling spans both being dir="ltr" still lets the
+       bidi algorithm swap which one reads first inside an RTL ancestor
+       ("K180" instead of "180K") unless the pair itself is isolated too. */
+    value.setAttribute('dir', 'ltr');
 
-    var num = html('span', 'ax-num');
     if (item.raw !== undefined) {
-      num.textContent = item.raw;
+      var raw = html('span', 'ax-num', item.raw);
+      value.appendChild(raw);
+    } else if (format === 'compact') {
+      /* Magnitude and unit letter as two counters sharing one target value,
+         so they land on the same frame every tick while taking separate
+         colors — the digits stay full-strength white, the K/M/B trails it
+         in the quiet neutral grey. */
+      var mag = html('span', 'ax-num');
+      mag.setAttribute('data-count', item.value);
+      mag.setAttribute('data-count-format', 'compactValue');
+      mag.textContent = '0';
+      var unit = html('span', 'ax-kpi-unit ax-num');
+      unit.setAttribute('data-count', item.value);
+      unit.setAttribute('data-count-format', 'compactUnit');
+      value.appendChild(mag);
+      value.appendChild(unit);
     } else {
+      var num = html('span', 'ax-num');
       num.setAttribute('data-count', item.value);
-      num.setAttribute('data-count-format', item.format || 'grouped');
+      num.setAttribute('data-count-format', format);
       num.textContent = '0';
+      value.appendChild(num);
     }
-    /* NUMERIC_ISOLATE: a numeric run stays LTR inside an RTL page. */
-    num.setAttribute('dir', 'ltr');
-    value.appendChild(num);
-    if (item.unit) value.appendChild(html('span', 'ax-kpi-unit', item.unit));
     body.appendChild(value);
 
     if (item.delta !== undefined && item.delta !== null) {
       var pill = html('div', 'ax-kpi-delta' + (item.delta > 0 ? ' is-up' : item.delta < 0 ? ' is-down' : ''));
-      if (item.color) {
-        pill.style.backgroundColor = rgba(item.color, 0.1);
-        pill.style.color = item.color;
-      }
       pill.appendChild(html('span', 'ax-kpi-delta-arrow', item.delta > 0 ? '↑' : item.delta < 0 ? '↓' : ''));
       var dv = html('span', 'ax-num', item.deltaText);
       dv.setAttribute('dir', 'ltr');
@@ -1959,18 +1970,30 @@
       body.appendChild(pill);
     }
 
-    if (item.note) body.appendChild(html('div', 'ax-kpi-note', item.note));
     tile.appendChild(body);
+    tile.appendChild(html('div', 'ax-kpi-label', item.label));
+    if (item.note) tile.appendChild(html('div', 'ax-kpi-note', item.note));
     return tile;
   }
 
   function indicator(host, spec) {
     host.innerHTML = '';
     var items = spec.items || [spec];
+    var cols = spec.cols || Math.min(items.length, 2);
+    var rows = Math.ceil(items.length / cols);
     var shell = html('div', 'ax-chart-shell');
     var grid = html('div', 'ax-kpis');
-    grid.style.gridTemplateColumns = 'repeat(' + (spec.cols || Math.min(items.length, 2)) + ',minmax(0,1fr))';
-    for (var i = 0; i < items.length; i++) grid.appendChild(indicatorTile(items[i]));
+    grid.style.gridTemplateColumns = 'repeat(' + cols + ',minmax(0,1fr))';
+    for (var i = 0; i < items.length; i++) {
+      var tile = indicatorTile(items[i]);
+      var isLastCol = i % cols === cols - 1 || i === items.length - 1;
+      var isLastRow = Math.floor(i / cols) === rows - 1;
+      /* Hairline grid between cells (border/ghost in Figma) rather than a
+         gap + per-tile fill: the four factoids read as one quiet block. */
+      if (!isLastCol) tile.classList.add('is-div-r');
+      if (!isLastRow) tile.classList.add('is-div-b');
+      grid.appendChild(tile);
+    }
     shell.appendChild(grid);
     if (spec.note) shell.appendChild(html('div', 'ax-chart-note', spec.note));
     host.appendChild(shell);

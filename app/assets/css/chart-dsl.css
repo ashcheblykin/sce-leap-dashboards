@@ -150,8 +150,7 @@
 [data-orient='col'] .ax-legend--left,
 [data-orient='col'] .ax-legend--right {
   max-width: 100%;
-  flex-direction: row;
-  flex-wrap: wrap;
+  flex-flow: row nowrap;
   padding: var(--sp-2) 0 0;
 }
 
@@ -374,13 +373,19 @@
   font-size: 0.84em;
 }
 
-/* --- Indicator tiles (IndicatorChart.tsx) -------------------------------- */
+/* --- Indicator tiles (IndicatorChart.tsx), the Figma "Factoid" cell
+   (node 5039:94565) -------------------------------------------------------
+
+   The number leads and the label trails directly beneath it, cells sit flush
+   against one another with a hairline grid between them instead of a gap and
+   a per-tile fill, and every digit run is the same neutral white — no
+   per-item accent color, so four factoids in a row read as one quiet family
+   rather than four competing hues. */
 
 .ax-kpis {
   display: grid;
   flex: 1;
   min-height: 0;
-  gap: var(--sp-2);
   grid-auto-rows: 1fr;
 }
 
@@ -392,16 +397,23 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
-  padding: min(var(--sp-3), var(--cap-gap)) var(--sp-4);
-  border-radius: var(--radius-md);
-  background: rgba(var(--cy-rgb), 0.04);
+  align-items: flex-start;
+  padding: var(--sp-2) var(--sp-4) var(--sp-3);
   container-type: size;
 }
 
-/* The value (+ delta pill, + note) as one unit: `space-between` on .ax-kpi
-   flexes the gap above this group with the tile's height, but everything
-   inside it stays put — a value never separates from its own note. */
+/* Grid dividers (chart-dsl.js adds these per tile from its row/col
+   position): a gap that reads as a rule, not a filled tile boundary. */
+.ax-kpi.is-div-r {
+  border-inline-end: var(--hairline) solid var(--border-ghost);
+}
+
+.ax-kpi.is-div-b {
+  border-block-end: var(--hairline) solid var(--border-ghost);
+}
+
+/* The value + delta pill as one unit, so a pill never separates from the
+   number it qualifies. */
 .ax-kpi-body {
   display: flex;
   flex-direction: column;
@@ -413,8 +425,7 @@
    change the number's size, so a KPI row can never end up with one headline
    number visually louder than its neighbours. */
 .ax-kpi-value {
-  margin-top: var(--sp-1);
-  color: var(--tx);
+  color: #fff;
   font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -422,17 +433,22 @@
   white-space: nowrap;
 }
 
+/* The K/M/B letter split off `compactValue`/`compactUnit` (two counters on
+   one shared clock, see indicatorTile) — near digit-height, but in the quiet
+   neutral grey rather than the value's white, so magnitude and unit read as
+   distinct without either needing its own color. */
 .ax-kpi-unit {
-  margin-inline-start: 0.14em;
-  font-size: 0.42em;
+  margin-inline-start: 0.03em;
+  color: #fff;
+  font-size: 0.86em;
   font-weight: 500;
   letter-spacing: 0;
-  opacity: 0.72;
 }
 
 .ax-kpi-label {
   overflow: hidden;
-  color: var(--mut);
+  margin-top: min(var(--sp-1), var(--cap-gap));
+  color: #fff;
   font-size: min(var(--fs-xs), var(--cap-label));
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -442,7 +458,7 @@
 .ax-kpi-note {
   overflow: hidden;
   margin-top: var(--sp-1);
-  color: var(--mut-2);
+  color: #fff;
   font-size: min(var(--fs-xs), var(--cap-note));
   line-height: 1.3;
 }
@@ -457,7 +473,7 @@
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-pill);
   background: var(--control);
-  color: var(--mut);
+  color: #fff;
   font-size: min(var(--fs-xs), var(--cap-note));
   font-weight: 500;
 }

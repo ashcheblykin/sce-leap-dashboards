@@ -45,7 +45,7 @@
             items: [
               { value: Data.head.eco, format: 'compact', label: t('m.eco'), color: T.cy, valueFontSize: 'small' },
               { value: Data.head.reg, format: 'compact', label: t('m.reg'), color: T.green, valueFontSize: 'small' },
-              { value: Data.offices, format: 'grouped', label: t('m.offices'), color: T.gold, valueFontSize: 'small' },
+              { value: Data.offices, format: 'compact', label: t('m.offices'), color: T.gold, valueFontSize: 'small' },
               { value: Data.head.saudis, format: 'compact', label: t('m.saudis'), color: T.purple, valueFontSize: 'small' },
             ],
           });

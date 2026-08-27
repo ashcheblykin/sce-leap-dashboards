@@ -39,7 +39,7 @@
              centre's name with the other language underneath, and — while the
              Big Screen is on — its three scenes beside it. -->
         <div class="hdr-brand">
-          <img class="hdr-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
+          <img class="hdr-logo" src="assets/img/sce-logo.svg" alt="Saudi Council of Engineers" />
           <div class="hdr-title">
             <div class="hdr-title-main" data-i18n="app.title"></div>
             <div class="hdr-title-alt" data-i18n-gloss="app.title"></div>
@@ -47,21 +47,24 @@
           <div class="chips scenes" id="scenes" hidden></div>
         </div>
 
-        <nav class="nav" id="nav">
-          <button class="nav-play" id="navPlay" type="button" aria-label="Play or pause the slideshow">
+        <div class="dock">
+          <button class="dock-btn nav-play" id="navPlay" type="button" aria-label="Play or pause the slideshow">
             <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
             <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z" /></svg>
           </button>
-        </nav>
+
+          <nav class="nav" id="nav"></nav>
+
+          <button class="dock-btn nav-lang" id="navLang" type="button" aria-label="Switch language">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </button>
+        </div>
 
         <div class="hdr-meta">
-          <div class="hdr-event">
-            <div class="hdr-event-name" data-i18n="hdr.event"></div>
-            <div class="hdr-event-clock ax-num" id="clock" dir="ltr">·</div>
-          </div>
-
-          <button class="hdr-reset" id="reset" type="button">Reset layout</button>
-
           <div class="settings">
             <button class="hdr-settings" id="settingsBtn" type="button" aria-label="Settings" aria-haspopup="true">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -88,13 +91,9 @@
                 <input class="settings-check" id="setSplashEnabled" type="checkbox" />
                 <span>Show splash screen</span>
               </label>
+              <button class="settings-action" id="reset" type="button">Reset layout</button>
             </div>
           </div>
-
-          <!-- Language switch. Arabic is a full second locale, not a label
-               swap: it flips the document direction, which moves every chart's
-               category axis to the other side. -->
-          <div class="lang" id="lang"></div>
         </div>
       </header>
     </div>
@@ -108,7 +107,7 @@
       <div class="lang lang--splash"></div>
 
       <div class="splash-inner">
-        <img class="splash-logo" src="assets/img/sce_logo_dark.png" alt="Saudi Council of Engineers" />
+        <img class="splash-logo" src="assets/img/sce-logo.svg" alt="Saudi Council of Engineers" />
         <div class="splash-eyebrow" data-i18n="splash.eyebrow"></div>
         <h1 class="splash-title">
           <span data-i18n="splash.title1"></span><br /><b data-i18n="splash.title2"></b>

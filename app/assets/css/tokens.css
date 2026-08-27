@@ -70,29 +70,38 @@
      stand was also the only text under 4.5:1. Now 4.7 and 4.6. */
   --mut-2: #648ba7;
 
+  /* Quiet neutral text: Figma's factoid grey (base/fg/tertiary #9e9e9e, and
+     the ~50%-white factoid label) has no cyan in it, unlike --mut/--mut-2
+     above — reserved for text that must read as neutral regardless of the
+     SCE hue, e.g. the K/M/B letter beside a factoid's white digits. */
+  --tx-3: rgba(253, 253, 253, 0.5);
+
   --cy-rgb: 57, 215, 245;
-  --ink: #03101f;
+  --ink: #08404d;
 
   --bg: var(--ink);
 
   /* --- Axion structure ---
      One 4-unit-stepped scale (4/8/12/16) so nested corners are derived from it
-     rather than picked by eye. Expressed in `--u` like everything else: a
-     radius that stayed in absolute px was the one piece of geometry that did
-     NOT grow when `]` raised the scale, so corners flattened out as the type
-     grew and the same card read differently on a laptop and on the wall. */
-  --radius-card: calc(16 * var(--u));
+     rather than picked by eye. `--radius-card` is held as a fixed 16px
+     (not --u-scaled) so every widget on every board carries the same
+     corner radius regardless of board or --u-scale. */
+  --radius-card: 16px;
   --radius-md: calc(12 * var(--u));
   --radius-sm: calc(8 * var(--u));
   --radius-xs: calc(4 * var(--u));
   --radius-pill: 999px;
 
   --hairline: 0.5px;
+  --border-primary: rgba(253, 253, 253, 0.1);
+  /* Figma's border/ghost — lighter than --border-primary, for a divider
+     that reads as a gap rather than a rule (the factoid grid lines). */
+  --border-ghost: rgba(253, 253, 253, 0.05);
   --panel-border: rgba(var(--cy-rgb), 0.18);
   --panel-border-strong: rgba(var(--cy-rgb), 0.3);
   --separator: rgba(var(--cy-rgb), 0.12);
 
-  --surface: rgba(6, 28, 48, 0.78);
+  --surface: rgba(0, 0, 0, 0.6);
   --plate: rgba(4, 24, 43, 0.72);
   --control: rgba(var(--cy-rgb), 0.06);
   --control-hover: rgba(var(--cy-rgb), 0.12);
@@ -126,7 +135,12 @@
   --sp-10: calc(56 * var(--u));
   --sp-11: calc(64 * var(--u));
 
-  --pad-card: var(--sp-4);
+  /* Fixed 12px, matching the Figma "Dashboard" widget component (node
+     5037:93297 and its siblings) — the card's own padding and its header's
+     pb both read the same 12px there. Held as a literal px value (not
+     --u-scaled) so every widget on every board carries the same padding
+     regardless of board or --u-scale. */
+  --pad-card: 12px;
 
   /* --- Type scale ---
      Five text rungs and four display rungs, every multiplier a multiple of 4.

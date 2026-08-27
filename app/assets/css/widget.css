@@ -11,14 +11,19 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  gap: var(--pad-card);
+  /* No flex gap: the header's own padding-bottom (below) is the only space
+     between it and the body, matching Figma's Dashboard component, which
+     spaces the two purely through the header's 12px pb — a separate gap
+     here would stack on top of it. It also keeps the indicator/map rule
+     below (which zeroes that padding) actually reaching zero. */
+  gap: 0;
   overflow: hidden;
   padding: var(--pad-card);
   border-radius: var(--radius-card);
   background: var(--surface);
-  box-shadow:
-    var(--glow-spectrum),
-    inset 0 0 var(--sp-7) rgba(var(--cy-rgb), 0.03);
+  /* Shadow/Axion spectrum */
+  box-shadow: 0 0 0.5px 0.5px var(--border-primary, rgba(253, 253, 253, 0.1));
+  backdrop-filter: blur(256px);
   transition: box-shadow var(--dur-fast) var(--ease);
 }
 
@@ -33,8 +38,9 @@
   display: flex;
   flex: none;
   align-items: center;
+  align-self: stretch;
   justify-content: space-between;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
   padding-bottom: var(--pad-card);
   border-bottom: var(--hairline) solid var(--separator);
   cursor: grab;
@@ -62,9 +68,9 @@ body.grid-dragging .widget-head {
 /* Three-plus tab labels never fit next to a title on one line without
    crushing it to an ellipsis, so these widgets get their own full-width
    tab row below the title instead — no header hairline needed once the
-   tabs themselves separate title from body. */
+   tabs themselves separate title from body. The 12px padding-bottom stays,
+   though: it's what spaces the title from the tab row below it. */
 .widget[data-chips-row] .widget-head {
-  padding-bottom: 0;
   border-bottom: none;
 }
 
@@ -86,7 +92,7 @@ body.grid-dragging .widget-head {
   overflow: hidden;
   min-width: 0;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
   color: var(--tx);
   font-size: var(--fs-md);
   font-weight: 400;
@@ -94,11 +100,45 @@ body.grid-dragging .widget-head {
   white-space: nowrap;
 }
 
+/* control_medium, matching Figma's Dashboard component title style: a
+   14px rung, medium weight, and a tight 0.625em line-height rather than
+   the container's own --fs-md/400. */
 .widget-title .label {
-  overflow: hidden;
   min-width: 0;
   flex-shrink: 1;
+  color: var(--tx);
+  font-size: var(--size-control_medium, 14px);
+  font-weight: 500;
+  line-height: 0.625em;
+  letter-spacing: 0;
   text-overflow: ellipsis;
+}
+
+/* Per-chart-kind title glyph (see WIDGET_ICONS in board.js). All four ship
+   in every widget's markup and sit hidden; the one whose data-icon matches
+   the chart currently mounted on this widget (data-chart, set by
+   Chart.mount/Kit.mapView) is the only one shown, so a chip that switches
+   chart kind mid-widget swaps the glyph with it. Chart kinds with no Figma
+   glyph (cartesian, radar, sankey, sunburst, table) show none. */
+.widget-icon {
+  display: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.widget-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.widget[data-chart='indicator'] .widget-icon[data-icon='indicator'],
+.widget[data-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
+.widget[data-chart='pie'] .widget-icon[data-icon='pie'],
+.widget[data-chart='map'] .widget-icon[data-icon='map'] {
+  display: flex;
 }
 
 /* Body height is fixed by flex before any view renders, so switching a view
@@ -129,19 +169,30 @@ body.grid-dragging .widget-head {
 /* --- Frosted chips, from Axion's FROSTED_PILL --- */
 /* One segmented control rather than loose buttons, which is how Axion switches
    a widget's view and what makes the row read as a product affordance. */
+/* Figma "tabs" (node 5039:94626): every widget's view switcher reads as a
+   frosted glass segment — a soft blur behind a flat white-on-white pill, no
+   rim or glow — rather than Axion's cyan chip. One style everywhere a
+   `.chips` control appears, not just the widgets that stack their tabs
+   below the title. */
 .chips {
   /* Single source for the track's inset — read by the pill's position
      *and* by its radius below, so the two can never drift apart the way a
      hardcoded pixel figure eventually does. Concentric corners are
      outerRadius - inset, not a second radius token picked by eye. */
-  --track-pad: var(--sp-1);
+  --track-pad: var(--spacing-x0-5, 2px);
+  --chips-radius: calc(10 * var(--u));
   position: relative;
-  display: flex;
+  display: inline-flex;
   flex: none;
-  gap: var(--sp-1);
+  height: calc(33 * var(--u));
+  align-items: flex-start;
+  gap: var(--spacing-x1-5, 6px);
   padding: var(--track-pad);
-  border: var(--hairline) solid var(--panel-border);
-  border-radius: var(--radius-pill);
+  border: var(--hairline) solid rgba(253, 253, 253, 0.1);
+  border-radius: var(--chips-radius);
+  background: rgba(38, 38, 38, 0);
+  box-shadow: 0 0 0.5px 0.5px rgba(253, 253, 253, 0.1);
+  backdrop-filter: blur(calc(256 * var(--u)));
   overflow: hidden;
   touch-action: pan-y;
 }
@@ -157,8 +208,14 @@ body.grid-dragging .widget-head {
   left: 0;
   right: 0;
   z-index: 0;
-  border-radius: var(--radius-pill);
-  background-color: var(--chip-fill);
+  display: flex;
+  padding: var(--spacing-x2, 8px);
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-x1-5, 6px);
+  align-self: stretch;
+  border-radius: calc(var(--chips-radius) - var(--track-pad));
+  background-color: rgba(253, 253, 253, 0.1);
   pointer-events: none;
   transform: translateZ(0);
   --pl: var(--chip-dur-trail);
@@ -183,55 +240,42 @@ body.grid-dragging .widget-head {
 .chip {
   position: relative;
   z-index: 1;
-  padding: var(--sp-1) var(--sp-3);
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-x1-5, 6px);
+  padding: var(--spacing-x2, 8px);
   border: var(--hairline) solid transparent;
-  border-radius: var(--radius-pill);
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  border-radius: calc(var(--chips-radius) - var(--track-pad));
+  color: #dcdcdc;
+  font-size: var(--size-control_medium, 14px);
+  font-weight: 400;
+  line-height: calc(10 * var(--u));
+  letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease);
 }
 
 .chip:hover {
-  background: var(--control-hover);
-  color: var(--tx);
+  background: rgba(253, 253, 253, 0.06);
+  color: #f9f9f9;
 }
 
 .chip[data-on] {
-  color: var(--cy);
-  font-weight: 400;
+  color: #f9f9f9;
 }
 
 .chip[data-on]:hover {
   background: none;
 }
 
-/* --- Compact cards -------------------------------------------------------
-   At the raised type scale a two-row panel spends a quarter of its height on
-   the header and its own padding, which left the chart 84px and a donut the
-   size of a coin. The card is a size container, so a short one tightens its
-   own chrome and hands the difference to the content.
-
-   The chip tabs themselves stay a fixed size everywhere on purpose — a
-   shrunk tab on a short or narrow card read as a different control than the
-   same tab elsewhere, not as the same control adapting. The threshold below
-   is in px because it is about how much room is left, not about the design
-   unit. */
+/* Card padding/radius are fixed everywhere (see --pad-card/--radius-card in
+   tokens.css). `container-type: size` stays on the grid item for the cqh
+   units chart-dsl.css uses to size chart content inside short cards. */
 
 [data-grid-item] {
   container-type: size;
 }
 
-@container (max-height: 280px) {
-  .widget {
-    gap: var(--sp-2);
-    padding: var(--sp-3);
-  }
-
-  .widget-head {
-    padding-bottom: var(--sp-2);
-  }
-}

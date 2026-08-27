@@ -61,6 +61,40 @@
     return grouped(n);
   }
 
+  /* Split form of `compact`: magnitude and unit letter as two values, for
+     markup that colors the digits and the trailing K/M/B separately (the
+     Figma "factoid" tile). Same rounding as `compact`, but the unit comes
+     back uppercase since it is its own visual element there, not a suffix
+     glued onto the digits. */
+  function compactSplit(n) {
+    var abs = Math.abs(n);
+    if (abs < 10000) {
+      var rounded = abs < 100 ? Math.round(n * 10) / 10 : Math.round(n);
+      return { value: withMinus(degroup(rounded.toLocaleString('en-US'))), unit: '' };
+    }
+    var units = [
+      [1e9, 'B'],
+      [1e6, 'M'],
+      [1e3, 'K'],
+    ];
+    for (var i = 0; i < units.length; i++) {
+      if (abs >= units[i][0]) {
+        var v = n / units[i][0];
+        var digits = Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2;
+        return { value: withMinus(trimZeros(v.toFixed(digits))), unit: units[i][1] };
+      }
+    }
+    return { value: grouped(n), unit: '' };
+  }
+
+  function compactValue(n) {
+    return compactSplit(n).value;
+  }
+
+  function compactUnit(n) {
+    return compactSplit(n).unit;
+  }
+
   function pct(n, digits) {
     return withMinus(n.toFixed(digits === undefined ? 1 : digits)) + '%';
   }
@@ -104,6 +138,8 @@
   var by = {
     grouped: grouped,
     compact: compact,
+    compactValue: compactValue,
+    compactUnit: compactUnit,
     pct: pct,
     pct0: function (n) {
       return pct(n, 0);
@@ -118,6 +154,8 @@
   global.Fmt = {
     grouped: grouped,
     compact: compact,
+    compactValue: compactValue,
+    compactUnit: compactUnit,
     pct: pct,
     sar: sar,
     one: one,
