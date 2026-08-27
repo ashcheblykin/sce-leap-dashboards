@@ -1920,7 +1920,8 @@
   var VALUE_SIZE = { small: 'is-sm', medium: 'is-md', large: 'is-lg', huge: 'is-lg' };
 
   function indicatorTile(item) {
-    var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md'));
+    var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md') +
+      (item.labelFirst ? ' is-label-first' : ''));
 
     /* The number leads and the label trails directly under it (the Figma
        "factoid" cell, node 5039:94565) — grouped so a delta pill stays
@@ -1938,18 +1939,18 @@
     if (item.raw !== undefined) {
       var raw = html('span', 'ax-num', item.raw);
       value.appendChild(raw);
-    } else if (format === 'compact') {
+    } else if (format === 'compact' || format === 'sar') {
       /* Magnitude and unit letter as two counters sharing one target value,
          so they land on the same frame every tick while taking separate
-         colors — the digits stay full-strength white, the K/M/B trails it
-         in the quiet neutral grey. */
+         colors — the digits stay full-strength white, the K/M/B (or SAR's
+         M) trails it in the quiet neutral grey. */
       var mag = html('span', 'ax-num');
       mag.setAttribute('data-count', item.value);
-      mag.setAttribute('data-count-format', 'compactValue');
+      mag.setAttribute('data-count-format', format === 'sar' ? 'sarValue' : 'compactValue');
       mag.textContent = '0';
       var unit = html('span', 'ax-kpi-unit ax-num');
       unit.setAttribute('data-count', item.value);
-      unit.setAttribute('data-count-format', 'compactUnit');
+      unit.setAttribute('data-count-format', format === 'sar' ? 'sarUnit' : 'compactUnit');
       value.appendChild(mag);
       value.appendChild(unit);
     } else {
@@ -1970,8 +1971,14 @@
       body.appendChild(pill);
     }
 
-    tile.appendChild(body);
-    tile.appendChild(html('div', 'ax-kpi-label', item.label));
+    var label = html('div', 'ax-kpi-label', item.label);
+    if (item.labelFirst) {
+      tile.appendChild(label);
+      tile.appendChild(body);
+    } else {
+      tile.appendChild(body);
+      tile.appendChild(label);
+    }
     if (item.note) tile.appendChild(html('div', 'ax-kpi-note', item.note));
     return tile;
   }
@@ -2023,6 +2030,10 @@
     table: table,
     indicator: indicator,
   };
+
+  /* Chart kinds with a Figma title glyph (see WIDGET_ICONS in board.js) —
+     'map' is stamped by Kit.mapView, not through this DSL. */
+  var ICON_CHART_KINDS = { indicator: true, 'progress-bars': true, pie: true, map: true };
 
   /* Every number handed to a chart, in the order it was handed over. The
      deliverable's whole claim is that it displays the dataset and never invents
@@ -2099,7 +2110,14 @@
        rule underneath it — tagging the card lets the header give that hairline
        and its padding back to the cards instead. */
     var widget = host.closest('.widget');
-    if (widget) widget.setAttribute('data-chart', spec.chart);
+    if (widget) {
+      widget.setAttribute('data-chart', spec.chart);
+      /* Only kinds with a Figma glyph (see WIDGET_ICONS in board.js) touch
+         data-icon-chart, so a chip that swaps to an un-iconized kind (e.g.
+         indicator -> cartesian) leaves the previous glyph in place instead
+         of the header icon vanishing. */
+      if (ICON_CHART_KINDS[spec.chart]) widget.setAttribute('data-icon-chart', spec.chart);
+    }
     return render(host, spec);
   }
 

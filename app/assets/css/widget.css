@@ -6,6 +6,7 @@
 /* The card is the grid item's only in-flow child and must take all of it —
    otherwise short content shrinks the card and tall content spills past it. */
 .widget {
+  position: relative;
   display: flex;
   flex: 1;
   min-width: 0;
@@ -47,17 +48,40 @@
   user-select: none;
 }
 
+/* Tabs beside the title (2 chips, not the 3-plus stacked row below) float
+   in the card's top-right corner per Figma rather than sitting in the
+   header's flex flow, so they stay pinned 8px from the card's own edge
+   (hence anchored on .widget, not .widget-head — the header sits inset by
+   the card's own padding already, which would otherwise stack on top of
+   this offset) instead of drifting with the title's own height. z-index
+   because .widget-body is also position:relative and, as the later
+   sibling, would otherwise paint (and catch clicks) over the header's now-
+   unstretched, shorter row. */
+.widget-head > .chips {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
 body.grid-dragging .widget-head {
   cursor: grabbing;
 }
 
-/* Stat cards and the map already read as their own block against the panel
-   background, so the header's hairline is redundant weight — dropping it
-   (and the padding it was spacing out) hands that height back to the cards
-   or the map instead of sitting empty. */
-.widget[data-chart='indicator'] .widget-head,
-.widget[data-chart='map'] .widget-head {
+/* Stat cards already read as their own block against the panel background,
+   so the header's hairline is redundant weight — dropping it (and the
+   padding it was spacing out) hands that height back to the cards instead
+   of sitting empty. */
+.widget[data-chart='indicator'] .widget-head {
   padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* The map keeps the header's own 12px padding-bottom — its chips float
+   over the body (see [data-chips-overlay] below) starting var(--sp-3) below
+   the body's top edge, and that offset reads against the title row only
+   when the two are actually separated by this gap rather than sitting flush. */
+.widget[data-chart='map'] .widget-head {
   border-bottom: none;
 }
 
@@ -91,6 +115,11 @@ body.grid-dragging .widget-head {
   display: flex;
   overflow: hidden;
   min-width: 0;
+  /* Matches .widget-icon's 16px square so the row keeps its height — and the
+     label's tight 0.625em line-height doesn't get cropped by this overflow:
+     hidden — when the current chart kind has no glyph and the icon collapses
+     to display:none. */
+  min-height: 16px;
   align-items: center;
   gap: var(--sp-1);
   color: var(--tx);
@@ -116,10 +145,12 @@ body.grid-dragging .widget-head {
 
 /* Per-chart-kind title glyph (see WIDGET_ICONS in board.js). All four ship
    in every widget's markup and sit hidden; the one whose data-icon matches
-   the chart currently mounted on this widget (data-chart, set by
-   Chart.mount/Kit.mapView) is the only one shown, so a chip that switches
-   chart kind mid-widget swaps the glyph with it. Chart kinds with no Figma
-   glyph (cartesian, radar, sankey, sunburst, table) show none. */
+   data-icon-chart (set by Chart.mount/Kit.mapView, but only for kinds that
+   have a glyph) is the only one shown. A chip that switches between two
+   iconized kinds (e.g. pie -> progress-bars) swaps the glyph with it; a chip
+   that switches to a kind with no Figma glyph (cartesian, radar, sankey,
+   sunburst, table) leaves data-icon-chart — and the glyph — untouched
+   instead of the header icon vanishing. */
 .widget-icon {
   display: none;
   flex: none;
@@ -134,10 +165,10 @@ body.grid-dragging .widget-head {
   height: 100%;
 }
 
-.widget[data-chart='indicator'] .widget-icon[data-icon='indicator'],
-.widget[data-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
-.widget[data-chart='pie'] .widget-icon[data-icon='pie'],
-.widget[data-chart='map'] .widget-icon[data-icon='map'] {
+.widget[data-icon-chart='indicator'] .widget-icon[data-icon='indicator'],
+.widget[data-icon-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
+.widget[data-icon-chart='pie'] .widget-icon[data-icon='pie'],
+.widget[data-icon-chart='map'] .widget-icon[data-icon='map'] {
   display: flex;
 }
 
@@ -166,6 +197,25 @@ body.grid-dragging .widget-head {
   flex-direction: column;
 }
 
+/* National map (Figma node 5039:94568): the tabs float over the imagery
+   itself, top-right, instead of spending a header row on them — the map is
+   the only view here with room to spare. `.widget-view-mount` is the actual
+   view target (see board.js); `.chips` sits beside it as a plain sibling so
+   Kit.mapView's one-time innerHTML reset on first mount never touches it. */
+.widget[data-chips-overlay] .widget-body > .chips {
+  position: absolute;
+  top: var(--sp-3);
+  inset-inline-end: var(--sp-4);
+  z-index: 1;
+}
+
+.widget-view-mount {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
 /* --- Frosted chips, from Axion's FROSTED_PILL --- */
 /* One segmented control rather than loose buttons, which is how Axion switches
    a widget's view and what makes the row read as a product affordance. */
@@ -180,11 +230,11 @@ body.grid-dragging .widget-head {
      hardcoded pixel figure eventually does. Concentric corners are
      outerRadius - inset, not a second radius token picked by eye. */
   --track-pad: var(--spacing-x0-5, 2px);
-  --chips-radius: calc(10 * var(--u));
+  --chips-radius: 10px;
   position: relative;
   display: inline-flex;
   flex: none;
-  height: calc(33 * var(--u));
+  height: 32px;
   align-items: flex-start;
   gap: var(--spacing-x1-5, 6px);
   padding: var(--track-pad);

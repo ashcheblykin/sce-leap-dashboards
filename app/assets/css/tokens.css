@@ -96,7 +96,7 @@
   --border-primary: rgba(253, 253, 253, 0.1);
   /* Figma's border/ghost — lighter than --border-primary, for a divider
      that reads as a gap rather than a rule (the factoid grid lines). */
-  --border-ghost: rgba(253, 253, 253, 0.05);
+  --border-ghost: rgba(253, 253, 253, 0.1);
   --panel-border: rgba(var(--cy-rgb), 0.18);
   --panel-border-strong: rgba(var(--cy-rgb), 0.3);
   --separator: rgba(var(--cy-rgb), 0.12);
@@ -156,7 +156,7 @@
   --fs-sm: calc(20 * var(--u)); /* body, bar labels, table, ticker */
   --fs-md: calc(24 * var(--u)); /* card titles, nav, header */
 
-  --fs-kpi-sm: calc(46 * var(--u));
+  --fs-kpi-sm: calc(56 * var(--u));
   --fs-kpi: calc(64 * var(--u));
   --fs-display: calc(84 * var(--u)); /* biggest number on a panel, and the map HUD */
   --fs-splash: calc(88 * var(--u)); /* attract screen only */
@@ -188,7 +188,7 @@
   /* The indicator ladder: three rungs, each the share of its own tile that the
      headline number may take. There used to be four, but the top two tokens
      were 70u and 74u — 5px apart on a 90px number, one size under two names. */
-  --cap-kpi-sm: 46cqh;
+  --cap-kpi-sm: 64cqh;
   --cap-kpi: 52cqh;
   --cap-kpi-lg: 60cqh;
 

@@ -532,7 +532,10 @@
           {
             titleKey: card.titleKey,
             chipKeys: card.chipKeys,
-            stackChips: cols >= 5 && card.chipKeys.length > 1,
+            /* Same rule every other board uses (see widget.css): only 3+
+               tab labels get their own row below the title. Every KPI Library
+               card tops out at 2, so they all float top-right per Figma. */
+            stackChips: card.chipKeys.length > 2,
           },
           true
         );

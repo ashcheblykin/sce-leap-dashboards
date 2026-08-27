@@ -103,6 +103,16 @@
     return withMinus(trimZeros(millions.toFixed(2))) + 'M';
   }
 
+  /* Split form of `sar`, for markup that colors the digits and the trailing
+     M separately (same treatment as `compactSplit`, see indicatorTile). */
+  function sarValue(millions) {
+    return withMinus(trimZeros(millions.toFixed(2)));
+  }
+
+  function sarUnit() {
+    return 'M';
+  }
+
   /* Arabic city and specialty labels arrive from LEAP; wrap them so the Arabic
      face and RTL isolation apply without leaking into the surrounding line. */
   function ar(text) {
@@ -145,6 +155,8 @@
       return pct(n, 0);
     },
     sar: sar,
+    sarValue: sarValue,
+    sarUnit: sarUnit,
     one: one,
     plain: function (n) {
       return String(n);
@@ -158,6 +170,8 @@
     compactUnit: compactUnit,
     pct: pct,
     sar: sar,
+    sarValue: sarValue,
+    sarUnit: sarUnit,
     one: one,
     ar: ar,
     num: num,

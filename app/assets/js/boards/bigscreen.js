@@ -33,8 +33,11 @@
   var overview = [
     /* --- left wing ------------------------------------------------------ */
     {
+      /* Figma's three left-wing panels are equal thirds (336px each on the
+         2880x1152 canvas), not a 2:3:3 split — h is 8/3 so three of them
+         tile the same 8 rows the map spans on its other side. */
       id: 'bs-eco',
-      x: 0, y: 0, w: 6, h: 2, minW: 4, minH: 2,
+      x: 0, y: 0, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.eco',
       chipKeys: ['c.totals', 'c.register'],
       views: [
@@ -67,7 +70,7 @@
 
     {
       id: 'bs-spec',
-      x: 0, y: 2, w: 6, h: 3, minW: 4, minH: 2,
+      x: 0, y: 8 / 3, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.spec',
       chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
       stackChips: true,
@@ -92,7 +95,7 @@
        beside CLASSES and NATIONALITIES the way the prototype had it. */
     {
       id: 'bs-struct',
-      x: 0, y: 5, w: 6, h: 3, minW: 4, minH: 2,
+      x: 0, y: 16 / 3, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.struct',
       chipKeys: ['c.grades', 'c.classes', 'c.nationalities'],
       stackChips: true,
@@ -146,8 +149,10 @@
        appear on the Ecosystem board and two on Field Verification; nowhere
        else can you step through the whole set without changing board. */
     {
+      /* w10 (not 11) — Figma's three columns are 704/1184/944px on the
+         2880-wide canvas, i.e. 6/10/8 of the 24-col grid, not 6/11/7. */
       id: 'bs-map',
-      x: 6, y: 0, w: 11, h: 8, minW: 6, minH: 4,
+      x: 6, y: 0, w: 10, h: 8, minW: 6, minH: 4,
       titleKey: 'w.map',
       chipKeys: [
         'c.workforce',
@@ -157,7 +162,7 @@
         'c.fieldsurvey',
         'c.surveycov',
       ],
-      stackChips: true,
+      chipsOverlay: true,
       views: [
         function (el) {
           Kit.mapView(el, {
@@ -236,7 +241,7 @@
     /* --- right wing ----------------------------------------------------- */
     {
       id: 'bs-mon',
-      x: 17, y: 0, w: 7, h: 2, minW: 4, minH: 2,
+      x: 16, y: 0, w: 8, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.mon',
       chipKeys: ['c.pipeline', 'c.bytrack'],
       views: [
@@ -245,9 +250,9 @@
             chart: 'indicator',
             cols: 3,
             items: [
-              { value: Data.head.proact, format: 'grouped', label: t('m.proact'), color: T.cy, valueFontSize: 'small' },
-              { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), color: T.green, valueFontSize: 'small' },
-              { value: Data.register.near, format: 'compact', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
+              { value: Data.head.proact, format: 'grouped', label: t('m.proact'), color: T.cy, valueFontSize: 'small', labelFirst: true },
+              { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), color: T.green, valueFontSize: 'small', labelFirst: true },
+              { value: Data.register.near, format: 'compact', label: t('m.near'), color: T.gold, valueFontSize: 'small', labelFirst: true },
             ],
           });
         },
@@ -272,7 +277,7 @@
 
     {
       id: 'bs-enf',
-      x: 17, y: 2, w: 7, h: 3, minW: 4, minH: 2,
+      x: 16, y: 8 / 3, w: 8, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.enf',
       chipKeys: ['c.headline', 'c.trend'],
       views: [
@@ -319,7 +324,7 @@
        survey standing next to the register and the enforcement figures. */
     {
       id: 'bs-field',
-      x: 17, y: 5, w: 7, h: 3, minW: 4, minH: 2,
+      x: 16, y: 16 / 3, w: 8, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.field',
       chipKeys: ['c.kpis', 'c.topcities'],
       views: [

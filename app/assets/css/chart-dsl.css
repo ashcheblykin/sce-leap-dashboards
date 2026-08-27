@@ -398,8 +398,25 @@
   min-height: 0;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   padding: var(--sp-2) var(--sp-4) var(--sp-3);
   container-type: size;
+}
+
+/* Opt-in variant (chart-dsl.js sets item.labelFirst per tile): the caption
+   leads and the number sits at the foot of the tile, spread edge-to-edge
+   instead of huddled in the middle. Scoped per-tile so the rest of the wall
+   keeps the default factoid-then-caption reading order. */
+.ax-kpi.is-label-first {
+  justify-content: space-between;
+}
+
+.ax-kpi.is-label-first .ax-kpi-label {
+  margin-top: 0;
+}
+
+.ax-kpi.is-label-first .ax-kpi-body {
+  margin-top: min(var(--sp-1), var(--cap-gap));
 }
 
 /* Grid dividers (chart-dsl.js adds these per tile from its row/col
@@ -434,13 +451,13 @@
 }
 
 /* The K/M/B letter split off `compactValue`/`compactUnit` (two counters on
-   one shared clock, see indicatorTile) — near digit-height, but in the quiet
-   neutral grey rather than the value's white, so magnitude and unit read as
-   distinct without either needing its own color. */
+   one shared clock, see indicatorTile) — same digit-height as the value, but
+   in the quiet neutral grey rather than the value's white, so magnitude and
+   unit read as distinct without either needing its own size. */
 .ax-kpi-unit {
   margin-inline-start: 0.03em;
-  color: #fff;
-  font-size: 0.86em;
+  color: var(--tx-3);
+  font-size: 1em;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -448,10 +465,10 @@
 .ax-kpi-label {
   overflow: hidden;
   margin-top: min(var(--sp-1), var(--cap-gap));
-  color: #fff;
+  color: var(--tx-3);
   font-size: min(var(--fs-xs), var(--cap-label));
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   line-height: 1.28;
 }
 

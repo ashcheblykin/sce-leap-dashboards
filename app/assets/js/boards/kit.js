@@ -86,7 +86,10 @@
      the same trick the prototypes used, minus Leaflet. */
   function mapView(el, mode) {
     var widget = el.closest('.widget');
-    if (widget) widget.setAttribute('data-chart', 'map');
+    if (widget) {
+      widget.setAttribute('data-chart', 'map');
+      widget.setAttribute('data-icon-chart', 'map');
+    }
     if (!el._map) {
       Chart.unmount(el);
       el.innerHTML = '';

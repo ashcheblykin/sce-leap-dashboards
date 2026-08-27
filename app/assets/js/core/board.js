@@ -444,8 +444,18 @@
     // row below the title instead of squeezing both into one line.
     var stacked = !!def.stackChips;
 
+    // The map (Figma node 5039:94568) floats its tabs over the imagery
+    // itself, top-right, rather than spending a header row on them — the
+    // map is the only view here with room to spare. `.widget-view-mount`
+    // is what views actually render into so the chips (a plain sibling of
+    // it) survive Kit.mapView's one-time `el.innerHTML = ''` on first mount.
+    var overlay = !!def.chipsOverlay;
+
     return (
-      '<div class="widget"' + (stacked ? ' data-chips-row' : '') + '>' +
+      '<div class="widget"' +
+      (stacked ? ' data-chips-row' : '') +
+      (overlay ? ' data-chips-overlay' : '') +
+      '>' +
       '<div class="widget-head" data-drag-handle>' +
       '<div class="widget-title">' +
       WIDGET_ICONS +
@@ -453,10 +463,12 @@
       Fmt.escapeHtml(I18N.t(def.titleKey)) +
       '</span>' +
       '</div>' +
-      (stacked ? '' : chips) +
+      (stacked || overlay ? '' : chips) +
       '</div>' +
       (stacked ? chips : '') +
-      '<div class="widget-body"></div></div>' +
+      '<div class="widget-body">' +
+      (overlay ? chips + '<div class="widget-view-mount"></div>' : '') +
+      '</div></div>' +
       /* A wall board has no operator: the original BigScreen deliberately
          fixed its panels, and a visitor who drags one on an unattended stand
          has broken the screen until somebody finds the reset. Kiosk boards
@@ -535,10 +547,26 @@
         if (def.onInteract) def.onInteract();
       }
 
+      // The tabs beside the title (.widget-head > .chips) are pinned to the
+      // card's top-right corner via position: absolute, so the title no
+      // longer shrinks against them in flex flow. Reserve the tabs' own
+      // width as title padding so a long title still stops short of them
+      // instead of running underneath.
+      function reserveTabsWidth(widgetEl) {
+        var chipsEl = widgetEl.querySelector('.chips');
+        var head = chipsEl ? chipsEl.parentElement : null;
+        if (chipsEl && head && head.classList.contains('widget-head')) {
+          var title = head.querySelector('.widget-title');
+          if (title) title.style.paddingRight = chipsEl.offsetWidth + 8 + 'px';
+        }
+      }
+
       var headObserver = new ResizeObserver(function (entries) {
         for (var i = 0; i < entries.length; i++) {
-          var chipsEl = entries[i].target.querySelector('.chips');
+          var widgetEl = entries[i].target;
+          var chipsEl = widgetEl.querySelector('.chips');
           if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
+          reserveTabsWidth(widgetEl);
         }
       });
 
@@ -549,7 +577,7 @@
         item.innerHTML = widgetMarkup(w, def.kiosk);
         surface.appendChild(item);
 
-        var body = item.querySelector('.widget-body');
+        var body = item.querySelector('.widget-view-mount') || item.querySelector('.widget-body');
         orientObserver.observe(body);
         headObserver.observe(item.querySelector('.widget'));
 
@@ -579,6 +607,14 @@
           });
 
       grid.paint(state.layout);
+
+      // Set the initial reserve synchronously against the just-painted
+      // layout rather than waiting on headObserver's first (async) callback,
+      // so the title never flashes underneath the tabs on first render.
+      for (var wi = 0; wi < scene.widgets.length; wi++) {
+        var widgetEl = surface.querySelector('[data-grid-item="' + scene.widgets[wi].id + '"] .widget');
+        if (widgetEl) reserveTabsWidth(widgetEl);
+      }
 
       mounted = {
         scene: scene,

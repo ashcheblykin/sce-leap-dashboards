@@ -109,6 +109,7 @@
   var navPillIndex = -1;
   var navPillGen = 0;
   var navPillTimers = [];
+  var sceneMenu = null;
 
   /* --- Type scale --- */
   var scale = SCALE_DEFAULT;
@@ -128,6 +129,7 @@
     Chart.refreshUnit();
     for (var i = 0; i < boards.length; i++) if (boards[i]) redrawCharts(boards[i].surface);
     resnapNavPill();
+    positionSceneMenu();
   }
 
   /* The pill's left/right are frozen px from the last glide, so anything that
@@ -237,7 +239,80 @@
       badge.textContent = String(board.sceneIndex() + 1);
     } else {
       badge.hidden = true;
+      closeSceneMenu();
     }
+    if (sceneMenu && sceneMenu.hasAttribute('data-open')) renderSceneMenu();
+  }
+
+  /* --- Scene dropdown ---
+     Figma node 5088:83062: clicking the Big Screen tab's page badge no longer
+     just cycles to the next scene, it opens a list of every scene (the same
+     ones buildScenes turns into header chips) so the room can jump straight
+     to one. Each row carries the scene label and a trailing badge — a
+     checkmark on the current scene, its position number on the others. */
+  var CHECK_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function ensureSceneMenu() {
+    if (!sceneMenu) {
+      sceneMenu = document.createElement('div');
+      sceneMenu.className = 'nav-scene-menu';
+      navHost.appendChild(sceneMenu);
+    }
+    return sceneMenu;
+  }
+
+  function renderSceneMenu() {
+    var board = boards[0];
+    if (!board) return;
+    var menu = ensureSceneMenu();
+    var activeIndex = board.sceneIndex();
+    var html = '';
+    for (var i = 0; i < board.scenes.length; i++) {
+      var isCurrent = i === activeIndex;
+      html +=
+        '<button class="nav-scene-option" type="button" data-scene="' +
+        i +
+        '">' +
+        Fmt.escapeHtml(I18N.t(board.scenes[i].labelKey)) +
+        '<span class="nav-scene-badge">' +
+        (isCurrent ? CHECK_ICON : String(i + 1)) +
+        '</span></button>';
+    }
+    menu.innerHTML = html;
+  }
+
+  /* The menu floats above the dock but has to line up with the badge's own
+     tab, not the dock's edge — same left-offset trick navPillEdges uses for
+     the sliding pill. */
+  function positionSceneMenu() {
+    if (!sceneMenu) return;
+    var badge = navHost.querySelector('.nav-badge');
+    var item = badge && badge.closest('.nav-item');
+    if (!item) return;
+    var wr = navHost.getBoundingClientRect();
+    var ir = item.getBoundingClientRect();
+    sceneMenu.style.left = ir.left - wr.left + 'px';
+  }
+
+  function openSceneMenu() {
+    var board = boards[0];
+    if (!board || board.sceneCount <= 1) return;
+    renderSceneMenu();
+    var menu = ensureSceneMenu();
+    // Position before the opacity/transform transition starts, so the menu
+    // doesn't visibly jump to place once it's already fading in.
+    positionSceneMenu();
+    menu.setAttribute('data-open', '');
+  }
+
+  function closeSceneMenu() {
+    if (sceneMenu) sceneMenu.removeAttribute('data-open');
+  }
+
+  function toggleSceneMenu() {
+    if (sceneMenu && sceneMenu.hasAttribute('data-open')) closeSceneMenu();
+    else openSceneMenu();
   }
 
   function navPillMs(name) {
@@ -448,6 +523,7 @@
   }
 
   function show(index) {
+    closeSceneMenu();
     if (index === current) {
       pendingIndex = -1;
       return;
@@ -673,17 +749,51 @@
       var badge = ev.target.closest('.nav-badge');
       if (badge) {
         ev.stopPropagation();
-        var board = boards[0];
-        if (board && board.sceneCount > 1 && sceneTabs) {
-          noteInteraction();
-          sceneTabs.select((board.sceneIndex() + 1) % board.sceneCount);
-        }
+        noteInteraction();
+        toggleSceneMenu();
+        return;
+      }
+      var option = ev.target.closest('.nav-scene-option');
+      if (option) {
+        ev.stopPropagation();
+        noteInteraction();
+        var sceneIndex = parseInt(option.getAttribute('data-scene'), 10);
+        if (sceneTabs) sceneTabs.select(sceneIndex);
+        else if (boards[0]) boards[0].setScene(sceneIndex);
+        updateNavBadge();
+        closeSceneMenu();
         return;
       }
       var item = ev.target.closest('.nav-item');
       if (!item) return;
+      var boardIndex = parseInt(item.getAttribute('data-board'), 10);
       noteInteraction();
-      show(parseInt(item.getAttribute('data-board'), 10));
+      // The Big Screen tab is already on screen once it's the active one —
+      // clicking it again (anywhere on it, not just the badge) opens the
+      // scene picker instead of a no-op re-select.
+      if (boardIndex === current && boardIndex === 0) {
+        // Stop here, or the document-level outside-click closer below sees
+        // this same click bubble past the item and immediately shuts the
+        // menu we just opened.
+        ev.stopPropagation();
+        toggleSceneMenu();
+        return;
+      }
+      closeSceneMenu();
+      show(boardIndex);
+    });
+
+    // Anything outside the menu (and outside the badge that opens it) closes
+    // it, same pattern as the settings panel below.
+    document.addEventListener('click', function (ev) {
+      if (
+        sceneMenu &&
+        sceneMenu.hasAttribute('data-open') &&
+        !sceneMenu.contains(ev.target) &&
+        !ev.target.closest('.nav-badge')
+      ) {
+        closeSceneMenu();
+      }
     });
 
     if (langBtn) {
@@ -736,6 +846,7 @@
 
     window.addEventListener('resize', measure);
     window.addEventListener('resize', resnapNavPill);
+    window.addEventListener('resize', positionSceneMenu);
   }
 
   function start() {
