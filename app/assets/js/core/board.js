@@ -25,6 +25,14 @@
      between chart kinds (e.g. pie -> progress-bars) swaps the icon with it.
      Kinds without a Figma glyph (cartesian, radar, sankey, sunburst, table)
      render no icon rather than a guessed one. */
+  /* The gap the title leaves between its ellipsis and the tab track, on top
+     of the track's own measured width. The track sits 8px in from the card
+     edge (see .widget-head > .chips) and the card's padding is 12px, so 8
+     here puts the title's last glyph 4px clear of the track's left rim at the
+     default scale. Read in px because the value it is added to is a measured
+     px width. */
+  var GUTTER_GAP = 8;
+
   var WIDGET_ICONS =
     '<span class="widget-icon" data-icon="indicator" aria-hidden="true">' +
     '<svg viewBox="0 0 14.9092 11.8955" xmlns="http://www.w3.org/2000/svg">' +
@@ -113,9 +121,11 @@
     var tabs = [].slice.call(chipsEl.querySelectorAll('.chip'));
     if (tabs.length < 2) return null;
 
-    var pill = document.createElement('div');
-    pill.className = 'chip-pill';
-    chipsEl.insertBefore(pill, chipsEl.firstChild);
+    /* The pill itself — its travel, its fills and its timers — is Pill's (see
+       core/pill.js); this closure keeps only what is specific to a widget's
+       view tabs: which segment is active, and the press/drag gesture below. */
+    var p = Pill.create(chipsEl, { className: 'chip-pill', restShadow: 'none' });
+    var pill = p.el;
 
     var active = 0;
     for (var i = 0; i < tabs.length; i++) {
@@ -125,27 +135,12 @@
       }
     }
 
-    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var gen = 0;
-    var timers = [];
-
-    function ms(name) {
-      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
-    }
-    var LEAD = ms('--chip-dur-lead');
-    var TRAIL = ms('--chip-dur-trail');
-    var HOLD = ms('--chip-hold');
-    var POP = ms('--chip-dur-pop');
-    var BLOOM = 'var(--chip-glow-bloom)';
-    var RIM = 'var(--chip-rim)';
-
-    function clearTimers() {
-      timers.forEach(clearTimeout);
-      timers = [];
-    }
-    function later(fn, t) {
-      timers.push(setTimeout(fn, t));
-    }
+    var mq = p.reduced;
+    /* Only the three the gesture below still decides for itself: a plain
+       select hands its timing to Pill.glide. */
+    var LEAD = Pill.ms('--chip-dur-lead');
+    var HOLD = Pill.ms('--chip-hold');
+    var POP = Pill.ms('--chip-dur-pop');
 
     function paintActive(i) {
       for (var k = 0; k < tabs.length; k++) {
@@ -155,83 +150,20 @@
     }
 
     function edges(i) {
-      var wr = chipsEl.getBoundingClientRect();
-      var er = tabs[i].getBoundingClientRect();
-      return { left: er.left - wr.left, right: wr.right - er.right };
+      return p.edges(tabs[i]);
     }
 
-    function setDur(l, r) {
-      pill.style.setProperty('--pl', l + 'ms');
-      pill.style.setProperty('--pr', r + 'ms');
-    }
     function setScale(s) {
       pill.style.transform = 'translateZ(0) scale(' + s + ')';
     }
 
-    function setNormal() {
-      pill.style.backgroundColor = 'var(--chip-fill)';
-      pill.style.boxShadow = 'none';
-    }
-    /* Travelling state: keeps a hairline cyan ring so the move is something
-       you can actually watch, then blooms back to the full fill on arrival. */
-    function setGhost() {
-      pill.style.backgroundColor = 'var(--chip-fill-ghost)';
-      pill.style.boxShadow = RIM;
-    }
-    function setHighlight() {
-      pill.style.backgroundColor = 'var(--chip-fill)';
-      pill.style.boxShadow = BLOOM;
-    }
-    function setLift() {
-      pill.style.backgroundColor = 'var(--chip-fill)';
-      pill.style.boxShadow = BLOOM;
-    }
-
-    function moveTo(i, lDur, rDur) {
-      var e = edges(i);
-      setDur(lDur, rDur);
-      pill.style.left = e.left + 'px';
-      pill.style.right = e.right + 'px';
-    }
-
-    /* jump the pill with no animation — first paint, or a re-snap after the
-       track's own size changed (widget resize, board switched into view). */
-    function snap(i) {
-      var e = edges(i);
-      pill.style.transition = 'none';
-      pill.style.left = e.left + 'px';
-      pill.style.right = e.right + 'px';
-      void pill.offsetWidth;
-      pill.style.transition = '';
-    }
-
     function selectTab(i) {
       if (i === active) return;
-      clearTimers();
-      var g = ++gen;
       var movingRight = i > active;
       active = i;
       paintActive(i);
       if (onSelect) onSelect(i, chipsEl);
-
-      if (mq.matches) {
-        snap(i);
-        setNormal();
-        return;
-      }
-
-      setGhost();
-      var lDur = movingRight ? TRAIL : LEAD;
-      var rDur = movingRight ? LEAD : TRAIL;
-      moveTo(i, lDur, rDur);
-
-      later(function () {
-        if (gen !== g) return;
-        setHighlight();
-        later(function () {
-          if (gen === g) setNormal();
-        }, HOLD);
-      }, Math.max(lDur, rDur));
+      p.glide(tabs[i], movingRight);
     }
 
     tabs.forEach(function (t, i) {
@@ -296,8 +228,7 @@
       var w = wr.width - e0.left - e0.right;
       if (x < e0.left - THRESH || x > e0.left + w + THRESH) return;
 
-      clearTimers();
-      gen++;
+      p.cancel();
       drag.on = true;
       drag.moving = false;
       drag.startX = e.clientX;
@@ -310,12 +241,14 @@
         chipsEl.setPointerCapture(e.pointerId);
       } catch (_) {}
 
-      setDur(0, 0);
+      p.setDur(0, 0);
       drag.lifted = Date.now() >= pressLockUntil;
       if (drag.lifted) {
         pill.style.setProperty('--pt', 'var(--chip-dur-press)');
         pill.style.setProperty('--pe', 'var(--chip-ease)');
-        setLift();
+        /* A press wears the same bloom an arrival does — it is the pill
+           lifting off the track either way. */
+        p.bloom();
         setScale(PRESS);
       }
     });
@@ -326,7 +259,7 @@
       if (!drag.moving && Math.abs(dx) > THRESH) {
         drag.moving = true;
         if (!drag.lifted) {
-          setLift();
+          p.bloom();
           drag.lifted = true;
         }
         pill.style.setProperty('--pt', 'var(--chip-dur-press)');
@@ -336,8 +269,7 @@
 
       var ww = drag.wrapWidth;
       var left = rubber(drag.startLeft + dx, 0, ww - drag.width);
-      pill.style.left = left + 'px';
-      pill.style.right = ww - left - drag.width + 'px';
+      p.place(left, ww - left - drag.width);
       var n = nearestTab(left + drag.width / 2, drag.centers);
       if (n !== active) {
         active = n;
@@ -359,7 +291,7 @@
 
       if (!drag.moving && !drag.lifted) return;
 
-      var g = ++gen;
+      p.cancel();
       pill.style.setProperty('--pt', 'var(--chip-dur-pop)');
       pill.style.setProperty('--pe', 'var(--chip-ease-pop)');
       setScale(1);
@@ -369,34 +301,24 @@
         setTimeout(function () {
           drag.suppressClick = false;
         }, 80);
+        /* Which way the pill still has to travel is measured from where the
+           finger left it, not from the segment it started on. */
         var curLeft = parseFloat(pill.style.left);
         var target = nearestTab(curLeft + drag.width / 2, drag.centers);
         active = target;
         paintActive(target);
         if (onSelect) onSelect(target, chipsEl);
-        setGhost();
-        var movingRight = edges(target).left >= curLeft;
-        var lDur = movingRight ? TRAIL : LEAD;
-        var rDur = movingRight ? LEAD : TRAIL;
-        moveTo(target, lDur, rDur);
-        later(function () {
-          if (gen !== g) return;
-          setHighlight();
-          later(function () {
-            if (gen === g) setNormal();
-          }, HOLD);
-        }, Math.max(lDur, rDur));
+        p.glide(tabs[target], p.edges(tabs[target]).left >= curLeft);
       } else {
-        setDur(LEAD, LEAD);
+        /* A press that never moved: both edges come home together, and it
+           keeps the bloom it lifted with rather than re-ghosting. */
+        p.setDur(LEAD, LEAD);
         var e2 = edges(active);
-        pill.style.left = e2.left + 'px';
-        pill.style.right = e2.right + 'px';
-        setHighlight();
-        later(function () {
-          if (gen === g) setNormal();
-        }, HOLD);
+        p.place(e2.left, e2.right);
+        p.bloom();
+        p.later(p.rest, HOLD);
       }
-      later(function () {
+      p.later(function () {
         pill.style.setProperty('--pe', 'var(--chip-ease)');
         pill.style.willChange = '';
       }, POP + 40);
@@ -404,14 +326,23 @@
     chipsEl.addEventListener('pointerup', endGesture);
     chipsEl.addEventListener('pointercancel', endGesture);
 
-    snap(active);
-    setNormal();
+    p.snap(tabs[active]);
+    p.rest();
     paintActive(active);
 
     return {
       snap: function () {
-        snap(active);
+        p.snap(tabs[active]);
       },
+      /* Measure-then-write halves of the same thing, for a caller re-anchoring
+         several tracks in one pass (see headObserver). */
+      measure: function () {
+        return p.edges(tabs[active]);
+      },
+      freeze: function (e) {
+        p.freeze(e.left, e.right);
+      },
+      thaw: p.thaw,
       /* Programmatic selection, so the Big Screen's own 25s scene cycle drives
          the same pill through the same travel animation a tap would. */
       select: selectTab,
@@ -419,6 +350,56 @@
         return active;
       },
     };
+  }
+
+  /* Re-anchor every pill and re-reserve every title's gutter, reading the
+     whole board before writing any of it.
+
+     A card's tabs are pinned to its top-right corner absolutely, so the title
+     no longer shrinks against them in flex flow; its padding has to stand in
+     for their width, and that width can only be measured. Done per widget the
+     measure-then-write pair invalidates layout for the next widget's measure,
+     so a twenty-card board paid for twenty synchronous layouts every time the
+     window moved. One read pass, one write pass, one flush.
+
+     Module-level rather than a closure inside mountScene because the KPI
+     Library needs it too and never goes through mountScene. That was the last
+     thing keeping the chips track's 410px-radius blur alive: with no gutter
+     reserved, twenty Arabic titles ran under their own tab tracks, and since
+     the track's plate is fully transparent the blur was the only thing
+     smearing the collision out of sight. Reserved on every board, the blur
+     has nothing left to hide and drops to blur(0px) — see .chips in
+     widget.css. */
+  function reanchorChips(widgetEls, flushHost) {
+    var plan = [];
+    for (var i = 0; i < widgetEls.length; i++) {
+      var chipsEl = widgetEls[i].querySelector('.chips');
+      if (!chipsEl) continue;
+      var title = widgetEls[i].querySelector('.widget-head .widget-title');
+      plan.push({
+        tabs: chipsEl._tabs || null,
+        edges: chipsEl._tabs ? chipsEl._tabs.measure() : null,
+        title: title,
+        width: title ? chipsEl.offsetWidth : 0,
+      });
+    }
+    if (!plan.length) return;
+
+    for (var w = 0; w < plan.length; w++) {
+      if (plan[w].tabs) plan[w].tabs.freeze(plan[w].edges);
+      /* The track's own 8px inset from the card edge, plus one more so the
+         title's ellipsis never touches it. Logical, because in Arabic the
+         tabs sit on the other side. */
+      if (plan[w].title) {
+        plan[w].title.style.paddingInlineEnd = plan[w].width + GUTTER_GAP + 'px';
+      }
+    }
+
+    /* One flush for the whole board, so the transitions the freezes
+       suppressed are actually suppressed before they are restored. */
+    if (flushHost) void flushHost.offsetWidth;
+
+    for (var t = 0; t < plan.length; t++) if (plan[t].tabs) plan[t].tabs.thaw();
   }
 
   function widgetMarkup(def, kiosk) {
@@ -438,12 +419,6 @@
       chips += '</div>';
     }
 
-    // A title paired with three-plus tab labels has nowhere to go on a
-    // narrow card — the title gets crushed to an ellipsis before the tabs
-    // give up any width. Those widgets opt into their own full-width tab
-    // row below the title instead of squeezing both into one line.
-    var stacked = !!def.stackChips;
-
     // The map (Figma node 5039:94568) floats its tabs over the imagery
     // itself, top-right, rather than spending a header row on them — the
     // map is the only view here with room to spare. `.widget-view-mount`
@@ -453,7 +428,6 @@
 
     return (
       '<div class="widget"' +
-      (stacked ? ' data-chips-row' : '') +
       (overlay ? ' data-chips-overlay' : '') +
       '>' +
       '<div class="widget-head" data-drag-handle>' +
@@ -463,9 +437,11 @@
       Fmt.escapeHtml(I18N.t(def.titleKey)) +
       '</span>' +
       '</div>' +
-      (stacked || overlay ? '' : chips) +
+      // Every card's tabs float in its own top-right corner, whatever the
+      // segment count (see .widget-head > .chips in widget.css); only the map
+      // moves them inside the body, over the imagery.
+      (overlay ? '' : chips) +
       '</div>' +
-      (stacked ? chips : '') +
       '<div class="widget-body">' +
       (overlay ? chips + '<div class="widget-view-mount"></div>' : '') +
       '</div></div>' +
@@ -547,27 +523,10 @@
         if (def.onInteract) def.onInteract();
       }
 
-      // The tabs beside the title (.widget-head > .chips) are pinned to the
-      // card's top-right corner via position: absolute, so the title no
-      // longer shrinks against them in flex flow. Reserve the tabs' own
-      // width as title padding so a long title still stops short of them
-      // instead of running underneath.
-      function reserveTabsWidth(widgetEl) {
-        var chipsEl = widgetEl.querySelector('.chips');
-        var head = chipsEl ? chipsEl.parentElement : null;
-        if (chipsEl && head && head.classList.contains('widget-head')) {
-          var title = head.querySelector('.widget-title');
-          if (title) title.style.paddingRight = chipsEl.offsetWidth + 8 + 'px';
-        }
-      }
-
       var headObserver = new ResizeObserver(function (entries) {
-        for (var i = 0; i < entries.length; i++) {
-          var widgetEl = entries[i].target;
-          var chipsEl = widgetEl.querySelector('.chips');
-          if (chipsEl && chipsEl._tabs) chipsEl._tabs.snap();
-          reserveTabsWidth(widgetEl);
-        }
+        var targets = [];
+        for (var i = 0; i < entries.length; i++) targets.push(entries[i].target);
+        reanchorChips(targets, surface);
       });
 
       for (var i = 0; i < scene.widgets.length; i++) {
@@ -611,10 +570,12 @@
       // Set the initial reserve synchronously against the just-painted
       // layout rather than waiting on headObserver's first (async) callback,
       // so the title never flashes underneath the tabs on first render.
+      var initial = [];
       for (var wi = 0; wi < scene.widgets.length; wi++) {
         var widgetEl = surface.querySelector('[data-grid-item="' + scene.widgets[wi].id + '"] .widget');
-        if (widgetEl) reserveTabsWidth(widgetEl);
+        if (widgetEl) initial.push(widgetEl);
       }
+      reanchorChips(initial, surface);
 
       mounted = {
         scene: scene,
@@ -680,8 +641,10 @@
   global.Board = {
     create: create,
     /* The KPI Library builds its own cards rather than grid widgets, but its
-       view switchers must be the same control as everywhere else. */
+       view switchers must be the same control as everywhere else — and must
+       reserve the same title gutter. */
     attachChipTabs: attachChipTabs,
+    reanchorChips: reanchorChips,
     widgetMarkup: widgetMarkup,
     clearLayouts: clearLayouts,
     loadLayout: loadLayout,

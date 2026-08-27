@@ -160,16 +160,25 @@
 
     var credit = document.createElement('div');
     credit.className = 'map-credit';
-    /* Pinned LTR: the mark and "Powered by" are both Latin, and would
-       otherwise pick up the Arabic board's paragraph direction. */
-    credit.dir = 'ltr';
-    credit.innerHTML = '<span>Powered by ' + Fmt.axionMark + '</span>';
+    /* `dir="ltr"` goes on the inner span, not on the plate.
+
+       The mark and "Powered by" are both Latin and would otherwise pick up
+       the Arabic board's paragraph direction, so the run does have to be
+       pinned. But CSS logical properties resolve against the element's OWN
+       direction, so pinning the plate pinned its `inset-inline-end` too: on
+       the Arabic board the credit stayed in the physical right corner while
+       the HUD — which is positioned logically — moved there as well, and the
+       two sat on top of each other. Text pinned, box mirrored. */
+    credit.innerHTML = '<span dir="ltr">Powered by ' + Fmt.axionMark + '</span>';
     container.appendChild(credit);
 
     /**
      * mode: {
      *   points: [[lat, lng, value, label, variant?]],
      *   tone, maxRadius, hud: {value, format, label}, note
+     *
+     * `variant` is 'ok' | 'mid' | 'warn' — the field-verification licence
+     * states, which override the mode tone (see .map-dot--* in map.css).
      * }
      */
     function render(mode) {
@@ -232,21 +241,21 @@
       }
       markers.appendChild(frag);
 
+      /* No inline colour on the figure. It is a factoid — Figma's Tips block
+         (node 5044:95235) draws it in the same white as the ones in the panels
+         either side — and it was the last number on the wall still taking the
+         active map mode's tone, so switching a map chip repainted it while the
+         four factoids beside it stayed white. The mode's tone still carries
+         the bubbles and the tooltip, which is where it means something. */
       hudBody.innerHTML = mode.hud
-        ? '<div class="map-hud-value hud-value" style="color:' +
-          (mode.tone || Chart.TONE.cy) +
-          '">' +
+        ? '<div class="map-hud-value hud-value">' +
           Counter.span(mode.hud.value, mode.hud.format || 'compact') +
-          (mode.hud.unit ? '<span class="unit">' + mode.hud.unit + '</span>' : '') +
           '</div><div class="map-hud-label">' +
           mode.hud.label +
           '</div>'
         : '';
 
       foot.textContent = mode.note || '';
-      if (mode.legend) {
-        foot.innerHTML = mode.legend;
-      }
     }
 
     return { render: render, el: container };

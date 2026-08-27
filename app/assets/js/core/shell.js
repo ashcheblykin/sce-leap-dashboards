@@ -85,7 +85,6 @@
   var resetBtn = document.getElementById('reset');
   var tickerEl = document.getElementById('ticker');
   var sceneHost = document.getElementById('scenes');
-  var clockEl = document.getElementById('clock');
   var settingsBtn = document.getElementById('settingsBtn');
   var settingsPanel = document.getElementById('settingsPanel');
   var setTickerVisible = document.getElementById('setTickerVisible');
@@ -107,8 +106,6 @@
   var navFills = [];
   var navPill = null;
   var navPillIndex = -1;
-  var navPillGen = 0;
-  var navPillTimers = [];
   var sceneMenu = null;
 
   /* --- Type scale --- */
@@ -138,7 +135,10 @@
   function resnapNavPill() {
     if (!navPill || navPillIndex < 0) return;
     var items = navHost.querySelectorAll('.nav-item');
-    if (items[navPillIndex]) snapNavPill(items[navPillIndex]);
+    if (items[navPillIndex]) {
+      navPill.snap(items[navPillIndex]);
+      navPill.rest();
+    }
   }
 
   function nudgeScale(delta) {
@@ -194,14 +194,16 @@
   }
 
   /* --- Navigation ---
-     The active-item highlight is the same liquid sliding pill the widgets'
-     .chips view switchers use (see attachChipTabs in board.js): a layer
-     behind the labels that glides to the new item instead of jump-cutting. */
+     The active-item highlight is literally the same sliding pill the widgets'
+     .chips view switchers use — one implementation in core/pill.js, two
+     callers. The dock differs only in resting on its own spectrum glow (which
+     .dock redefines locally as a drop shadow) instead of no shadow at all. */
   function buildNav() {
     if (!navPill) {
-      navPill = document.createElement('div');
-      navPill.className = 'nav-pill';
-      navHost.insertBefore(navPill, navHost.firstChild);
+      navPill = Pill.create(navHost, {
+        className: 'nav-pill',
+        restShadow: 'var(--glow-spectrum)',
+      });
       navPillIndex = -1;
     }
 
@@ -221,7 +223,7 @@
     var existing = navHost.querySelectorAll('.nav-item, .nav-divider');
     for (var e = 0; e < existing.length; e++) existing[e].remove();
     navHost.insertAdjacentHTML('afterbegin', html);
-    navHost.insertBefore(navPill, navHost.firstChild);
+    navHost.insertBefore(navPill.el, navHost.firstChild);
     navFills = navHost.querySelectorAll('.nav-item-fill');
     if (current >= 0) markNav(current, false);
     updateNavBadge();
@@ -283,7 +285,7 @@
   }
 
   /* The menu floats above the dock but has to line up with the badge's own
-     tab, not the dock's edge — same left-offset trick navPillEdges uses for
+     tab, not the dock's edge — same left-offset trick Pill.edges uses for
      the sliding pill. */
   function positionSceneMenu() {
     if (!sceneMenu) return;
@@ -315,83 +317,20 @@
     else openSceneMenu();
   }
 
-  function navPillMs(name) {
-    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
-  }
-
-  function navPillEdges(item) {
-    var wr = navHost.getBoundingClientRect();
-    var er = item.getBoundingClientRect();
-    return { left: er.left - wr.left, right: wr.right - er.right };
-  }
-
-  function clearNavPillTimers() {
-    for (var t = 0; t < navPillTimers.length; t++) clearTimeout(navPillTimers[t]);
-    navPillTimers = [];
-  }
-
-  function snapNavPill(item) {
-    var e = navPillEdges(item);
-    navPill.style.transition = 'none';
-    navPill.style.left = e.left + 'px';
-    navPill.style.right = e.right + 'px';
-    navPill.style.backgroundColor = 'var(--chip-fill)';
-    navPill.style.boxShadow = 'var(--glow-spectrum)';
-    void navPill.offsetWidth;
-    navPill.style.transition = '';
-  }
-
-  /* Same ghost -> bloom -> settle sequence as the chip pill: a hairline ring
-     while travelling, then a bloom on arrival that fades back to rest. */
-  function glideNavPill(item, movingRight) {
-    clearNavPillTimers();
-    var g = ++navPillGen;
-
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      snapNavPill(item);
-      return;
-    }
-
-    var LEAD = navPillMs('--chip-dur-lead');
-    var TRAIL = navPillMs('--chip-dur-trail');
-    var HOLD = navPillMs('--chip-hold');
-    var lDur = movingRight ? TRAIL : LEAD;
-    var rDur = movingRight ? LEAD : TRAIL;
-    var e = navPillEdges(item);
-
-    navPill.style.backgroundColor = 'var(--chip-fill-ghost)';
-    navPill.style.boxShadow = 'var(--chip-rim)';
-    navPill.style.setProperty('--pl', lDur + 'ms');
-    navPill.style.setProperty('--pr', rDur + 'ms');
-    navPill.style.left = e.left + 'px';
-    navPill.style.right = e.right + 'px';
-
-    navPillTimers.push(
-      setTimeout(function () {
-        if (navPillGen !== g) return;
-        navPill.style.backgroundColor = 'var(--chip-fill)';
-        navPill.style.boxShadow = 'var(--chip-glow-bloom)';
-        navPillTimers.push(
-          setTimeout(function () {
-            if (navPillGen !== g) return;
-            navPill.style.backgroundColor = 'var(--chip-fill)';
-            navPill.style.boxShadow = 'var(--glow-spectrum)';
-          }, HOLD)
-        );
-      }, Math.max(lDur, rDur))
-    );
-  }
-
   function markNav(index, animate) {
     var items = navHost.querySelectorAll('.nav-item');
     for (var i = 0; i < items.length; i++) {
       if (i === index) items[i].setAttribute('data-on', '');
       else items[i].removeAttribute('data-on');
-      navFills[i].style.width = '0%';
+      setNavFill(navFills[i], 0);
     }
     if (items[index]) {
-      if (animate && navPillIndex >= 0) glideNavPill(items[index], index > navPillIndex);
-      else snapNavPill(items[index]);
+      if (animate && navPillIndex >= 0) {
+        navPill.glide(items[index], index > navPillIndex);
+      } else {
+        navPill.snap(items[index]);
+        navPill.rest();
+      }
       navPillIndex = index;
     }
   }
@@ -438,23 +377,6 @@
       updateNavBadge();
     });
     updateNavBadge();
-  }
-
-  /* --- Header clock ---
-     The original printed the date and the time next to LEAP 2026 on every one
-     of its four screens. Western digits in both locales, like every other
-     number on the wall; minutes only, so ten seconds is a fine tick. */
-  function startClock() {
-    if (!clockEl) return;
-    function paint() {
-      var d = new Date();
-      clockEl.textContent =
-        d.toLocaleDateString('en-GB') +
-        ' · ' +
-        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    }
-    paint();
-    setInterval(paint, 10000);
   }
 
   /* --- Language ---
@@ -576,6 +498,20 @@
   }
 
   /* --- Slideshow --- */
+
+  /* The dwell fill, as a scale rather than a width.
+
+     slideshowTick runs every 200ms for as long as the wall is up, so this is
+     the one write on the page that never stops. As a width each call was a
+     layout and a repaint inside the dock, and the repaint invalidated the
+     backdrop of the pill sitting over it — five Gaussians a second with
+     nothing on screen moving. The box is full-width now and scaled from its
+     reading-start edge, which the compositor owns outright: no layout, no
+     repaint, and nothing for the pill above to re-sample. */
+  function setNavFill(el, ratio) {
+    el.style.transform = 'scaleX(' + ratio + ')';
+  }
+
   function setPlaying(on) {
     playing = on;
     if (on) {
@@ -583,7 +519,7 @@
       slideStartedAt = Date.now();
     } else {
       playBtn.removeAttribute('data-playing');
-      for (var i = 0; i < navFills.length; i++) navFills[i].style.width = '0%';
+      for (var i = 0; i < navFills.length; i++) setNavFill(navFills[i], 0);
     }
     playBtn.setAttribute('aria-label', I18N.t(on ? 'ctl.pause' : 'ctl.play'));
 
@@ -610,7 +546,7 @@
 
     if (!playing || switching || now < holdUntil) {
       if (!switching && current >= 0 && navFills[current]) {
-        navFills[current].style.width = '0%';
+        setNavFill(navFills[current], 0);
       }
       // Whatever is on screen gets a full slot once the hold lifts.
       slideStartedAt = now;
@@ -632,7 +568,7 @@
     var slideMs = current >= 0 && BOARDS[current].slideMs ? BOARDS[current].slideMs : SLIDE_MS;
     var elapsed = now - slideStartedAt;
     if (current >= 0 && navFills[current]) {
-      navFills[current].style.width = Math.min(100, (elapsed / slideMs) * 100) + '%';
+      setNavFill(navFills[current], Math.min(1, elapsed / slideMs));
     }
     if (elapsed >= slideMs) advance();
   }
@@ -872,7 +808,6 @@
     localizeStatic();
     bindControls();
     bindSettings();
-    startClock();
     setPlaying(settings.autoplay);
     setInterval(slideshowTick, 200);
   }

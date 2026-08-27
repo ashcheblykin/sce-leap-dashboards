@@ -200,42 +200,27 @@
         x: 0, y: 5, w: 10, h: 3, minW: 5, minH: 2,
         titleKey: 'w.spec',
         chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
-        stackChips: true,
-        views: [
-          function (el) {
-            Chart.mount(el, {
-              chart: 'cartesian',
-              horizontal: true,
-              series: Kit.barSeries(Data.eng5, T.cy),
-              xAxis: { type: 'band', tickFormat: Labels.t },
-              yAxis: { type: 'linear', tickFormat: 'compact', numTicks: 4 },
-              showLegend: false,
-              note: t('n.specNote'),
-            });
-          },
-          function (el) {
-            Chart.mount(el, {
-              chart: 'cartesian',
-              horizontal: true,
-              series: Kit.barSeries(Data.tech5, T.green),
-              xAxis: { type: 'band', tickFormat: Labels.t },
-              yAxis: { type: 'linear', tickFormat: 'compact', numTicks: 4 },
-              showLegend: false,
-              note: t('n.specNote'),
-            });
-          },
-          function (el) {
-            Chart.mount(el, {
-              chart: 'cartesian',
-              horizontal: true,
-              series: Kit.barSeries(Data.spec5, Kit.CLASS_TONE.Specialist),
-              xAxis: { type: 'band', tickFormat: Labels.t },
-              yAxis: { type: 'linear', tickFormat: 'compact', numTicks: 4 },
-              showLegend: false,
-              note: t('n.specNote'),
-            });
-          },
-        ],
+        /* One card, one renderer. "Top specialties" also appears on the Big
+           Screen's first scene, on Ecosystem and in the KPI Library, and all
+           three draw it as the Figma bar list (node 5039:94566) — same title,
+           same three chips, same five rows. Here alone it was a cartesian
+           horizontal bar chart with its own axis, gradient fills and a track
+           band, so the wall showed the same panel two ways depending on which
+           screen you caught. The reference is the Big Screen's own first page,
+           so the bar list wins and this becomes the fourth copy of it rather
+           than a second design. */
+        views: [Kit.CLASS_TONE.Engineer, Kit.CLASS_TONE.Technician, Kit.CLASS_TONE.Specialist].map(
+          function (tone, i) {
+            var rows = [Data.eng5, Data.tech5, Data.spec5][i];
+            return function (el) {
+              Chart.mount(el, {
+                chart: 'progress-bars',
+                data: Kit.barData(rows, tone),
+                note: t('n.specNote'),
+              });
+            };
+          }
+        ),
       },
 
       {
@@ -244,14 +229,12 @@
         titleKey: 'w.nat',
         chipKeys: ['c.bars', 'c.share'],
         views: [
+          /* The same bar list Ecosystem and the KPI Library give this card,
+             for the same reason as 'w.spec' above. */
           function (el) {
             Chart.mount(el, {
-              chart: 'cartesian',
-              horizontal: true,
-              series: Kit.barSeries(Data.nat5, T.purple),
-              xAxis: { type: 'band', tickFormat: Labels.t },
-              yAxis: { type: 'linear', tickFormat: 'compact', numTicks: 4 },
-              showLegend: false,
+              chart: 'progress-bars',
+              data: Kit.barData(Data.nat5, T.purple),
               note: t('n.natNote'),
             });
           },
@@ -291,10 +274,10 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.register.total, format: 'grouped', label: t('m.reg'), color: T.green, valueFontSize: 'small' },
-                { value: Data.register.active, format: 'grouped', label: t('m.active'), color: T.green, valueFontSize: 'small' },
-                { value: Data.register.near, format: 'grouped', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
-                { value: Data.register.lapsed, format: 'grouped', label: t('m.lapsed'), color: T.blue, valueFontSize: 'small' },
+                { value: Data.register.total, format: 'grouped', label: t('m.reg') },
+                { value: Data.register.active, format: 'grouped', label: t('m.active') },
+                { value: Data.register.near, format: 'grouped', label: t('m.near') },
+                { value: Data.register.lapsed, format: 'grouped', label: t('m.lapsed') },
               ],
             });
           },

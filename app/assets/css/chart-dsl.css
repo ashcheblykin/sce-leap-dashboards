@@ -38,16 +38,19 @@
   align-items: stretch;
 }
 
-.ax-chart--right {
-  flex-direction: row-reverse;
-}
+/* `--right` needs no direction of its own: frame() appends the legend after
+   the plot area, and a logical `row` puts it on the reading-end side, which is
+   where Figma has it (the donut leads, its legend closes — node 5039:94567).
+
+   It used to say `row-reverse`, which reversed that DOM order back again and
+   put the legend *before* the donut — and because `row-reverse` is physical
+   while the DOM order is logical, the two locales disagreed: legend left of
+   the donut in English, right of it in Arabic. One rule less, and both
+   locales now mirror the same arrangement. */
 
 /* A panel taller than it is wide has no room for a legend beside the plot, so
    it goes underneath — the adaptive donut layout from the SCE prototypes. */
-[data-orient='col'] .ax-chart--h {
-  flex-direction: column;
-}
-
+[data-orient='col'] .ax-chart--h,
 [data-orient='col'] .ax-chart--right {
   flex-direction: column;
 }
@@ -84,43 +87,62 @@
   stroke-width: 1;
 }
 
+/* A card's footnote: provenance, a denominator, a caveat. It is the quietest
+   thing on a panel and it has to *look* it, which it did not — at the old
+   --fs-xs it drew 20.8px while the bar rows it annotated drew 11.8px, so on
+   the Big Screen's specialties and structure cards the footnote was the
+   loudest text in the body. One rung, the same control_M every other label in
+   a card body takes, and a caption line-height because unlike a chip this one
+   can wrap. */
 .ax-chart-note {
   flex: none;
-  padding-top: var(--sp-2);
+  padding-top: var(--fsp-2);
   color: var(--mut-2);
-  font-size: min(var(--fs-xs), var(--cap-note));
-  line-height: 1.3;
+  font-size: min(var(--fs-control-m), var(--cap-note));
+  line-height: var(--lh-caption);
   text-align: center;
 }
 
 /* --- Legend (shared/legend.tsx) ------------------------------------------ */
 
+/* No `overflow: hidden` here. It used to clip the column against the plot,
+   but the entries now paint their descenders outside their own 10px layout box
+   (see base.css) and this box cut exactly that bleed off — a wrapped bottom
+   legend reported 23px of content in an 18px box, which was five letters'
+   tails. Containment is not lost: .ax-legend is `flex: none` in a column whose
+   plot area is `flex: 1`, so extra rows take height from the plot rather than
+   escaping the card, and .widget-body clips the card regardless. */
 .ax-legend {
   display: flex;
-  overflow: hidden;
   flex: none;
+  /* The descender bleed, reserved where it would otherwise escape. Entries
+     paint ~0.4em outside their 10px layout box in both directions; above the
+     row that lands in the legend's own top padding or in the gap to the plot,
+     but below the last row there is nothing left of the card, so the bottom
+     legend was hanging 5px past the body. Real padding here, not the
+     padding/negative-margin pair used on the entries themselves, because this
+     height genuinely has to exist. */
+  padding-bottom: 0.4em;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--sp-1) var(--sp-4);
+  gap: var(--fsp-1) var(--fsp-4);
   color: var(--mut);
-  font-size: min(var(--fs-xs), var(--cap-note));
-  /* Every other tight text element in this file sets its own leading (1.3 on
-     notes, 1.28 on tile labels, 1.04 on tile values); the legend alone fell
-     through to the body's 1.45, which is a paragraph value. On a five-item
-     side legend that difference was 12px — enough to push the column past its
-     box and, because it is centred, to lose an item off each end. */
-  line-height: 1.3;
+  font-size: min(var(--fs-control-s), var(--cap-note));
+  /* Figma height/control_small: a 10px cap-height box on 12px type, which is
+     what makes the 24px row pitch below read as the designed gap rather than
+     as leading. The legend used to fall through to the body's 1.45 — a
+     paragraph value — and on a five-item side legend that 12px difference
+     pushed the centred column past its box and lost an item off each end. */
+  line-height: var(--lh-control);
 }
 
 .ax-legend--bottom {
-  padding-top: var(--sp-2);
-}
-
-.ax-legend--top {
-  padding-bottom: var(--sp-2);
+  padding-top: var(--fsp-2);
 }
 
 /* A side legend is a column that shares the row with the plot.
+   `right` only: `.ax-chart--left` has no counterpart rule, so a left legend
+   was never a position this renderer could actually lay out.
 
    Two corrections over the bottom legend it forks from. The gap is one step,
    matching that legend's own row gap — at two steps a five-item column ran
@@ -129,56 +151,105 @@
    does outgrow the box, it falls back to start-aligned rather than centring
    the overflow: losing the tail of a legend is recoverable, losing its head
    and its tail is not. */
-.ax-legend--left,
+/* A side legend is a column that shares the row with the plot, and in Figma
+   (the donut's Legend, node 5065:82870) each of its rows is a small table:
+   the dot and the name on the reading-start side, the value hard against the
+   far edge, and a dotted leader carrying the eye across the gap between them.
+   That is what makes four values scan as a column rather than as four
+   name-value pairs of four different lengths — which is what they were, since
+   the value sat directly after the label.
+
+   `right` only: `.ax-chart--left` has no counterpart rule, so a left legend
+   was never a position this renderer could actually lay out.
+
+   Two corrections over the bottom legend it forks from. `safe center` so that
+   if a longer list ever does outgrow the box it falls back to start-aligned
+   rather than centring the overflow: losing the tail of a legend is
+   recoverable, losing its head and its tail is not. And rows stretch to the
+   column's full width instead of hugging their own content, which is what the
+   leader needs. */
 .ax-legend--right {
   display: flex;
   min-width: 0;
-  max-width: 42%;
+  /* Grows into its share rather than hugging its longest name: Figma gives the
+     legend 302 of the card's 680 inner points and the plot the rest, and it is
+     that width — not the length of "Professional" — that sets how far the
+     leader runs. Shrink-to-fit put the column at 25% and left the leaders as
+     three dots. Capped so a long list cannot take the plot's half. */
+  flex: 1 1 auto;
+  max-width: 46%;
   flex-direction: column;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: stretch;
   justify-content: safe center;
-  gap: var(--sp-1);
-  padding-inline-start: var(--sp-3);
+  gap: min(var(--fsp-6), 10cqh);
+  padding-inline-start: var(--fsp-6);
+  padding-inline-end: var(--fsp-2);
 }
 
-.ax-legend--left {
-  padding-inline-start: 0;
-  padding-inline-end: var(--sp-3);
-}
-
-[data-orient='col'] .ax-legend--left,
 [data-orient='col'] .ax-legend--right {
   max-width: 100%;
   flex-flow: row nowrap;
-  padding: var(--sp-2) 0 0;
+  align-items: center;
+  gap: var(--fsp-4);
+  padding: var(--fsp-2) 0 0;
 }
 
 .ax-legend-item {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sp-1);
+  gap: var(--fsp-1);
 }
 
 .ax-legend-dot {
-  width: var(--sp-2);
-  height: var(--sp-2);
+  width: var(--fsp-1-5);
+  height: var(--fsp-1-5);
   flex: none;
 }
 
 .ax-legend-label {
   overflow: hidden;
-  flex: 1;
-  color: var(--tx-2);
+  flex: none;
+  color: var(--fg-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* The leader. Only a row that has a value gets one — without a value there is
+   nothing on the far side for it to reach, and it would run off the edge. */
+.ax-legend--right .ax-legend-label {
+  flex: 0 1 auto;
+}
+
+/* `order`, because a generated ::after is the last box in the row and the
+   leader has to come between the name and the number, not after both. */
+.ax-legend--right .ax-legend-item:has(.ax-legend-value)::after {
+  order: 1;
+  flex: 1;
+  min-width: var(--fsp-4);
+  height: 0;
+  margin: 0 var(--fsp-2);
+  border-bottom: calc(2 * var(--fu)) dotted rgba(253, 253, 253, 0.25);
+  content: '';
+}
+
+.ax-legend--right .ax-legend-value {
+  order: 2;
+}
+
 .ax-legend-value {
   flex: none;
-  color: var(--tx);
+  color: var(--fg-primary);
   font-weight: 400;
+}
+
+/* Turned back into a plain pair when the column has to lie down: side by side
+   under a tall panel the entries sit next to each other, the gap the leader
+   crossed is gone, and a rule between a name and its number would read as a
+   divider rather than a leader. */
+[data-orient='col'] .ax-legend--right .ax-legend-item:has(.ax-legend-value)::after {
+  display: none;
 }
 
 /* --- Entry animation -----------------------------------------------------
@@ -227,12 +298,18 @@
    height by the panel instead of asking for it. Each row is then its own
    container and its label and track measure against that. */
 
+/* Figma's bar list (the Dashboard at node 5039:94566): a 32px row holding a
+   10px label line, a 16px gap and a 6px rail, five of them 16px apart inside
+   a 16px side inset. Equal grid rows rather than a stack, so the same list
+   renders three deep in a two-row panel and six deep in a four-row one — the
+   rows are handed their height by the panel instead of asking for it. */
+
 .ax-bars {
   display: grid;
   flex: 1;
   min-height: 0;
-  padding: var(--sp-1) 0;
-  gap: var(--sp-2);
+  padding: var(--fsp-1) var(--fsp-4);
+  gap: min(var(--fsp-4), 6cqh);
   grid-auto-rows: 1fr;
 }
 
@@ -245,25 +322,34 @@
   container-type: size;
 }
 
+/* Label and value at the same rung, same weight, same ink — a name and its
+   number, not a name and an annotation. The value had fallen to --mut, one
+   step quieter than the label naming it, which inverted the pair: on the
+   specialties card the words read louder than the figures they measured. */
 .ax-bars-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--sp-2);
-  margin-bottom: min(var(--sp-1), var(--cap-gap));
-  font-size: min(var(--fs-sm), var(--cap-row-text));
+  gap: var(--fsp-2);
+  /* 16px at Figma's 32px row, and 50cqh is exactly that: the row's budget is
+     a 10px label box, this gap, and a 6px rail, so the gap is half the row.
+     Capped in cqh rather than fixed so a six-deep list in a two-row panel
+     tightens the gap instead of pushing the rail out of the row. */
+  margin-bottom: min(var(--fsp-4), 50cqh);
+  color: var(--fg-primary);
+  font-size: min(var(--fs-control-m), var(--cap-row-text));
+  line-height: var(--lh-control);
 }
 
 .ax-bars-label {
   overflow: hidden;
-  color: var(--tx);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ax-bars-value {
+  overflow: hidden;
   flex: none;
-  color: var(--mut);
 }
 
 /* Pinned LTR, the same way .ax-svg pins the SVG frame.
@@ -279,9 +365,9 @@
 .ax-bars-track {
   display: flex;
   overflow: hidden;
-  height: min(var(--sp-2), var(--cap-row-note));
+  height: min(var(--fsp-1-5), var(--cap-row-note));
   flex: none;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   direction: ltr;
 }
 
@@ -290,14 +376,6 @@
   height: 100%;
   border-radius: inherit;
   transition: width var(--dur-enter) var(--ease);
-}
-
-.ax-bars-note {
-  overflow: hidden;
-  margin-top: min(var(--sp-1), var(--cap-gap));
-  color: var(--mut-2);
-  font-size: min(var(--fs-xs), var(--cap-row-note));
-  white-space: nowrap;
 }
 
 /* --- Table (TableChart.tsx over the shadcn table) ----------------------- */
@@ -323,13 +401,13 @@
   width: 100%;
   flex: 1;
   border-collapse: collapse;
-  font-size: min(var(--fs-sm), calc(46cqh / (var(--ax-rows, 6) + 1)));
+  font-size: min(var(--fs-control-m), calc(46cqh / (var(--ax-rows, 6) + 1)));
   table-layout: fixed;
 }
 
 .ax-table th {
-  padding-bottom: min(var(--sp-2), 2cqh);
-  border-bottom: var(--hairline) solid var(--separator);
+  padding-bottom: min(var(--fsp-2), 2cqh);
+  border-bottom: var(--hairline) solid var(--border-ghost);
   color: var(--mut);
   font-size: 0.84em;
   font-weight: 500;
@@ -345,8 +423,8 @@
      load-bearing rather than cosmetic. At 2cqh an eight-row table overruns its
      own box by ~40px and silently loses its last row and its footnote — with
      no overflow anywhere for a checker to see, because .widget-body clips. */
-  padding: min(var(--sp-1), 1cqh) 0;
-  border-bottom: var(--hairline) solid var(--separator);
+  padding: min(var(--fsp-1), 1cqh) 0;
+  border-bottom: var(--hairline) solid var(--border-ghost);
   color: var(--tx-2);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -358,7 +436,7 @@
 
 .ax-table th.is-end,
 .ax-table td.is-end {
-  padding-inline-start: var(--sp-2);
+  padding-inline-start: var(--fsp-2);
   text-align: end;
 }
 
@@ -368,7 +446,7 @@
 }
 
 .ax-table-rank {
-  width: var(--sp-6);
+  width: var(--fsp-6);
   color: var(--mut-2);
   font-size: 0.84em;
 }
@@ -391,6 +469,10 @@
 
 /* Size containment as well as overflow: a long label must not push the tile
    past its grid row, which is what made four-up panels spill. */
+/* Figma's factoid cell: 8px of top padding and 16px of side inset, and the
+   pair centred in whatever height the grid row hands it. Size containment as
+   well as overflow, so a long label cannot push the tile past its row —
+   which is what made four-up panels spill. */
 .ax-kpi {
   display: flex;
   overflow: hidden;
@@ -399,7 +481,11 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: var(--sp-2) var(--sp-4) var(--sp-3);
+  /* 16px of side inset, 8px top and bottom. Figma states the sides and the
+     top; the bottom is symmetric rather than zero because the `is-label-first`
+     variant below pushes its number to the foot of the tile, and at zero it
+     sat on the card's own edge. */
+  padding: var(--fsp-2) var(--fsp-4);
   container-type: size;
 }
 
@@ -416,7 +502,7 @@
 }
 
 .ax-kpi.is-label-first .ax-kpi-body {
-  margin-top: min(var(--sp-1), var(--cap-gap));
+  margin-top: min(var(--fsp-1), var(--cap-gap));
 }
 
 /* Grid dividers (chart-dsl.js adds these per tile from its row/col
@@ -441,9 +527,16 @@
    — `is-sm`/`is-lg` still get added to the tile by chart-dsl.js, but no longer
    change the number's size, so a KPI row can never end up with one headline
    number visually louder than its neighbours. */
+/* Figma medium/hero_L: 72px on a 100px box, in base/fg/primary. One rung
+   only — every factoid on the wall reads at the same size and weight
+   regardless of which tile it sits in or what `valueFontSize` a board passes
+   in, so a KPI row can never end up with one headline number visually louder
+   than its neighbours. The line-height is expressed as a ratio of the drawn
+   size rather than as Figma's flat 100px so that a tile which does hit the cap
+   keeps the proportion instead of opening a gap under a shrunken number. */
 .ax-kpi-value {
-  color: #fff;
-  font-size: min(var(--fs-kpi-sm), var(--cap-kpi-sm));
+  color: var(--fg-primary);
+  font-size: min(var(--fs-hero-l), var(--cap-kpi));
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.04;
@@ -456,48 +549,39 @@
    unit read as distinct without either needing its own size. */
 .ax-kpi-unit {
   margin-inline-start: 0.03em;
-  color: var(--tx-3);
+  color: var(--fg-tertiary);
   font-size: 1em;
   font-weight: 500;
   letter-spacing: 0;
 }
 
+/* Figma medium/control_L at 50% white, one line under the number. It was a
+   rung too big and leaded like a paragraph (20.8px on 1.28), which is what
+   `shoot.mjs` was reporting as clipped on three panels: a two-line label
+   needing 53px inside a 40px box. At the control rung it is one line
+   everywhere, and the cap is a floor under a genuinely long one rather than
+   the thing that sets the size. */
 .ax-kpi-label {
   overflow: hidden;
-  margin-top: min(var(--sp-1), var(--cap-gap));
+  margin-top: min(var(--fsp-2), var(--cap-gap));
   color: var(--tx-3);
-  font-size: min(var(--fs-xs), var(--cap-label));
+  font-size: min(var(--fs-control-l), var(--cap-label));
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.28;
 }
 
+/* A second caption under the label, on the four tiles that carry a breakdown
+   ("9 103 licensed + 12 302 structured feed"). White put it *above* the label
+   it qualifies in the reading order — value, then a 50%-white label, then a
+   full-white note — so the tile's hierarchy ran loud, quiet, loud. It shares
+   the label's ink and reads as the second line of one caption. */
 .ax-kpi-note {
   overflow: hidden;
-  margin-top: var(--sp-1);
-  color: #fff;
-  font-size: min(var(--fs-xs), var(--cap-note));
-  line-height: 1.3;
-}
-
-/* The delta pill, from IndicatorChart's rounded-full chip. */
-.ax-kpi-delta {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: var(--sp-1);
-  margin-top: min(var(--sp-1), var(--cap-gap));
-  padding: var(--sp-1) var(--sp-2);
-  border-radius: var(--radius-pill);
-  background: var(--control);
-  color: #fff;
-  font-size: min(var(--fs-xs), var(--cap-note));
-  font-weight: 500;
-}
-
-.ax-kpi-delta-arrow {
-  font-size: 1.05em;
-  line-height: 1;
+  margin-top: var(--fsp-1);
+  color: var(--tx-3);
+  font-size: min(var(--fs-control-m), var(--cap-note));
+  line-height: var(--lh-caption);
 }
 
 /* --- Reduced motion ----------------------------------------------------- */

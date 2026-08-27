@@ -68,9 +68,13 @@ wall runs unattended, and this board ships without the handles at all rather
 than with the gestures merely ignored. The other three boards keep them.
 
 Scenes advance on their own every **25 s**, so the board's slot in the rotation
-is **75 s** — three scenes — before the wall moves on. The scene switcher sits
-in the header next to the wall title, where the prototype put it; it is hidden
-on every other board.
+is **75 s** — three scenes — before the wall moves on. The scene switcher lives
+in the dock, as Figma has it: the active tab carries its own page number, and
+clicking that badge (or the tab itself, which is otherwise a no-op) opens a
+list of the three. The header host the prototype used is still there and still
+drives the same `board.setScene` and the same auto-cycle — it is hidden, not
+replaced, so there is one implementation with two faces rather than two
+implementations.
 
 ### KPI Library
 
@@ -101,15 +105,15 @@ Two departures from the prototype, both deliberate:
 
 | Input | Effect |
 | --- | --- |
-| Board pills | Jump to a board |
-| Scene pills (Big Screen only) | Jump to Overview / Profession / Operations |
-| `EN` / `ع` | Switch language (also on the splash) |
+| Dock tabs | Jump to a board |
+| The page badge on the Big Screen tab | Open Overview / Profession / Operations |
+| The globe in the dock | Switch language (the splash has its own `EN` / `ع`) |
 | Play/pause | Stop or resume the 45-second rotation |
 | `←` `→` | Previous / next board |
 | `Space` | Play/pause |
 | `L` | Toggle language |
 | `[` `]` | Type scale down / up · `\` resets it |
-| `R`, or Reset layout (hover the header) | Restore the original arrangement |
+| `R`, or Reset layout (in the settings button, board corner) | Restore the original arrangement |
 | Chips on a widget | Switch that widget's view |
 | Drag a widget header | Move it; on a full board it trades places with the widget underneath |
 | Drag a widget edge | Resize it |
@@ -134,8 +138,8 @@ press `R` and `\` and switch back to `EN`.
 index.html            markup and load order
 assets/css/           tokens -> base -> grid -> widget -> chart-dsl -> map
                       -> library -> tooltip -> motion -> shell -> splash
-assets/js/core/       i18n, format, counter, chart-dsl, map, grid, motion,
-                      board, shell, splash
+assets/js/core/       i18n, format, counter, tooltip, pill, chart-dsl, map,
+                      grid, motion, board, shell, splash
 assets/js/boards/     kit.js plus one file per board: layout and view specs
                       only. profession.js and operations.js define the widget
                       sets bigscreen.js mounts as its scenes, so both load
@@ -211,6 +215,18 @@ wall's real viewing distance is not knowable from a laptop, so `[` and `]` retun
 `--u-scale` live and the choice is remembered — one keypress rescales type,
 padding and chart geometry together.
 
+**Figma's numbers are a second unit off the same knob.** The dashboard in Figma
+is drawn at exactly the target panel size in plain px, so one Figma px is one
+CSS px there — but the board still has to shrink to a laptop and still has to
+follow `[`/`]`. `--fu` is `--u` divided by the default scale: exactly `1px` at
+2880×1152 on the default setting, and proportional to everything else away from
+it. Every figure a Figma *component* states is `calc(N * var(--fu))`, so the
+card's 12px padding, the 14px control type and the 6px progress rail land on
+Figma's own number where it matters and scale where it has to. The alternative
+— holding them as literal px, which is what the file did — meant the chrome
+stood still while the type moved: `]` straightened the corners and detuned the
+chips.
+
 **Panels cap their own type.** A unit-derived size alone is not enough: the same
 KPI markup runs one-up in a tall panel and four-up in a short one, and the same
 bar list renders three deep or eight deep. So each tile, bar row and table is a
@@ -224,14 +240,34 @@ Every size in the app is a multiple of **4 design units**. Not a convention —
 a rule, and `DESIGN-AUDIT.md` records the pass that made it true.
 
 ```
-spacing   --sp-1..--sp-11    4 8 12 16 20 24 32 40 48 56 64
-type      --fs-2xs           12u   credits, attribution, the hidden reset
-          --fs-xs            16u   notes, labels, chips, legends
-          --fs-sm            20u   body, bar labels, table, ticker
-          --fs-md            24u   card titles, nav, header, splash CTA
-          --fs-kpi-sm        40u   --fs-kpi 56u   --fs-display 72u
-radii     --radius-xs/sm/md/card    4 8 12 16
+board     --sp-1..--sp-11    4 8 12 16 20 24 32 40 48 56 64   × --u
+component --fsp-0-5..--fsp-16   2 4 6 8 12 16 20 24 32 64     × --fu
+radii     --radius-xs/sm/track/md/card/dock   4 8 10 12 16 24 × --fu
 ```
+
+The type scale is Figma's own text styles, verbatim — a `(size, line-height)`
+pair per rung, in design pixels, not a ladder invented here:
+
+```
+--fs-control-s      12 / 10   legend entries
+--fs-control-m      14 / 10   chips, bar rows, table cells, card footnotes
+--fs-control-l      16 / 10   card titles, factoid labels, map HUD caption
+--fs-caption-m      12 / 14   credits, attribution, the hidden reset
+--fs-body-l         20 / 24   the dock's scene badge
+--fs-subheading-l   24 / 24   dock tabs, scene menu, ticker
+--fs-heading-m      32 / 40   splash sub-head and CTA
+--fs-hero-l         72 / 100  every factoid on the wall, and the map HUD
+```
+
+Note the control rungs' 10px leading on 12/14/16px type. That is a cap-height
+box, not a paragraph: Figma uses it to *position* a one-line label in
+auto-layout and draws the glyphs outside it, which is what lets a 32px bar row
+hold a 14px label, a 16px gap and a 6px rail and still add up. CSS has no such
+box — a 10px line box works for layout, but the `overflow: hidden` that
+`text-overflow: ellipsis` requires then shears the descenders off. The clip box
+is padded out and the padding given back as a negative margin (one rule, in
+`base.css`); the element keeps its 10px, still ellipsizes, and keeps its
+letters.
 
 Three things follow from it that are easy to undo by accident:
 
@@ -243,6 +279,14 @@ card read differently on a laptop and on the wall. A radius in px is a bug now.
 so a card title had no size hierarchy over its own content; `--fs-kpi-lg` and
 `--fs-hud` were 70u and 74u, which is 5px on a 90px number. Where two pieces of
 text share a rung today they are told apart by weight, colour and case.
+
+**A cap is a floor under a bad hand, not the design.** At the target panel size
+every `--cap-*` sits clear of the rung it guards, so the rung is what draws and
+the cap only bites when a board asks for more rows than a panel has room for.
+That was not true before: a five-row bar panel capped its rows down to 11.8px
+against a 14px rung while its own footnote drew at 20.8px, so the card's
+provenance line came out louder than the data it annotated. If a cap is setting
+the size at 2880×1152, the layout above it is wrong, not the cap.
 
 **Colour has one home.** The six chart tones are declared in `tokens.css` and
 `Chart.TONE` reads them back out of the cascade, the same way `refreshUnit()`
@@ -320,7 +364,7 @@ guide and build book on every load; they report to the console.
 `tools/audit-data.mjs` proves it** — it builds the set of accountable values in
 Node from `leap_data.js`, drives all four boards through both locales and every
 chip view, collects every number the chart DSL was handed, and reports anything
-the dataset cannot account for. It currently reconciles 696 values against 417
+the dataset cannot account for. It currently reconciles 1,204 values against 417
 distinct accountable ones with nothing left over.
 
 Four places where the shipped data and the documentation disagree. In each the
@@ -360,6 +404,13 @@ node tools/audit-data.mjs          # reconcile every figure on screen with leap_
 node tools/resize.mjs              # chart-tracks-container, transitions, counters
 node tools/timing.mjs              # slideshow, idle and attract behaviour
 node tools/drag.mjs                # drag, resize and layout persistence
+node tools/pill.mjs [out]          # trace the sliding pill's state machine
+                                   #   (tools/pill-trace.txt is the expected trace)
+node tools/css-coverage.mjs        # selectors in assets/css that never match
+node tools/perf.mjs                # main-thread cost of the dock, the chips
+                                   #   and the wall at rest, plus a count of
+                                   #   live backdrop-filter layers per board
+node tools/diff-shots.mjs a b      # pixel-diff two shoot.mjs output directories
 node tools/probe.mjs "<expr>" [n]  # one-off DOM probe (LOCALE=ar for the RTL board)
 python3 tools/subset-fonts.py      # rebuild assets/fonts/ (needs fonttools)
 python3 tools/bake-geo.py          # regenerate the country outlines (needs network)
@@ -368,6 +419,51 @@ python3 tools/bake-basemap.py      # regenerate the basemap raster (needs networ
 
 `DESIGN-AUDIT.md` is the design pass over all of this: what was measured, what
 changed, and the five questions it deliberately left open.
+`CSS-OPTIMIZATION-PLAN.md` is the cleanup pass over the markup and stylesheets.
+`FIGMA-ALIGNMENT.md` is the pass that put every component on Figma's own
+numbers and took the layout animations off the main thread.
+
+### Proving a change did not touch the picture
+
+Refactoring a wall dashboard has an obvious acceptance test — the pixels — and
+until recently no way to run it. `diff-shots.mjs` is that test:
+
+```bash
+node tools/shoot.mjs 2880 1152 tools/shots-baseline   # before
+#   ... make the change ...
+node tools/shoot.mjs 2880 1152 tools/shots-after
+node tools/diff-shots.mjs tools/shots-baseline tools/shots-after
+```
+
+It exits non-zero on any differing pixel and prints how many and how far apart;
+`DIFF_OUT=<dir>` also writes a difference map per frame, unchanged pixels
+ghosted grey and changed ones flagged red.
+
+For that to mean anything the app has to render the same twice, so `shoot.mjs`
+pins the two things that move on wall-clock time — the ticker marquee and the
+splash's animated ground — to one fixed phase before each capture (see
+`freezeMotion`, and `Splash.freeze`, which exists for it and for nothing else).
+Fourteen frames then come back byte-identical across runs.
+
+Two caveats worth knowing before trusting a red result.
+
+**One card flakes, rarely.** Roughly one run in five, a field-board frame comes
+back with a 10px-wide, ~305px-tall strip of differing pixels down the
+reading-start edge of the Top-cities card — `en-4-field` at x 2051, `ar-4-field`
+mirrored at x 2842. It is the first glyph column of the row labels rendering a
+shade differently: 261 px at maxΔ 2 in English, 513 px at maxΔ 57 in Arabic,
+where the glyphs carry more contrast at that edge.
+
+This predates the harness — six runs of the pre-cleanup code reproduce it — and
+nobody has ever seen it on a wall. Treat a diff of that shape on that card as
+noise; anything larger, anywhere else, or on any other frame is real.
+
+**A screenshot cannot see motion.** Every frame catches the sliding pill at
+rest, so `pill.mjs` covers what the pixels cannot: it records the state machine's
+own decisions — the durations each edge gets, the fill and shadow it wears while
+travelling and after it lands, where it comes to rest — for both the widgets'
+chips and the dock's nav, and writes them to a file made to be diffed against
+the checked-in `tools/pill-trace.txt`.
 
 `shoot.mjs` and `audit-data.mjs` both honour `TARGET=../SCE_LEAP_2026.html` to
 check the bundle rather than the source. Headless Chrome only draws on demand,

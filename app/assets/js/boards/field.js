@@ -28,14 +28,14 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.tuv.surveyed, format: 'grouped', label: t('m.surveyed'), color: T.cy, valueFontSize: 'small' },
-                { value: Data.tuv.active, format: 'grouped', label: t('m.activeoff'), color: T.green, valueFontSize: 'small' },
+                { value: Data.tuv.surveyed, format: 'grouped', label: t('m.surveyed') },
+                { value: Data.tuv.active, format: 'grouped', label: t('m.activeoff') },
                 /* Green, not gold: the coverage donut below and the Field
                    Verification panel on the Big Screen both draw this same
                    93.1% in green, and one figure in two colours on one wall
                    reads as two different figures. */
-                { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov'), color: T.green, valueFontSize: 'small' },
-                { value: Data.tuv.dual, format: 'pct', label: t('m.dual'), color: T.purple, valueFontSize: 'small' },
+                { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov') },
+                { value: Data.tuv.dual, format: 'pct', label: t('m.dual') },
               ],
             });
           },
@@ -44,10 +44,10 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.tuv.workers, format: 'grouped', label: t('m.workers'), color: T.cy, valueFontSize: 'small' },
-                { value: Data.tuv.avgw, format: 'one', label: t('m.avgw'), color: T.green, valueFontSize: 'small' },
-                { value: Data.tuv.regions, format: 'grouped', label: t('m.regions'), color: T.gold, valueFontSize: 'small' },
-                { value: Data.tuv.cities, format: 'grouped', label: t('m.tuvcities'), color: T.purple, valueFontSize: 'small' },
+                { value: Data.tuv.workers, format: 'grouped', label: t('m.workers') },
+                { value: Data.tuv.avgw, format: 'one', label: t('m.avgw') },
+                { value: Data.tuv.regions, format: 'grouped', label: t('m.regions') },
+                { value: Data.tuv.cities, format: 'grouped', label: t('m.tuvcities') },
               ],
             });
           },

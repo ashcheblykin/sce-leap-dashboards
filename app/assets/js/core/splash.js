@@ -34,10 +34,13 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function draw(now) {
+  /* Pure function of elapsed time: the same `t` always paints the same frame.
+     Split out of the rAF loop so the screenshot harness can pin the ground to
+     one phase (see freeze below) — without that, two runs of the same code
+     produce two different splashes and a pixel diff can prove nothing. */
+  function paint(t) {
     var w = canvas.clientWidth;
     var h = canvas.clientHeight;
-    var t = now - started;
 
     ctx.clearRect(0, 0, w, h);
 
@@ -66,7 +69,10 @@
         ctx.fillRect(x, top, 2, h - top);
       }
     }
+  }
 
+  function draw(now) {
+    paint(now - started);
     frame = requestAnimationFrame(draw);
   }
 
@@ -125,5 +131,14 @@
     play();
   }
 
-  global.Splash = { init: init, show: show, hide: hide, visible: visible };
+  /* Harness only (tools/shoot.mjs). Stops the loop and paints one fixed phase,
+     so a captured splash is the same image on every run. Nothing in the app
+     calls this; the wall always animates. */
+  function freeze(t) {
+    stop();
+    resize();
+    paint(t || 0);
+  }
+
+  global.Splash = { init: init, show: show, hide: hide, visible: visible, freeze: freeze };
 })(window);

@@ -8,8 +8,8 @@
   top: 0;
   z-index: 1100;
   max-width: min(360px, 44vw);
-  padding: var(--sp-2) var(--sp-3);
-  border: var(--hairline) solid var(--panel-border-strong);
+  padding: var(--fsp-2) var(--fsp-3);
+  border: var(--hairline) solid var(--border-primary);
   border-radius: var(--radius-sm);
   background: var(--plate);
   backdrop-filter: var(--blur-glass);
@@ -40,28 +40,28 @@
 }
 
 .ax-tooltip-label {
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  line-height: 1.3;
+  color: var(--tx-3);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-caption);
 }
 
 /* Map bubbles hand over one pre-composed string and no separate value, so
    the label is promoted to read as the card's whole content instead of a
    caption sitting over an empty row. */
 .ax-tooltip.is-label-only .ax-tooltip-label {
-  color: var(--tip-tone, var(--tx));
-  font-size: var(--fs-xs);
+  color: var(--tip-tone, var(--fg-primary));
+  font-size: var(--fs-control-l);
   font-weight: 400;
 }
 
 .ax-tooltip-value {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-2);
-  margin-top: var(--sp-1);
-  color: var(--tip-tone, var(--tx));
-  font-size: var(--fs-sm);
-  font-weight: 400;
+  gap: var(--fsp-2);
+  margin-top: var(--fsp-2);
+  color: var(--tip-tone, var(--fg-primary));
+  font-size: var(--fs-control-l);
+  font-weight: 500;
 }
 
 .ax-tooltip-num {
@@ -73,7 +73,8 @@
 
 .ax-tooltip-meta {
   color: var(--mut);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-control-s);
+  line-height: var(--lh-control);
   font-weight: 500;
 }
 

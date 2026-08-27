@@ -66,12 +66,18 @@
   /* --- view builders ---
      `vNum` is the source's big-number card; the rest are ordinary specs. */
 
-  function vNum(value, format, noteKey, tone, vars) {
+  /* No `color`. Every factoid on the wall reads in one white — Figma's
+     base/fg/primary with the magnitude letter in its tertiary grey — so a KPI
+     row can never have one number visually louder than its neighbours, and
+     indicatorTile has never read a per-tile colour. Twenty cards were passing
+     a tone that went nowhere, which is worse than passing none: it reads like
+     the hues are still in play. */
+  function vNum(value, format, noteKey, vars) {
     return function (el) {
       Chart.mount(el, {
         chart: 'indicator',
         cols: 1,
-        items: [{ value: value, format: format, label: t(noteKey, vars), color: tone }],
+        items: [{ value: value, format: format, label: t(noteKey, vars) }],
       });
     };
   }
@@ -187,7 +193,7 @@
         id: 'k-ecosize', cat: 'eco', titleKey: 'k.ecosize',
         chipKeys: ['c.number', 'c.bycity'],
         views: [
-          vNum(Data.head.eco, 'grouped', 'kn.ecosize', T.cy),
+          vNum(Data.head.eco, 'grouped', 'kn.ecosize'),
           vBars(function () {
             return cityTop().map(function (r) {
               return { label: r[0], value: r[1], color: T.cy };
@@ -199,7 +205,7 @@
         id: 'k-registered', cat: 'eco', titleKey: 'k.registered',
         chipKeys: ['c.number', 'c.byclass'],
         views: [
-          vNum(Data.head.reg, 'grouped', 'kn.registered', T.green),
+          vNum(Data.head.reg, 'grouped', 'kn.registered'),
           vDonut(
             function () {
               return Data.classes.map(function (r, i) {
@@ -226,7 +232,6 @@
                   value: Data.offices,
                   format: 'grouped',
                   label: t('m.offices'),
-                  color: T.gold,
                   note: t('n.offnote', {
                     a: Fmt.grouped(Data.officesParts[0]),
                     b: Fmt.grouped(Data.officesParts[1]),
@@ -241,7 +246,7 @@
         id: 'k-saudis', cat: 'eco', titleKey: 'k.saudis',
         chipKeys: ['c.number', 'c.share'],
         views: [
-          vNum(Data.head.saudis, 'grouped', 'kn.saudis', T.purple),
+          vNum(Data.head.saudis, 'grouped', 'kn.saudis'),
           function (el) {
             Chart.mount(el, {
               chart: 'pie',
@@ -265,7 +270,7 @@
         id: 'k-activemem', cat: 'eco', titleKey: 'k.activemem',
         chipKeys: ['c.number', 'c.registermix'],
         views: [
-          vNum(Data.register.active, 'grouped', 'kn.activemem', T.green),
+          vNum(Data.register.active, 'grouped', 'kn.activemem'),
           vDonut(
             function () {
               return [
@@ -288,7 +293,7 @@
         chipKeys: ['c.bars', 'c.table'],
         views: [
           vBars(function () {
-            return Kit.barData(Data.eng5, T.cy);
+            return Kit.barData(Data.eng5, Kit.CLASS_TONE.Engineer);
           }, 'n.specNote'),
           vTable('c.engineers', function () {
             return Data.eng5.map(function (r) {
@@ -302,7 +307,7 @@
         chipKeys: ['c.bars', 'c.table'],
         views: [
           vBars(function () {
-            return Kit.barData(Data.tech5, T.green);
+            return Kit.barData(Data.tech5, Kit.CLASS_TONE.Technician);
           }, 'n.specNote'),
           vTable('c.technicians', function () {
             return Data.tech5.map(function (r) {
@@ -316,7 +321,7 @@
         chipKeys: ['c.bars', 'c.table'],
         views: [
           vBars(function () {
-            return Kit.barData(Data.spec5, T.gold);
+            return Kit.barData(Data.spec5, Kit.CLASS_TONE.Specialist);
           }, 'n.specNote'),
           vTable('c.specialists', function () {
             return Data.spec5.map(function (r) {
@@ -354,12 +359,12 @@
       {
         id: 'k-proact', cat: 'mon', titleKey: 'k.proact',
         chipKeys: ['c.number'],
-        views: [vNum(Data.head.proact, 'grouped', 'kn.proact', T.cy)],
+        views: [vNum(Data.head.proact, 'grouped', 'kn.proact')],
       },
       {
         id: 'k-engage', cat: 'mon', titleKey: 'k.engage',
         chipKeys: ['c.number'],
-        views: [vNum(Data.head.renewengage, 'compact', 'kn.engage', T.green)],
+        views: [vNum(Data.head.renewengage, 'compact', 'kn.engage')],
       },
       {
         id: 'k-pipeline', cat: 'mon', titleKey: 'k.pipeline',
@@ -378,13 +383,13 @@
       {
         id: 'k-cases', cat: 'enf', titleKey: 'k.cases',
         chipKeys: ['c.number', 'c.trendshort'],
-        views: [vNum(Data.head.cases, 'grouped', 'kn.cases', T.gold), vTrend()],
+        views: [vNum(Data.head.cases, 'grouped', 'kn.cases'), vTrend()],
       },
       {
         id: 'k-money', cat: 'enf', titleKey: 'k.money',
         chipKeys: ['c.number', 'c.split'],
         views: [
-          vNum(Data.head.enforced, 'sar', 'kn.money', T.gold, { n: Fmt.sar(Data.head.collected) }),
+          vNum(Data.head.enforced, 'sar', 'kn.money', { n: Fmt.sar(Data.head.collected) }),
           vDonut(
             function () {
               return Data.enforcedSplit.map(function (r, i) {
@@ -421,7 +426,7 @@
         id: 'k-surveyed', cat: 'fv', titleKey: 'k.surveyed',
         chipKeys: ['c.number'],
         views: [
-          vNum(Data.tuv.surveyed, 'grouped', 'kn.surveyed', T.cy, {
+          vNum(Data.tuv.surveyed, 'grouped', 'kn.surveyed', {
             r: Data.tuv.regions,
             c: Data.tuv.cities,
           }),
@@ -453,7 +458,7 @@
         id: 'k-onsite', cat: 'fv', titleKey: 'k.onsite',
         chipKeys: ['c.number', 'c.topcities'],
         views: [
-          vNum(Data.tuv.workers, 'grouped', 'kn.onsite', T.green, { n: Data.tuv.avgw }),
+          vNum(Data.tuv.workers, 'grouped', 'kn.onsite', { n: Data.tuv.avgw }),
           function (el, dense) {
             var rows = Data.tuvTop.map(function (c) {
               return { city: c[0], offices: c[3], pct: c[5] };
@@ -476,7 +481,7 @@
         id: 'k-records', cat: 'fv', titleKey: 'k.records',
         chipKeys: ['c.number', 'c.more'],
         views: [
-          vNum(Data.tuv.lic, 'grouped', 'kn.records', T.gold),
+          vNum(Data.tuv.lic, 'grouped', 'kn.records'),
           function (el, dense) {
             Chart.mount(el, {
               chart: 'progress-bars',
@@ -529,14 +534,7 @@
         cell.className = 'lib-cell';
         cell.setAttribute('data-card', card.id);
         cell.innerHTML = Board.widgetMarkup(
-          {
-            titleKey: card.titleKey,
-            chipKeys: card.chipKeys,
-            /* Same rule every other board uses (see widget.css): only 3+
-               tab labels get their own row below the title. Every KPI Library
-               card tops out at 2, so they all float top-right per Figma. */
-            stackChips: card.chipKeys.length > 2,
-          },
+          { titleKey: card.titleKey, chipKeys: card.chipKeys },
           true
         );
         grid.appendChild(cell);
@@ -556,10 +554,31 @@
         }
       });
 
+      /* The same title-gutter reserve every grid board runs from its resize
+         observer (see reanchorChips in board.js). The Library never went
+         through it, so twenty titles ran under their own tab tracks — visible
+         in Arabic, where the labels are longer, and invisible in English only
+         because the track's plate is transparent and its blur washed the
+         collision out. One call, twenty cards, one layout flush.
+
+         After the paint, not during it: the widths being measured are the
+         tracks' own, and they are not laid out until the cells are in the
+         document with their charts mounted. */
+      Board.reanchorChips(grid.querySelectorAll('.widget'), grid);
+
       Motion.animate(grid);
     }
 
     paint();
+
+    /* Re-reserve on resize, once for the whole board rather than per card:
+       the grid is twenty cells wide and every one of their titles has to
+       re-measure against a track whose label widths change with the locale
+       and the type scale. */
+    var resize = new ResizeObserver(function () {
+      Board.reanchorChips(grid.querySelectorAll('.widget'), grid);
+    });
+    resize.observe(grid);
   }
 
   var LIBRARY = {

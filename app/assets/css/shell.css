@@ -34,53 +34,28 @@
 }
 
 /* --- Wall identity ---
-   The source dashboards led with the centre's name and set the other
-   language beneath it; `data-i18n-gloss` fills the second line with whichever
-   locale is not currently selected, so the pairing survives the switch. */
+   Kept off the wall, kept in the DOM. The source dashboards led with the
+   centre's name and set the other language beneath it, and `data-i18n-gloss`
+   still fills that second line — but Figma's dock puts the SCE logo alone at
+   the foot of the board and gives the name no slot, and at wall distance the
+   logo is what carries the brand anyway. `display: none` here is the whole of
+   the decision; the markup and its i18n stay so restoring it is one line.
+   Nothing else about the block is styled, since nothing draws it. */
 .hdr-title {
   display: none;
-  min-width: 0;
-  flex-direction: column;
-  gap: calc(var(--sp-1) / 2);
-  padding-inline-start: var(--sp-4);
-  border-inline-start: var(--hairline) solid var(--separator);
-}
-
-/* One rung below the board pills, not level with them: on the Big Screen the
-   scene switcher shares this column, and at --fs-md the wall title was the
-   piece that ellipsized down to "SMART ...". The logo beside it is what
-   carries the brand at distance anyway. */
-.hdr-title-main {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--tx);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.hdr-title-alt {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
 }
 
 /* --- Scene switcher ---
-   Only the Big Screen has scenes, so this track is hidden the rest of the
-   time; `hidden` alone loses to `.chips { display: flex }`. */
+   The Big Screen's three scenes moved into the dock, where they read as the
+   active tab's own page count and a menu off it (see .nav-badge and
+   .nav-scene-menu below). This host still exists and still drives
+   board.setScene and the auto-cycle — buildScenes hides it rather than
+   dropping it — so the switch has one implementation with two faces rather
+   than two implementations. `hidden` alone loses to `.chips { display: flex }`,
+   hence the explicit rule. */
+.scenes,
 .scenes[hidden] {
   display: none;
-}
-
-/* A rung below a widget's own view tabs: this one shares the header's left
-   column with the wall title, and the title is the thing that must not be
-   the piece that gives way. */
-.scenes .chip {
-  font-size: var(--fs-2xs);
 }
 
 .hdr-meta {
@@ -92,33 +67,6 @@
   text-align: right;
 }
 
-/* --- Event plate ---
-   LEAP 2026 over a live clock, as every source screen carried in its top
-   corner. The clock is a numeric run, so it stays LTR in both locales. */
-.hdr-event {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: calc(var(--sp-1) / 2);
-  padding-inline-end: var(--sp-4);
-  border-inline-end: var(--hairline) solid var(--separator);
-}
-
-.hdr-event-name {
-  color: var(--gold);
-  font-size: var(--fs-md);
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-}
-
-.hdr-event-clock {
-  color: var(--mut);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
 /* --- Cross-cutting navigation ---
    Figma "Dock V2" (node 5057:82427): one frosted-black shell holding three
    independent zones — the play button, the tab pill, and the language
@@ -128,41 +76,46 @@
    mechanic) are redefined locally so only this dock turns to glass — every
    other chip-pill control in the app keeps its cyan look. */
 .dock {
-  --track-pad: 8px;
-  --chip-fill: rgba(255, 255, 255, 0.2);
-  --chip-fill-ghost: transparent;
-  --chip-rim: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.3);
-  --glow-spectrum: 0 calc(10 * var(--u)) var(--sp-6) rgba(0, 0, 0, 0.1);
-  --chip-glow-bloom: 0 calc(10 * var(--u)) var(--sp-6) rgba(0, 0, 0, 0.12), 0 0 var(--sp-2) rgba(255, 255, 255, 0.25);
+  --track-pad: var(--fsp-2);
   display: flex;
   align-items: center;
   justify-self: center;
   gap: var(--track-pad);
   padding: var(--track-pad);
-  border: var(--hairline) solid rgba(0, 0, 0, 0.1);
-  border-radius: var(--sp-6);
+  /* Figma's "Shadow/Axion spectrum" rim rather than a border, which is what
+     every other plate on the wall uses (.widget, .chips) — and a border was
+     adding its own 1px to a dock whose height is exactly 8 + 64 + 8. */
+  border-radius: var(--radius-dock);
   /* Figma's dock reads dark, not light: rgba(0,0,0,0.6) over a heavy
      256px background blur, confirmed against the frame's own screenshot
      (the pill barely lifts off the page — it is not a light glass chip). */
   background: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 calc(10 * var(--u)) var(--sp-7) rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 0 0.5px 0.5px var(--border-primary),
+    0 calc(10 * var(--fu)) var(--fsp-8) rgba(0, 0, 0, 0.15);
 }
 
 /* The play and language buttons: frosted squares either side of the tab
    pill, each lifted off the dock with its own blur and shadow (Figma's
    "Buttons V2 / Button" and "Circle Button" components) instead of sharing
    the dock's own background. */
+/* Figma "Buttons V2 / Button" and "Buttons / Circle Button": a 64px frosted
+   square — 16px of padding around a 32px glyph — lifted off the dock with its
+   own blur and shadow rather than sharing the dock's background. Three of
+   them, identical: play/pause, the language globe inside the dock, and the
+   settings button that sits on its own at the far corner of the board (Figma
+   node 5065:82983, where it is the same Circle Button component). */
 .dock-btn {
   display: flex;
   flex: none;
-  padding: var(--sp-4);
-  gap: var(--sp-2);
+  padding: var(--fsp-4);
+  gap: var(--fsp-2);
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 calc(10 * var(--u)) var(--sp-6) rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(calc(10 * var(--u)));
+  box-shadow: 0 calc(10 * var(--fu)) var(--fsp-6) rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(calc(10 * var(--fu)));
   color: var(--tx);
   transition: background var(--dur-fast) var(--ease);
 }
@@ -172,17 +125,14 @@
 }
 
 .dock-btn svg {
-  width: var(--sp-7);
-  height: var(--sp-7);
+  width: var(--fsp-8);
+  height: var(--fsp-8);
 }
 
-/* Language globe: Figma's "Circle Button" gives it 4px more on the left
-   than the play button's even padding, and stretches it to the dock's full
-   cross-axis height rather than centring by its own content. */
+/* The globe stretches to the dock's full cross-axis height rather than
+   centring by its own content, so its plate lines up with the tab pill's. */
 .nav-lang {
-  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
   align-self: stretch;
-  border-radius: var(--radius-card);
 }
 
 .nav {
@@ -193,8 +143,24 @@
 }
 
 /* Sliding pill: same liquid-glide mechanic as the widgets' .chip-pill (see
-   widget.css), moved by JS between nav items instead of chips. Its own blur
-   is what lifts the active tab off the dock, glass-on-glass. */
+   widget.css), moved by JS between nav items instead of chips, and now the
+   same fill — one active-state colour for every segmented control on the wall
+   (--chip-fill in tokens.css), where the dock used to override all four pill
+   tokens locally to escape a cyan default.
+
+   blur(0px), not blur(10px). This is the element that moves most often on the
+   wall — every board change, every 45-second auto-advance — and it was the
+   only moving element carrying a backdrop-filter, so each of those glides
+   re-ran a Gaussian over a travelling rect for a quarter of a second, on the
+   main thread, on top of the layout the left/right animation already costs.
+   There is nothing for it to blur: it sits on the dock's own
+   rgba(0,0,0,0.6) plate, which is flat, and a Gaussian of one colour returns
+   that colour. Zeroing the radius rather than dropping the property keeps the
+   composited layer and its text rasterisation exactly as they were.
+
+   The slideshow's progress fill made it worse: that repaints inside the dock
+   five times a second, which invalidated this pill's backdrop each time even
+   when nothing was moving. */
 .nav-pill {
   position: absolute;
   top: 0;
@@ -205,8 +171,9 @@
   border-radius: var(--radius-card);
   background-color: var(--chip-fill);
   pointer-events: none;
+  contain: layout paint style;
   transform: translateZ(0);
-  backdrop-filter: blur(calc(10 * var(--u)));
+  backdrop-filter: blur(0px);
   --pl: var(--chip-dur-trail);
   --pr: var(--chip-dur-trail);
   transition:
@@ -223,17 +190,17 @@
   z-index: 1;
   flex: none;
   align-self: stretch;
-  width: var(--sp-4);
-  margin: var(--sp-3) 0;
+  width: var(--fsp-4);
+  margin: var(--fsp-1) 0;
   pointer-events: none;
 }
 
 .nav-divider::after {
   display: block;
-  width: 2px;
+  width: calc(2 * var(--fu));
   height: 100%;
   margin: 0 auto;
-  border-radius: 1px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.2);
   content: '';
 }
@@ -255,12 +222,13 @@
   flex-flow: row nowrap;
   align-items: center;
   align-self: stretch;
-  gap: var(--sp-2);
+  gap: var(--fsp-2);
   overflow: hidden;
-  padding: var(--sp-4);
+  padding: var(--fsp-4);
   border-radius: var(--radius-card);
   color: var(--tx);
-  font-size: var(--fs-md);
+  font-size: var(--fs-subheading-l);
+  line-height: var(--lh-subheading-l);
   font-weight: 500;
   white-space: nowrap;
   transition: background var(--dur-fast) var(--ease);
@@ -272,7 +240,7 @@
    full 20px left pad — every tab after a divider sits at the plain 16px,
    since the divider itself already reads as the left edge. */
 .nav-item:first-of-type {
-  padding-left: var(--sp-5);
+  padding-inline-start: var(--fsp-5);
 }
 
 .nav-item:hover {
@@ -284,16 +252,30 @@
 }
 
 /* The slideshow's remaining time reads as a fill under the active label, so the
-   room can see the board is about to change without a countdown number. */
+   room can see the board is about to change without a countdown number.
+
+   A scale, not a width. This is the wall's one permanently-running animation
+   — shell.js rewrites it every 200ms for the whole 45-second dwell, forever —
+   and as a width each of those rewrites was a layout and a repaint inside the
+   dock, which in turn invalidated the backdrop of the pill sitting over it. As
+   a transform on a full-width box it is a compositor property: the main thread
+   writes one number and does no layout at all. */
 .nav-item-fill {
   position: absolute;
   z-index: -1;
   bottom: 0;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 100%;
   background: rgba(var(--cy-rgb), 0.16);
-  transition: width 200ms linear;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 200ms linear;
+}
+
+/* The fill tracks time, and time reads the other way in Arabic. */
+[dir='rtl'] .nav-item-fill {
+  transform-origin: right center;
 }
 
 /* Play/pause is a plain .dock-btn now (see .dock-btn above); only the icon
@@ -321,14 +303,15 @@
 .nav-badge {
   display: flex;
   flex: none;
-  width: var(--sp-7);
-  height: var(--sp-7);
+  width: var(--fsp-8);
+  height: var(--fsp-8);
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.3);
   color: var(--tx);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-body-l);
+  line-height: var(--lh-subheading-l);
   font-weight: 500;
   cursor: pointer;
 }
@@ -344,18 +327,18 @@
 .nav-scene-menu {
   position: absolute;
   z-index: 20;
-  bottom: calc(100% + var(--sp-1));
+  bottom: calc(100% + var(--fsp-2));
   left: 0;
   display: flex;
   width: max-content;
-  min-width: calc(216 * var(--u));
+  min-width: calc(168 * var(--fu));
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--fsp-2);
   /* Closed by default (opacity/transform, not display:none) so the open
      state has something to transition from — a quick fade-and-rise, same
      easing as the rest of the dock's chrome. */
   opacity: 0;
-  transform: translateY(calc(4 * var(--u)));
+  transform: translateY(var(--fsp-1));
   pointer-events: none;
   transition:
     opacity var(--dur-fast) var(--ease),
@@ -375,18 +358,23 @@
   }
 }
 
+/* Each option wears the dock tab's own chrome — the same plate, radius,
+   padding and 24px label — so the menu reads as the tabs it stands in for
+   rather than as a system menu that happens to float there. */
 .nav-scene-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  gap: var(--fsp-2);
+  padding: var(--fsp-4);
+  padding-inline-start: var(--fsp-5);
   border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 calc(10 * var(--u)) var(--sp-5) rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(calc(10 * var(--u)));
+  box-shadow: 0 calc(10 * var(--fu)) var(--fsp-5) rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(calc(10 * var(--fu)));
   color: var(--tx);
-  font-size: var(--fs-md);
+  font-size: var(--fs-subheading-l);
+  line-height: var(--lh-subheading-l);
   font-weight: 500;
   white-space: nowrap;
   transition: background var(--dur-fast) var(--ease);
@@ -399,41 +387,47 @@
 .nav-scene-badge {
   display: flex;
   flex: none;
-  width: var(--sp-7);
-  height: var(--sp-7);
+  width: var(--fsp-8);
+  height: var(--fsp-8);
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.3);
   color: var(--tx);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-body-l);
+  line-height: var(--lh-subheading-l);
   font-weight: 500;
 }
 
 .nav-scene-badge svg {
-  width: calc(14 * var(--u));
-  height: calc(14 * var(--u));
+  width: calc(16 * var(--fu));
+  height: calc(16 * var(--fu));
 }
 
 /* --- Language switch ---
    Axion's segmented control: a recessed track with the active segment lifted
    out of it. Two segments, so it reads as a state rather than a menu. */
+/* Axion's segmented control on the chips track's own geometry: two segments,
+   so it reads as a state rather than a menu, but the inset, the gap, the
+   control rung and the active fill are the ones every other segmented
+   control on the wall uses. */
 .lang {
   display: flex;
   flex: none;
-  gap: var(--sp-1);
-  padding: var(--sp-1);
-  border: var(--hairline) solid var(--separator);
+  gap: var(--fsp-1-5);
+  padding: var(--fsp-0-5);
+  border: var(--hairline) solid var(--border-primary);
   border-radius: var(--radius-pill);
-  background: var(--track);
+  background: transparent;
 }
 
 .lang-btn {
-  min-width: calc(40 * var(--u));
-  padding: var(--sp-1) var(--sp-3);
+  min-width: calc(40 * var(--fu));
+  padding: var(--fsp-2);
   border-radius: var(--radius-pill);
-  color: var(--mut);
-  font-size: var(--fs-xs);
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-control);
   font-weight: 400;
   letter-spacing: 0.08em;
   transition:
@@ -442,8 +436,8 @@
 }
 
 .lang-btn:hover {
-  background: var(--control-hover);
-  color: var(--tx);
+  background: rgba(253, 253, 253, 0.06);
+  color: var(--fg-control-on);
 }
 
 /* --- Scale readout ---
@@ -454,14 +448,14 @@
   position: fixed;
   bottom: calc(var(--shell-header) + var(--sp-4));
   left: 50%;
-  padding: var(--sp-2) var(--sp-5);
+  padding: var(--fsp-2) var(--fsp-5);
   border: var(--hairline) solid var(--panel-border-strong);
   border-radius: var(--radius-pill);
   background: var(--plate);
   box-shadow: var(--glow-spectrum);
   backdrop-filter: var(--blur-glass);
   color: var(--cy);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-control-l);
   font-variant-numeric: tabular-nums;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -480,45 +474,34 @@
   position: relative;
 }
 
+/* Figma node 5065:82983 puts a "Buttons / Circle Button" alone in the
+   board's far corner for this, i.e. the same 64px frosted plate as the dock's
+   play and globe buttons rather than the bare 34px cyan-on-hover glyph that
+   was here. Sharing .dock-btn is the point: it is the third button of the
+   same family and now cannot drift from the other two. */
 .hdr-settings {
-  display: flex;
-  width: calc(34 * var(--u));
-  height: calc(34 * var(--u));
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: var(--mut);
-  transition:
-    background var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
+  color: var(--tx);
 }
 
 .hdr-settings svg {
-  width: calc(18 * var(--u));
-  height: calc(18 * var(--u));
   fill: currentColor;
-}
-
-.hdr-settings:hover {
-  background: var(--control-hover);
-  color: var(--tx);
 }
 
 .settings-panel {
   position: absolute;
   z-index: 10;
-  bottom: calc(100% + var(--sp-4));
-  right: 0;
+  bottom: calc(100% + var(--fsp-2));
+  inset-inline-end: 0;
   display: flex;
   width: max-content;
   flex-direction: column;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  border: var(--hairline) solid var(--panel-border-strong);
-  border-radius: var(--radius-md);
-  background: rgba(4, 24, 43, 0.96);
-  box-shadow: var(--glow-spectrum);
-  backdrop-filter: var(--blur-glass);
+  gap: var(--fsp-2);
+  padding: var(--fsp-3) var(--fsp-4);
+  border: var(--hairline) solid var(--border-primary);
+  border-radius: var(--radius-card);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 calc(10 * var(--fu)) var(--fsp-6) rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(calc(10 * var(--fu)));
 }
 
 .settings-panel[hidden] {
@@ -528,28 +511,29 @@
 .settings-row {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  color: var(--tx-2);
-  font-size: var(--fs-xs);
+  gap: var(--fsp-2);
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-control);
   letter-spacing: 0.02em;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .settings-check {
-  width: calc(16 * var(--u));
-  height: calc(16 * var(--u));
+  width: calc(16 * var(--fu));
+  height: calc(16 * var(--fu));
   accent-color: var(--cy);
 }
 
 /* Reset lives at the bottom of the same panel: an action, not a toggle, so it
    gets its own divider and no checkbox. */
 .settings-action {
-  margin-top: var(--sp-1);
-  padding-top: var(--sp-3);
-  border-top: var(--hairline) solid var(--panel-border-strong);
+  margin-top: var(--fsp-1);
+  padding-top: var(--fsp-3);
+  border-top: var(--hairline) solid var(--border-ghost);
   color: var(--mut-2);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-caption-m);
   letter-spacing: 0.1em;
   text-align: start;
   text-transform: uppercase;
@@ -608,33 +592,44 @@
   align-items: center;
 }
 
+/* Not a Figma component — the source deliverable's running commentary, which
+   the Figma frame has no band for. It takes the dock tabs' rung because it is
+   the same kind of thing: wall chrome read at wall distance, not panel
+   content. */
 .ticker-item {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 0 var(--sp-6);
+  gap: var(--fsp-2);
+  padding: 0 var(--fsp-6);
   color: var(--mut);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-subheading-l);
+  line-height: var(--lh-subheading-l);
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
-.ticker-item b {
-  color: var(--cy);
+/* The three tones buildTicker tags its figures with (see shell.js): cyan for
+   counts, green for good standing, gold for money. `.b` was written `b` — the
+   element — for long enough that every cyan figure had been quietly falling
+   through to .ticker-item's own --mut, and losing its tabular digits with it,
+   while .g and .y worked. */
+.ticker-item .b,
+.ticker-item .g,
+.ticker-item .y {
   font-variant-numeric: tabular-nums;
   font-weight: 400;
+}
+
+.ticker-item .b {
+  color: var(--cy);
 }
 
 .ticker-item .g {
   color: var(--green);
-  font-variant-numeric: tabular-nums;
-  font-weight: 400;
 }
 
 .ticker-item .y {
   color: var(--gold);
-  font-variant-numeric: tabular-nums;
-  font-weight: 400;
 }
 
 .ticker-sep {

@@ -2,11 +2,29 @@
    Colours come from Data Files/cc.css, everything structural (radii, hairlines,
    spacing, motion, glass) from axion.gen.web frontend/src/app/globals.css.
 
-   ONE RULE governs every number below: it is a multiple of 4 design units.
-   Radii, spacing, type and shell geometry all come off that grid, so nothing on
-   the wall can be a value somebody picked by eye. The only deliberate
-   exceptions are marked at the site: `--hairline` (a physical half-pixel) and
-   `--grid-gap` (read as a constant by the drag maths). */
+   Every component figure comes from the Figma "Axion" file: the Big Screen
+   frame (node 5039:94563) and the components it instances — Dashboard
+   (5039:94565), tabs (5039:94626), Dock V2 (5057:82427).
+
+   TWO UNITS, and knowing which is which is the whole of this file.
+
+   `--u` is the wall unit. The board is designed once at 2880x1152 and `--u`
+   shrinks it to whatever it actually runs on, with `[` and `]` retuning
+   `--u-scale` live on the stand. Everything the *board* owns — panel spacing,
+   the grid, the shell — is a multiple of four `--u`.
+
+   `--fu` is the Figma design pixel. The dashboard in Figma is drawn at exactly
+   the target panel size in plain px, so one Figma px is one CSS px there.
+   Everything a Figma *component* states — the card's 12px padding and 16px
+   radius, the 14px control type, the 6px progress track, the dock's 24px
+   corner — is `calc(N * var(--fu))`. That lands on Figma's own number at
+   2880x1152 and still scales with the rest of the board away from it, which
+   fixed-px values did not: before this the chrome stayed put while the type
+   around it grew, so `]` straightened the corners and detuned the chips.
+
+   The only figures outside both scales are marked at the site: `--hairline`
+   (a physical half-pixel) and `--grid-gap` (read as a constant by the drag
+   maths). */
 
 @font-face {
   font-family: 'Roboto Flex';
@@ -70,42 +88,57 @@
      stand was also the only text under 4.5:1. Now 4.7 and 4.6. */
   --mut-2: #648ba7;
 
-  /* Quiet neutral text: Figma's factoid grey (base/fg/tertiary #9e9e9e, and
-     the ~50%-white factoid label) has no cyan in it, unlike --mut/--mut-2
-     above — reserved for text that must read as neutral regardless of the
-     SCE hue, e.g. the K/M/B letter beside a factoid's white digits. */
+  /* --- Figma's neutral ink ramp (base/fg/*) ---
+     Quiet neutral text, with no cyan in it unlike --mut/--mut-2 above:
+     reserved for anything that must read as neutral regardless of the SCE
+     hue. `--tx-3` is the ~50%-white factoid label and the K/M/B letter
+     beside a factoid's white digits; the other three are Figma's own rungs,
+     used for control labels so a chip, a bar row and a legend entry all get
+     their ink from the same three-step ramp instead of each picking a tone. */
   --tx-3: rgba(253, 253, 253, 0.5);
+  --fg-primary: #fdfdfd; /* base/fg/primary — control text at rest */
+  --fg-tertiary: #9e9e9e; /* base/fg/tertiary — the factoid's unit letter */
+  --fg-control: #dcdcdc; /* control/fg/subtle/default — an inactive chip */
+  --fg-control-on: #f9f9f9; /* control/fg/subtle/active — the active chip */
 
   --cy-rgb: 57, 215, 245;
   --ink: #08404d;
 
   --bg: var(--ink);
 
-  /* --- Axion structure ---
-     One 4-unit-stepped scale (4/8/12/16) so nested corners are derived from it
-     rather than picked by eye. `--radius-card` is held as a fixed 16px
-     (not --u-scaled) so every widget on every board carries the same
-     corner radius regardless of board or --u-scale. */
-  --radius-card: 16px;
-  --radius-md: calc(12 * var(--u));
-  --radius-sm: calc(8 * var(--u));
-  --radius-xs: calc(4 * var(--u));
-  --radius-pill: 999px;
+  /* --- Corner radii (Figma border/radius/*) ---
+     One scale in Figma design pixels: x1 4, x2 8, x2-5 10, x4 16, plus the
+     dock's 3XL 24. Every nested corner is derived from this rather than
+     picked by eye, and because they ride `--fu` the whole family scales with
+     the type when `[`/`]` retune the wall — which is the point: at fixed px
+     a card's corner straightened out visually as its type grew. */
+  --radius-card: calc(16 * var(--fu)); /* border/radius/x4 — the widget card */
+  --radius-dock: calc(24 * var(--fu)); /* Sizes/Corner radius/3XL — the dock */
+  --radius-md: calc(12 * var(--fu));
+  --radius-track: calc(10 * var(--fu)); /* border/radius/x2-5 — a chips track */
+  --radius-sm: calc(8 * var(--fu)); /* border/radius/x2 — a chip, the pill */
+  --radius-xs: calc(4 * var(--fu)); /* border/radius/x1 */
+  --radius-pill: 999px; /* border/radius/x250 */
 
   --hairline: 0.5px;
-  --border-primary: rgba(253, 253, 253, 0.1);
-  /* Figma's border/ghost — lighter than --border-primary, for a divider
-     that reads as a gap rather than a rule (the factoid grid lines). */
-  --border-ghost: rgba(253, 253, 253, 0.1);
-  --panel-border: rgba(var(--cy-rgb), 0.18);
+  --border-primary: rgba(253, 253, 253, 0.1); /* Figma border/primary #fdfdfd1a */
+  /* Figma border/ghost #fdfdfd0d — half the weight of --border-primary, for a
+     divider that has to read as a gap rather than as a rule: the hairline grid
+     between factoids. It was aliased to --border-primary and therefore drew at
+     twice Figma's weight, which is why four factoids read as four boxes. */
+  --border-ghost: rgba(253, 253, 253, 0.05);
   --panel-border-strong: rgba(var(--cy-rgb), 0.3);
-  --separator: rgba(var(--cy-rgb), 0.12);
 
+  /* Two plates, and only two. `--surface` is the widget card and the dock —
+     Figma's own rgba(0,0,0,0.6) over the page. `--plate` is the darker navy
+     one the floating overlays sit on (tooltip, map credit, scale toast),
+     which are the only things in the app that have to stay legible over a
+     photograph. The four cyan-tinted greys that used to live here
+     (--separator, --control, --control-hover, --track) tinted the chrome of
+     controls that Figma keeps neutral; each one is now --border-primary,
+     --border-ghost or the shared rgba(253,253,253,0.06) hover. */
   --surface: rgba(0, 0, 0, 0.6);
   --plate: rgba(4, 24, 43, 0.72);
-  --control: rgba(var(--cy-rgb), 0.06);
-  --control-hover: rgba(var(--cy-rgb), 0.12);
-  --track: rgba(var(--cy-rgb), 0.1);
 
   /* One scaling unit drives every size, so the board is designed once at
      2880x1152 and still reads on a laptop preview.
@@ -119,13 +152,36 @@
   --u-scale: 1.3;
   --u: clamp(0.74px, min(100vw / 2880, 100vh / 1152) * var(--u-scale), 2.4px);
 
+  /* The Figma design pixel: `--u` divided by the default `--u-scale`, so at
+     2880x1152 on the default setting `--fu` is exactly 1px and every
+     `calc(N * var(--fu))` below lands on the number Figma states. Away from
+     that — a laptop preview, or `[`/`]` on the stand — it scales with the
+     board like everything else, so the components keep their proportions
+     instead of the chrome standing still while the type moves. */
+  --fu: calc(var(--u) / 1.3);
+
+  /* --- Figma spacing (spacing/x*) ---
+     Component-internal spacing, in design pixels, exactly as the Figma
+     components state it. These are for the *inside* of a component — a chip's
+     padding, a track's inset, the gap between a bar's label and its rail. The
+     `--sp-*` scale below is for the board around them. */
+  --fsp-0-5: calc(2 * var(--fu)); /* spacing/x0-5 — the chips track inset */
+  --fsp-1: calc(4 * var(--fu)); /* spacing/x1 */
+  --fsp-1-5: calc(6 * var(--fu)); /* spacing/x1-5 — chip gap, bar rail height */
+  --fsp-2: calc(8 * var(--fu)); /* spacing/x2 — chip padding, dock padding */
+  --fsp-3: calc(12 * var(--fu)); /* the card's own padding */
+  --fsp-4: calc(16 * var(--fu)); /* spacing/x4 */
+  --fsp-5: calc(20 * var(--fu)); /* spacing/x5 */
+  --fsp-6: calc(24 * var(--fu)); /* the donut legend's row pitch */
+  --fsp-8: calc(32 * var(--fu)); /* sizing — a dock button's glyph, a badge */
+
   /* --- Spacing scale ---
      Every padding, margin, gap and offset in the app is one of these. Steps are
      4u up to 24u, where a single step is still readable as a difference, then
      8u above it, where it is not. */
   --sp-1: calc(4 * var(--u));
   --sp-2: calc(8 * var(--u));
-  --sp-3: calc(12 * var(--u));
+  --sp-3: calc(12 * var(--u)); /* board-level 12u; the card's own 12px is --fsp-3 */
   --sp-4: calc(16 * var(--u));
   --sp-5: calc(20 * var(--u));
   --sp-6: calc(24 * var(--u));
@@ -135,31 +191,46 @@
   --sp-10: calc(56 * var(--u));
   --sp-11: calc(64 * var(--u));
 
-  /* Fixed 12px, matching the Figma "Dashboard" widget component (node
-     5037:93297 and its siblings) — the card's own padding and its header's
-     pb both read the same 12px there. Held as a literal px value (not
-     --u-scaled) so every widget on every board carries the same padding
-     regardless of board or --u-scale. */
-  --pad-card: 12px;
+  /* The card's own padding, and its header's padding-bottom: the Figma
+     "Dashboard" component (node 5039:94565 and its siblings) reads the same
+     12px for both. */
+  --pad-card: var(--fsp-3);
 
-  /* --- Type scale ---
-     Five text rungs and four display rungs, every multiplier a multiple of 4.
-     Rungs are far enough apart to be seen: the old scale had four tokens inside
-     a 3u band (14/16/16.5/17), which is under 4px on the wall — four names for
-     one size. Where two pieces of text now share a rung, they are told apart by
-     weight, colour and case, not by half a pixel of cap height.
+  /* --- Type scale: Figma's own text styles, verbatim ---
+     Each rung is a (size, line-height) pair straight out of the Figma file's
+     variables, not a ladder invented here, and every piece of text on the
+     wall is assigned to one of them. That is what makes a chip, a bar row
+     label, a legend entry and a table cell the same size on every board
+     instead of four sizes that happen to be close.
 
-     At the default --u-scale the wall lands on 31px card titles, 26px body and
-     94px indicators. */
-  --fs-2xs: calc(12 * var(--u)); /* ambient chrome: credits, attribution */
-  --fs-xs: calc(16 * var(--u)); /* notes, labels, chips, legends */
-  --fs-sm: calc(20 * var(--u)); /* body, bar labels, table, ticker */
-  --fs-md: calc(24 * var(--u)); /* card titles, nav, header */
+     Note the control rungs' line-height: Figma sets 10px leading on 12/14/16px
+     type. That is a cap-height box, not a paragraph — a control label is one
+     line and its box should be the height of the letters, which is what lets a
+     32px bar row hold a label, a 16px gap and a 6px rail exactly. Text that
+     really is a paragraph (a footnote that wraps) takes --lh-caption instead.
 
-  --fs-kpi-sm: calc(56 * var(--u));
-  --fs-kpi: calc(64 * var(--u));
-  --fs-display: calc(84 * var(--u)); /* biggest number on a panel, and the map HUD */
-  --fs-splash: calc(88 * var(--u)); /* attract screen only */
+     The old scale — 12/16/20/24/56/84/88 wall units — is what the audit
+     collapsed four near-identical tokens into, and it was self-consistent, but
+     it was not Figma's: at 2880 it drew 14px control type at 20.8px and 14px
+     notes at 20.8px too, so a card's footnote came out louder than the data it
+     annotated (see the donut's legend, which outsized its own values). */
+  --fs-control-s: calc(12 * var(--fu)); /* regular/control_S — legend entries */
+  --fs-control-m: calc(14 * var(--fu)); /* regular/control_M — chips, bar rows, table, notes */
+  --fs-control-l: calc(16 * var(--fu)); /* medium/control_L — card titles, factoid labels */
+  --fs-caption-m: calc(12 * var(--fu)); /* regular/caption_M — credits, attribution */
+  --fs-body-l: calc(20 * var(--fu)); /* the dock's scene badge */
+  --fs-subheading-l: calc(24 * var(--fu)); /* medium/subheading_L — dock tabs, ticker */
+  --fs-heading-m: calc(32 * var(--fu)); /* medium/heading_M — the map HUD's caption */
+  --fs-hero-l: calc(72 * var(--fu)); /* medium/hero_L — every factoid, and the map HUD */
+  --fs-splash: calc(112 * var(--fu)); /* attract screen only; Figma has no splash */
+
+  --lh-control: calc(10 * var(--fu)); /* height/control_* — all three control rungs */
+  --lh-caption: calc(14 * var(--fu)); /* height/caption_medium */
+  --lh-subheading-l: calc(24 * var(--fu)); /* height/subheading_large */
+  /* height/heading_medium (40) and height/hero_large (100) are not declared:
+     the two rungs that would take them set their leading as a ratio instead,
+     because both can be capped down against a short panel and a fixed box
+     would then open a gap under a shrunken number. See .ax-kpi-value. */
 
   /* Chart geometry unit. Every px constant in chart-dsl.js is multiplied by
      this, so Axion's ratios survive and only the scale changes: an 11px axis
@@ -179,18 +250,23 @@
      and the cap says what fraction of ITS OWN box that piece may occupy. Two
      bases, because two kinds of box exist: a panel or tile, and a single row
      inside a list. Written once here so the twenty per-site percentages that
-     used to carry this cannot drift apart. */
+     used to carry this cannot drift apart.
+
+     These are a floor under a bad hand, not the design: at the target panel
+     size every one of them sits clear of the type rung it guards, so the rung
+     is what draws and the cap only bites when a board is asked for more rows
+     than the panel has room for. That was not true before — a five-row bar
+     panel on the Big Screen was capped down to 11.8px against a 14px rung,
+     which is how the footnote ended up bigger than the rows. */
   --cap-note: 12cqh; /* supporting text against a panel or tile */
   --cap-label: 20cqh; /* a tile's own label */
   --cap-gap: 8cqh; /* a margin between two lines of tile text */
   --cap-row-note: 22cqh; /* supporting text against one list row */
   --cap-row-text: 46cqh; /* a list row's own label and value */
-  /* The indicator ladder: three rungs, each the share of its own tile that the
-     headline number may take. There used to be four, but the top two tokens
-     were 70u and 74u — 5px apart on a 90px number, one size under two names. */
-  --cap-kpi-sm: 64cqh;
-  --cap-kpi: 52cqh;
-  --cap-kpi-lg: 60cqh;
+  /* The share of its own tile a headline factoid may take. Once a ladder of
+     four rungs, then three; every factoid on the wall now reads at one size
+     (see .ax-kpi-value), so one rung is all there is left to name. */
+  --cap-kpi: 64cqh;
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */
@@ -213,7 +289,20 @@
 
   /* --- Chip-tabs motion (sliding-pill segmented control) ---
      Lead/trail split reads as a liquid stretch: the edge in the direction of
-     travel arrives first, the trailing edge lags and catches up. */
+     travel arrives first, the trailing edge lags and catches up.
+
+     ONE active-state fill for every segmented control in the app — the
+     widgets' view tabs, the dock's board tabs, the language switch. It is
+     Figma's control/bg/transparent/pressed (#fdfdfd1a), and it is neutral
+     white rather than cyan for the reason the card titles are: Figma keeps
+     the SCE hue for data and leaves the chrome grey.
+
+     This used to disagree with itself. `.chip-pill` painted the resting fill
+     in CSS as rgba(253,253,253,0.1) while pill.js repainted it from
+     `--chip-fill` (cyan, 0.16) the moment the pill first moved — so a
+     widget's tabs were frosted white until you touched them and cyan
+     afterwards, and the dock had to override all four tokens locally to stay
+     white. One value here, no overrides. */
   --chip-ease: var(--ease);
   --chip-ease-pop: cubic-bezier(0.34, 1.4, 0.64, 1);
   --chip-dur-lead: var(--dur-fast);
@@ -221,21 +310,18 @@
   --chip-dur-press: 100ms;
   --chip-dur-pop: 220ms;
   --chip-hold: 100ms;
-  --chip-fill: rgba(var(--cy-rgb), 0.16);
+  --chip-fill: rgba(253, 253, 253, 0.1);
   /* In flight the pill sheds its fill entirely, leaving just the hairline
      rim so the travel reads as a ring gliding across rather than a filled
      plate. */
   --chip-fill-ghost: transparent;
-  --chip-rim: 0 0 0 0.5px rgba(var(--cy-rgb), 0.5);
-  /* resting active state matches the steady spectrum glow every other
-     active control on the dashboard uses (.lang-btn.is-on, [data-on] nav
-     items); arrival gets a brief bloom on top before settling back to it. */
-  --chip-glow-bloom: var(--glow-spectrum), 0 0 var(--sp-2) rgba(var(--cy-rgb), 0.4);
+  --chip-rim: 0 0 0 var(--hairline) rgba(253, 253, 253, 0.3);
+  /* Arrival gets a brief bloom before settling back to the resting fill. */
+  --chip-glow-bloom: 0 0 var(--fsp-2) rgba(253, 253, 253, 0.25);
 
   /* --- Shell geometry --- */
   --shell-header: calc(96 * var(--u));
   --shell-ticker: var(--sp-10);
-  --shell-pad: var(--sp-4);
   --grid-cols: 24;
   --grid-rows: 8;
   /* Fixed rather than scaled: the gesture maths reads it as a constant, and

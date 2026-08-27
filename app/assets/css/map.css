@@ -3,7 +3,7 @@
   overflow: hidden;
   flex: 1;
   min-height: 0;
-  border: var(--hairline) solid rgba(var(--cy-rgb), 0.16);
+  border: var(--hairline) solid var(--border-primary);
   border-radius: var(--radius-md);
   background: var(--ink);
 }
@@ -51,23 +51,17 @@
 
 /* The bubbles now sit on a real basemap rather than an empty silhouette, so
    they carry more fill and a glow to stay clearly in front of it. */
+/* No per-dot filter. `drop-shadow()` was a filter region per city — 38 of
+   them on the Big Screen, 6 more on Field Verification — recomputed whenever
+   the SVG repainted, for a 0.06-unit halo that the stroke below already
+   reads as. The fill and the near-opaque stroke are what put the bubble in
+   front of the basemap; the shadow was under both of them. */
 .map-dot {
   fill: currentColor;
   fill-opacity: 0.3;
   stroke: currentColor;
   stroke-opacity: 0.95;
   stroke-width: 0.022;
-  filter: drop-shadow(0 0 0.06px currentColor);
-}
-
-.map-dot--solid {
-  fill-opacity: 0.8;
-  stroke-opacity: 1;
-}
-
-.map-dot--muted {
-  color: var(--gold) !important;
-  fill-opacity: 0.35;
 }
 
 /* Field-verification variants: the dot's colour carries the licence state, so
@@ -84,49 +78,50 @@
   color: var(--gold) !important;
 }
 
+/* Figma's "Tips block" over the map (node 5044:95235): the caption leads, the
+   figure sits under it at the same hero rung as a factoid, and a second
+   caption line closes it. The figure was a rung of its own — --fs-display, a
+   109px size nothing else on the wall used — so the one number floating over
+   the basemap was larger than the four inside the panel next to it. It is a
+   factoid; it reads at the factoid size. */
 .map-hud {
   z-index: 1;
   position: absolute;
-  bottom: var(--sp-3);
-  inset-inline-start: var(--sp-4);
+  bottom: var(--fsp-3);
+  inset-inline-start: var(--fsp-4);
   max-width: 76%;
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--fsp-4);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
   background: rgba(2, 10, 20, 0.55);
   backdrop-filter: var(--blur-glass);
 }
 
 .map-hud-value {
-  font-size: var(--fs-display);
+  color: var(--fg-primary);
+  font-size: var(--fs-hero-l);
   font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.map-hud-value .unit {
-  margin-left: 0.1em;
-  font-size: 0.42em;
-  font-weight: 500;
-  opacity: 0.75;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
 }
 
 .map-hud-label {
-  margin-top: var(--sp-2);
-  color: var(--mut);
-  font-size: var(--fs-xs);
+  margin-top: var(--fsp-2);
+  color: var(--tx-3);
+  font-size: var(--fs-control-l);
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 1.28;
 }
 
 .map-foot {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-3);
-  margin-top: var(--sp-2);
-  color: var(--mut);
-  font-size: var(--fs-xs);
+  gap: var(--fsp-3);
+  margin-top: var(--fsp-2);
+  color: var(--mut-2);
+  font-size: var(--fs-caption-m);
+  line-height: var(--lh-caption);
   letter-spacing: 0.02em;
 }
 
@@ -134,35 +129,23 @@
   margin-top: 0;
 }
 
-.map-foot .key {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-}
-
-.map-foot .key i {
-  width: var(--sp-3);
-  height: var(--sp-3);
-  border-radius: 50%;
-  background: currentColor;
-}
-
 /* The only Axion mark anywhere in the experience, tucked under the map. */
 .map-credit {
   z-index: 1;
   position: absolute;
-  inset-inline-end: var(--sp-4);
-  bottom: var(--sp-3);
+  inset-inline-end: var(--fsp-4);
+  bottom: var(--fsp-3);
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-1) var(--sp-2);
-  border: var(--hairline) solid var(--separator);
+  gap: var(--fsp-2);
+  padding: var(--fsp-1) var(--fsp-2);
+  border: var(--hairline) solid var(--border-primary);
   border-radius: var(--radius-sm);
   background: var(--plate);
   backdrop-filter: var(--blur-glass);
   color: var(--mut);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-caption-m);
+  line-height: var(--lh-caption);
   letter-spacing: 0.02em;
 }
 

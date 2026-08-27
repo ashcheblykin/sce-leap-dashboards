@@ -45,10 +45,10 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.head.cases, format: 'grouped', label: t('m.cases'), color: T.gold, valueFontSize: 'small' },
-                { value: Data.head.enforced, format: 'sar', label: t('m.enforced'), color: T.cy, valueFontSize: 'small' },
-                { value: Data.head.collected, format: 'sar', label: t('m.collected'), color: T.green, valueFontSize: 'small' },
-                { value: Data.head.enforced - Data.head.collected, format: 'sar', label: t('m.outstanding'), color: T.purple, valueFontSize: 'small' },
+                { value: Data.head.cases, format: 'grouped', label: t('m.cases') },
+                { value: Data.head.enforced, format: 'sar', label: t('m.enforced') },
+                { value: Data.head.collected, format: 'sar', label: t('m.collected') },
+                { value: Data.head.enforced - Data.head.collected, format: 'sar', label: t('m.outstanding') },
               ],
             });
           },
@@ -57,10 +57,10 @@
               chart: 'indicator',
               cols: 2,
               items: [
-                { value: Data.head.proact, format: 'grouped', label: t('m.proact'), color: T.cy, valueFontSize: 'small' },
-                { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), color: T.green, valueFontSize: 'small' },
-                { value: Data.register.near, format: 'grouped', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
-                { value: Data.register.active, format: 'grouped', label: t('m.active'), color: T.green, valueFontSize: 'small' },
+                { value: Data.head.proact, format: 'grouped', label: t('m.proact') },
+                { value: Data.head.renewengage, format: 'compact', label: t('m.engage') },
+                { value: Data.register.near, format: 'grouped', label: t('m.near') },
+                { value: Data.register.active, format: 'grouped', label: t('m.active') },
               ],
             });
           },

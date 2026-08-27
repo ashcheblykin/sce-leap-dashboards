@@ -35,22 +35,15 @@
   min-height: 0;
 }
 
-/* Card padding and radius are fixed everywhere (see --pad-card/--radius-card
-   in tokens.css), so a library card only tightens the internal rhythm below
-   the header — not the outer chrome — to make room across twenty cards. */
+/* Twenty cards at once, and every one of them the same card as the six on the
+   Big Screen: same padding, same radius, same title rung, same chips. The
+   board used to shrink its own title and chips a rung to buy room, which made
+   the Library the one board whose cards did not match the others — the exact
+   thing the Figma component exists to prevent. The room comes from the
+   internal rhythm instead: the card's own children close up (below), and the
+   caps in chart-dsl.css take the body's type down against a shorter panel. */
 .lib-cell .widget {
-  gap: var(--sp-1);
-}
-
-.lib-cell .widget-title {
-  min-width: 0;
-  font-size: var(--fs-sm);
-  line-height: 1.25;
-}
-
-.lib-cell .chip {
-  padding: calc(var(--sp-1) / 2) var(--sp-2);
-  font-size: var(--fs-2xs);
+  gap: var(--fsp-1);
 }
 
 /* A kiosk board has no drag handle, so its header must not offer the grab

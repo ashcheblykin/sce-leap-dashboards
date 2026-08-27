@@ -135,8 +135,51 @@ async function pump(frames = 24) {
   }
 }
 
+/* Two things on screen advance on wall-clock time rather than on state: the
+   ticker marquee (a 90s CSS animation) and the splash's animated ground. Left
+   alone they move between runs, and two captures of identical code differ by
+   ~0.9% of their pixels — enough to drown any real change in tools/diff-shots.
+   Both are pinned to one fixed phase immediately before the shutter. The
+   ticker is re-pinned every time because switching locale rebuilds its markup.
+   The wall itself is untouched: nothing in the app calls either path. */
+async function freezeMotion() {
+  await evaluate(`(() => {
+    /* Web Animations, not animation-delay: a negative delay only shifts the
+       timeline, and the marquee loops forever, so progress stays
+       (elapsed - delay) % 90s and still moves between runs. Setting
+       currentTime pins one absolute frame. */
+    document.querySelectorAll('.ticker-track').forEach((t) => {
+      t.getAnimations().forEach((a) => {
+        a.pause();
+        a.currentTime = 30000;
+      });
+    });
+    if (window.Splash && Splash.visible() && Splash.freeze) Splash.freeze(4000);
+
+    /* Transient overlays are not the wall. The board walk below clicks every
+       .nav-item in turn, and clicking the Big Screen's tab while the Big
+       Screen is already up is the gesture that opens its scene picker (see
+       shell.js) — so the very first frame of every run had a dropdown parked
+       over the map. Same for the settings panel, which a stray click can
+       leave open. Dismissed here rather than in the walk because this is the
+       function whose whole job is to make the next frame repeatable. */
+    document.querySelectorAll('.nav-scene-menu[data-open]').forEach((m) => {
+      /* Suppressed, not faded: the menu's own 160ms transition would
+         otherwise be caught part-way through and the frame would differ run
+         to run depending on how long the capture took to arrive. */
+      m.style.transition = 'none';
+      m.removeAttribute('data-open');
+    });
+    document.querySelectorAll('.settings-panel:not([hidden])').forEach((m) => {
+      m.hidden = true;
+    });
+  })()`);
+}
+
 async function shot(name) {
   await pump();
+  await freezeMotion();
+  await sleep(60);
   const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' });
   await writeFile(join(OUT, `${name}.png`), Buffer.from(data, 'base64'));
   console.log(`  captured ${name}.png`);

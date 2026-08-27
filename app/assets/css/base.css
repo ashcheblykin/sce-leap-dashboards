@@ -53,16 +53,14 @@ button {
 
 /* The Arabic subset carries no Latin glyphs, so the stack keeps 'Roboto Flex'
    behind it for digits, "LEAP 2026" and "SAR". */
-[dir='rtl'],
-.ar {
+[dir='rtl'] {
   font-family: var(--font-ar);
 }
 
 /* Arabic sits lower and taller than Latin at the same size; a touch less
    letter-spacing and a touch more leading keeps the two boards the same
    density rather than making the Arabic one look crowded. */
-[dir='rtl'] body,
-.ar {
+[dir='rtl'] body {
   letter-spacing: 0;
 }
 
@@ -80,13 +78,29 @@ button {
   background: rgba(var(--cy-rgb), 0.3);
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+/* --- The control label's clip box ---------------------------------------
+   Figma's three control rungs (12/14/16px) all carry a 10px line-height. That
+   is a cap-height box: Figma uses it to *position* the label in auto-layout
+   and draws the glyphs outside it, which is why a 32px bar row can hold a
+   14px label, a 16px gap and a 6px rail and still add up.
+
+   CSS has no such box. A 10px line box on 14px type works for layout, but the
+   moment the element also needs `overflow: hidden` — and it does, because that
+   is what `text-overflow: ellipsis` requires — the same rule that truncates
+   the line horizontally shears the descenders off it vertically. Every `g`,
+   `y` and `p` in every card title, bar row and legend entry lost its tail.
+
+   Padding grows the clip box; an equal negative margin gives the growth back
+   to the layout. The element still occupies its 10px, still ellipsizes, and
+   no longer cuts the letters. 0.4em rather than a fixed figure so the same
+   declaration serves all three rungs. */
+.widget-title .label,
+.ax-bars-label,
+.ax-bars-value,
+.ax-legend-label,
+.ax-legend-value {
+  padding-block: 0.4em;
+  margin-block: -0.4em;
 }
 
 /* The Axion wordmark, sized to sit inline with a "Powered by" credit and

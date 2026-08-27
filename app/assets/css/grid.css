@@ -12,11 +12,15 @@
   container-type: size;
 }
 
+/* `container-type: size` here as well as on the surface: it is the box every
+   `cqh` cap in chart-dsl.css measures against, so a headline in a two-row card
+   sizes itself against that card and not against the whole board. */
 [data-grid-item] {
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
+  container-type: size;
   --grid-unit-x: calc((100cqw + var(--grid-gap)) / var(--grid-cols));
   --grid-unit-y: calc((100cqh + var(--grid-gap)) / var(--grid-rows));
   width: calc(var(--grid-item-w) * var(--grid-unit-x) - var(--grid-gap));
@@ -113,8 +117,7 @@ body.grid-dragging {
     filter var(--dur) ease;
 }
 
-[data-resize-handle='s']::after,
-[data-resize-handle='n']::after {
+[data-resize-handle='s']::after {
   width: calc(28 * var(--u));
   height: var(--sp-1);
 }

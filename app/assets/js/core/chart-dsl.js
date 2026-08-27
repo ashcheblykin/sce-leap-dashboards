@@ -20,7 +20,8 @@
      RadarChart.tsx           -> rings, spokes, closed radial lines
      ProgressBarsChart.tsx    -> HTML rows (label/value over track/fill)
      TableChart.tsx           -> HTML table
-     IndicatorChart.tsx       -> headline value + delta pill
+     IndicatorChart.tsx       -> headline value + caption (no delta pill: no
+                                 figure on this wall has a period to compare to)
      SankeyChart.tsx          -> layered node/link layout
      SunburstChart.tsx        -> partition rings with depth fade
 
@@ -1845,7 +1846,17 @@
       row.appendChild(head);
 
       var track = html('div', 'ax-bars-track');
-      track.style.backgroundColor = rgba(color, spec.trackOpacity === undefined ? 0.15 : spec.trackOpacity);
+      /* The rail is neutral, not a tint of the fill: Figma paints it
+         rgba(255,255,255,0.2) whatever colour the bar is (node 5039:94566).
+         Tinting it per series meant a five-series list had five different
+         rail colours, so the rails carried a distinction the data had not
+         asked them to carry — and on a single-series list it just made the
+         empty part of the bar look like a paler bar. A board can still
+         override with `trackOpacity`, but nothing does. */
+      track.style.backgroundColor =
+        spec.trackOpacity === undefined
+          ? 'rgba(255, 255, 255, 0.2)'
+          : rgba(color, spec.trackOpacity);
       var fill = html('div', 'ax-bars-fill');
       fill.style.backgroundColor = color;
       fill.setAttribute('data-grow', (ratio * 100).toFixed(2));
@@ -1913,19 +1924,15 @@
 
   /**
    * IndicatorChart, and the tile grid built out of it. Axion sizes the value
-   * with a type-scale step (text-2xl / 4xl / 5xl / 6xl); here the step is a
-   * token capped against the tile's own height, because the same tile runs
-   * one-up in a tall panel and four-up in a short one.
+   * with a type-scale step (text-2xl / 4xl / 5xl / 6xl); here every factoid on
+   * the wall reads at one rung instead, capped against the tile's own height,
+   * so a KPI row can never have one headline louder than its neighbours.
    */
-  var VALUE_SIZE = { small: 'is-sm', medium: 'is-md', large: 'is-lg', huge: 'is-lg' };
-
   function indicatorTile(item) {
-    var tile = html('div', 'ax-kpi ' + (VALUE_SIZE[item.valueFontSize || 'medium'] || 'is-md') +
-      (item.labelFirst ? ' is-label-first' : ''));
+    var tile = html('div', 'ax-kpi' + (item.labelFirst ? ' is-label-first' : ''));
 
     /* The number leads and the label trails directly under it (the Figma
-       "factoid" cell, node 5039:94565) — grouped so a delta pill stays
-       glued to the value it belongs to. */
+       "factoid" cell, node 5039:94565). */
     var body = html('div', 'ax-kpi-body');
 
     var value = html('div', 'ax-kpi-value');
@@ -1961,15 +1968,6 @@
       value.appendChild(num);
     }
     body.appendChild(value);
-
-    if (item.delta !== undefined && item.delta !== null) {
-      var pill = html('div', 'ax-kpi-delta' + (item.delta > 0 ? ' is-up' : item.delta < 0 ? ' is-down' : ''));
-      pill.appendChild(html('span', 'ax-kpi-delta-arrow', item.delta > 0 ? '↑' : item.delta < 0 ? '↓' : ''));
-      var dv = html('span', 'ax-num', item.deltaText);
-      dv.setAttribute('dir', 'ltr');
-      pill.appendChild(dv);
-      body.appendChild(pill);
-    }
 
     var label = html('div', 'ax-kpi-label', item.label);
     if (item.labelFirst) {

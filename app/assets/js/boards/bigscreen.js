@@ -46,10 +46,10 @@
             chart: 'indicator',
             cols: 2,
             items: [
-              { value: Data.head.eco, format: 'compact', label: t('m.eco'), color: T.cy, valueFontSize: 'small' },
-              { value: Data.head.reg, format: 'compact', label: t('m.reg'), color: T.green, valueFontSize: 'small' },
-              { value: Data.offices, format: 'compact', label: t('m.offices'), color: T.gold, valueFontSize: 'small' },
-              { value: Data.head.saudis, format: 'compact', label: t('m.saudis'), color: T.purple, valueFontSize: 'small' },
+              { value: Data.head.eco, format: 'compact', label: t('m.eco') },
+              { value: Data.head.reg, format: 'compact', label: t('m.reg') },
+              { value: Data.offices, format: 'compact', label: t('m.offices') },
+              { value: Data.head.saudis, format: 'compact', label: t('m.saudis') },
             ],
           });
         },
@@ -58,10 +58,10 @@
             chart: 'indicator',
             cols: 2,
             items: [
-              { value: Data.register.active, format: 'compact', label: t('m.active'), color: T.green, valueFontSize: 'small' },
-              { value: Data.register.near, format: 'compact', label: t('m.near'), color: T.gold, valueFontSize: 'small' },
-              { value: Data.register.expired, format: 'compact', label: t('m.expired'), color: T.blue, valueFontSize: 'small' },
-              { value: Data.register.frozen, format: 'compact', label: t('m.frozen'), color: T.purple, valueFontSize: 'small' },
+              { value: Data.register.active, format: 'compact', label: t('m.active') },
+              { value: Data.register.near, format: 'compact', label: t('m.near') },
+              { value: Data.register.expired, format: 'compact', label: t('m.expired') },
+              { value: Data.register.frozen, format: 'compact', label: t('m.frozen') },
             ],
           });
         },
@@ -73,13 +73,12 @@
       x: 0, y: 8 / 3, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.spec',
       chipKeys: ['c.engineers', 'c.technicians', 'c.specialists'],
-      stackChips: true,
       views: [
         function (el) {
-          Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.eng5, T.cy), note: t('n.specNote') });
+          Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.eng5, Kit.CLASS_TONE.Engineer), note: t('n.specNote') });
         },
         function (el) {
-          Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.tech5, T.green), note: t('n.specNote') });
+          Chart.mount(el, { chart: 'progress-bars', data: Kit.barData(Data.tech5, Kit.CLASS_TONE.Technician), note: t('n.specNote') });
         },
         function (el) {
           Chart.mount(el, {
@@ -98,7 +97,6 @@
       x: 0, y: 16 / 3, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.struct',
       chipKeys: ['c.grades', 'c.classes', 'c.nationalities'],
-      stackChips: true,
       views: [
         function (el) {
           Chart.mount(el, {
@@ -250,9 +248,9 @@
             chart: 'indicator',
             cols: 3,
             items: [
-              { value: Data.head.proact, format: 'grouped', label: t('m.proact'), color: T.cy, valueFontSize: 'small', labelFirst: true },
-              { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), color: T.green, valueFontSize: 'small', labelFirst: true },
-              { value: Data.register.near, format: 'compact', label: t('m.near'), color: T.gold, valueFontSize: 'small', labelFirst: true },
+              { value: Data.head.proact, format: 'grouped', label: t('m.proact'), labelFirst: true },
+              { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), labelFirst: true },
+              { value: Data.register.near, format: 'compact', label: t('m.near'), labelFirst: true },
             ],
           });
         },
@@ -286,10 +284,10 @@
             chart: 'indicator',
             cols: 2,
             items: [
-              { value: Data.head.cases, format: 'grouped', label: t('m.cases'), color: T.gold, valueFontSize: 'small' },
-              { value: Data.head.enforced, format: 'sar', label: t('m.enforced'), color: T.cy, valueFontSize: 'small' },
-              { value: Data.head.collected, format: 'sar', label: t('m.collected'), color: T.green, valueFontSize: 'small' },
-              { value: Data.register.active, format: 'compact', label: t('m.active'), color: T.green, valueFontSize: 'small' },
+              { value: Data.head.cases, format: 'grouped', label: t('m.cases') },
+              { value: Data.head.enforced, format: 'sar', label: t('m.enforced') },
+              { value: Data.head.collected, format: 'sar', label: t('m.collected') },
+              { value: Data.register.active, format: 'compact', label: t('m.active') },
             ],
           });
         },
@@ -333,10 +331,10 @@
             chart: 'indicator',
             cols: 2,
             items: [
-              { value: Data.tuv.surveyed, format: 'grouped', label: t('m.surveyed'), color: T.cy, valueFontSize: 'small' },
-              { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov'), color: T.green, valueFontSize: 'small' },
-              { value: Data.tuv.geo, format: 'grouped', label: t('m.geo'), color: T.gold, valueFontSize: 'small' },
-              { value: Data.tuv.workers, format: 'grouped', label: t('m.workers'), color: T.purple, valueFontSize: 'small' },
+              { value: Data.tuv.surveyed, format: 'grouped', label: t('m.surveyed') },
+              { value: Data.tuv.scecov, format: 'pct', label: t('m.scecov') },
+              { value: Data.tuv.geo, format: 'grouped', label: t('m.geo') },
+              { value: Data.tuv.workers, format: 'grouped', label: t('m.workers') },
             ],
           });
         },

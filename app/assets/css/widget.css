@@ -24,8 +24,31 @@
   background: var(--surface);
   /* Shadow/Axion spectrum */
   box-shadow: 0 0 0.5px 0.5px var(--border-primary, rgba(253, 253, 253, 0.1));
-  backdrop-filter: blur(256px);
+  /* Zero radius, and deliberately not `none`.
+
+     At rest a widget's backdrop is `body`'s flat --ink and nothing else — the
+     stage paints no ground of its own — so a Gaussian blur of one colour
+     returns that colour and the 256px radius bought nothing. Twenty cards on
+     the KPI Library were each paying for it on a 2880x1152 surface.
+
+     Dropping the property altogether is NOT the same change: any
+     backdrop-filter promotes the card to its own composited layer, and Chrome
+     rasterises text, SVG and rounded corners differently on a layer than in
+     the main raster. Removing it shifted about 6% of the pixels on every board
+     (and 17% on one) — all of it antialiasing, none of it wanted. Keeping a
+     zero-radius filter keeps the layer and its rasterisation exactly, and
+     skips only the blur. Verified: 14 of 14 frames byte-identical.
+
+     The one moment there IS something behind a card is a gesture, when the
+     dragged widget rides over its neighbours on z-index 40 — so the real
+     radius comes back for exactly those two states. */
+  backdrop-filter: blur(0px);
   transition: box-shadow var(--dur-fast) var(--ease);
+}
+
+[data-grid-item][data-moving] .widget,
+[data-grid-item][data-resizing] .widget {
+  backdrop-filter: blur(256px);
 }
 
 [data-grid-item][data-moving] .widget,
@@ -41,26 +64,48 @@
   align-items: center;
   align-self: stretch;
   justify-content: space-between;
-  gap: var(--sp-1);
+  gap: var(--fsp-1);
   padding-bottom: var(--pad-card);
-  border-bottom: var(--hairline) solid var(--separator);
   cursor: grab;
   user-select: none;
 }
 
-/* Tabs beside the title (2 chips, not the 3-plus stacked row below) float
-   in the card's top-right corner per Figma rather than sitting in the
-   header's flex flow, so they stay pinned 8px from the card's own edge
-   (hence anchored on .widget, not .widget-head — the header sits inset by
-   the card's own padding already, which would otherwise stack on top of
-   this offset) instead of drifting with the title's own height. z-index
-   because .widget-body is also position:relative and, as the later
-   sibling, would otherwise paint (and catch clicks) over the header's now-
-   unstretched, shorter row. */
+/* No rule under the header. Figma's `_Dashboard label` (the row inside every
+   Dashboard instance) carries a 12px padding-bottom and nothing else — the
+   gap IS the separation, on all twenty-five cards.
+
+   What was here instead was one `border-bottom` plus four rules undoing it
+   again, for indicator cards, map cards, cards with a stacked tab row and an
+   explicit `data-no-rule` opt-out. So the line drew on some kinds of card and
+   not others, and which was which was a property of the chart inside rather
+   than anything a viewer could see a reason for. Dropping the line drops all
+   five rules with it, and the `noRule` flag boards used to opt out. */
+
+/* Every card's view tabs float in its top-right corner, pinned 8px from the
+   card's own edge — which is where Figma puts them on all six Big Screen
+   panels regardless of how many segments they hold: two on the factoid card,
+   three on the bar list and the donut, six over the map.
+
+   Anchored on .widget rather than .widget-head because the header is already
+   inset by the card's 12px padding, which would otherwise stack on top of
+   this 8px. z-index because .widget-body is also position:relative and, as
+   the later sibling, would paint (and catch clicks) over the header's
+   now-unstretched, shorter row.
+
+   Cards with three or more segments used to get a full-width tab row *under*
+   the title instead (`data-chips-row`), on the reasoning that a title and
+   three labels cannot share one line. On the wall that came out as a
+   third control style — a 682px-wide track with each segment stretched to a
+   third of the card — sitting between two cards whose tabs were 260px wide
+   and tucked in the corner, and it spent 32px of every such card's body
+   height on chrome, which is what squeezed the five bar rows into the top
+   half of their panel. The title shrinks against the reserved gutter instead
+   (see reanchor() in board.js); it has `min-width: 0` and an ellipsis for the
+   case where even that is not enough. */
 .widget-head > .chips {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: var(--fsp-2);
+  inset-inline-end: var(--fsp-2);
   z-index: 1;
 }
 
@@ -68,43 +113,17 @@ body.grid-dragging .widget-head {
   cursor: grabbing;
 }
 
-/* Stat cards already read as their own block against the panel background,
-   so the header's hairline is redundant weight — dropping it (and the
-   padding it was spacing out) hands that height back to the cards instead
-   of sitting empty. */
+/* Indicator cards give the header's 12px padding back to the tiles. Figma's
+   factoid grid starts flush under the label row — the tiles' own 8px top
+   padding is the only space there, and it is inside the grid so the hairline
+   dividers run the full height of the card's contents rather than starting
+   12px down.
+
+   `data-chart` is stamped per render, not per widget: bs-enf switches
+   cartesian <-> indicator on a chip, so this has to stay a live match on the
+   current view rather than a flag set once in the markup. */
 .widget[data-chart='indicator'] .widget-head {
   padding-bottom: 0;
-  border-bottom: none;
-}
-
-/* The map keeps the header's own 12px padding-bottom — its chips float
-   over the body (see [data-chips-overlay] below) starting var(--sp-3) below
-   the body's top edge, and that offset reads against the title row only
-   when the two are actually separated by this gap rather than sitting flush. */
-.widget[data-chart='map'] .widget-head {
-  border-bottom: none;
-}
-
-[data-grid-item='eco-mon'] .widget-head {
-  border-bottom: none;
-}
-
-/* Three-plus tab labels never fit next to a title on one line without
-   crushing it to an ellipsis, so these widgets get their own full-width
-   tab row below the title instead — no header hairline needed once the
-   tabs themselves separate title from body. The 12px padding-bottom stays,
-   though: it's what spaces the title from the tab row below it. */
-.widget[data-chips-row] .widget-head {
-  border-bottom: none;
-}
-
-.widget[data-chips-row] > .chips {
-  align-self: stretch;
-}
-
-.widget[data-chips-row] > .chips .chip {
-  flex: 1;
-  text-align: center;
 }
 
 /* Axion's card title is sentence case, near-white and quiet, so the numbers in
@@ -113,32 +132,31 @@ body.grid-dragging .widget-head {
    moves to the mark on the left, where it still says SCE without shouting. */
 .widget-title {
   display: flex;
-  overflow: hidden;
   min-width: 0;
-  /* Matches .widget-icon's 16px square so the row keeps its height — and the
-     label's tight 0.625em line-height doesn't get cropped by this overflow:
-     hidden — when the current chart kind has no glyph and the icon collapses
-     to display:none. */
-  min-height: 16px;
+  /* Matches .widget-icon's 16px square so the row keeps Figma's height when
+     the current chart kind has no glyph and the icon collapses to
+     display:none. The clipping the label needs for its ellipsis is the
+     label's own now (see base.css), not this box's — this one clipped the
+     descenders off every title that had any. */
+  min-height: calc(16 * var(--fu));
   align-items: center;
-  gap: var(--sp-1);
-  color: var(--tx);
-  font-size: var(--fs-md);
-  font-weight: 400;
-  letter-spacing: 0.005em;
+  gap: var(--fsp-1);
   white-space: nowrap;
 }
 
-/* control_medium, matching Figma's Dashboard component title style: a
-   14px rung, medium weight, and a tight 0.625em line-height rather than
-   the container's own --fs-md/400. */
+/* Figma medium/control_L, the Dashboard component's own title style: 16px at
+   medium weight on a 10px cap-height box, in base/fg/primary. It was set at
+   14px, one rung down, which put a card's title at the same size as the chips
+   beside it and as the bar rows below it — a title with no size advantage over
+   its own contents. */
 .widget-title .label {
   min-width: 0;
+  overflow: hidden;
   flex-shrink: 1;
-  color: var(--tx);
-  font-size: var(--size-control_medium, 14px);
+  color: var(--fg-primary);
+  font-size: var(--fs-control-l);
   font-weight: 500;
-  line-height: 0.625em;
+  line-height: var(--lh-control);
   letter-spacing: 0;
   text-overflow: ellipsis;
 }
@@ -154,8 +172,8 @@ body.grid-dragging .widget-head {
 .widget-icon {
   display: none;
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: calc(16 * var(--fu));
+  height: calc(16 * var(--fu));
   align-items: center;
   justify-content: center;
 }
@@ -170,6 +188,20 @@ body.grid-dragging .widget-head {
 .widget[data-icon-chart='pie'] .widget-icon[data-icon='pie'],
 .widget[data-icon-chart='map'] .widget-icon[data-icon='map'] {
   display: flex;
+}
+
+/* Nothing matched — the current view is a kind Figma has no D-item glyph for
+   (cartesian, radar, sankey, sunburst, table). The slot stays, empty: with it
+   collapsing, a table card's title started 20px to the left of the title on
+   the card beside it, so a row of cards had two different left edges for the
+   same piece of text. Reserving the slot is what makes every title on the
+   wall start in the same place, whatever is drawn underneath it. */
+.widget:not([data-icon-chart='indicator']):not([data-icon-chart='progress-bars']):not(
+    [data-icon-chart='pie']
+  ):not([data-icon-chart='map'])
+  .widget-icon[data-icon='indicator'] {
+  display: flex;
+  visibility: hidden;
 }
 
 /* Body height is fixed by flex before any view renders, so switching a view
@@ -190,13 +222,6 @@ body.grid-dragging .widget-head {
   container-type: size;
 }
 
-.widget-view {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
 /* National map (Figma node 5039:94568): the tabs float over the imagery
    itself, top-right, instead of spending a header row on them — the map is
    the only view here with room to spare. `.widget-view-mount` is the actual
@@ -204,9 +229,14 @@ body.grid-dragging .widget-head {
    Kit.mapView's one-time innerHTML reset on first mount never touches it. */
 .widget[data-chips-overlay] .widget-body > .chips {
   position: absolute;
-  top: var(--sp-3);
-  inset-inline-end: var(--sp-4);
+  top: var(--fsp-2);
+  inset-inline-end: var(--fsp-2);
   z-index: 1;
+  /* The one track on the wall with a picture behind it, so the one track
+     whose blur is doing work: the map's baked raster reads through the
+     transparent plate. Every other track sits on a flat card and takes
+     blur(0px) — see .chips. */
+  backdrop-filter: blur(calc(256 * var(--u)));
 }
 
 .widget-view-mount {
@@ -222,27 +252,47 @@ body.grid-dragging .widget-head {
 /* Figma "tabs" (node 5039:94626): every widget's view switcher reads as a
    frosted glass segment — a soft blur behind a flat white-on-white pill, no
    rim or glow — rather than Axion's cyan chip. One style everywhere a
-   `.chips` control appears, not just the widgets that stack their tabs
-   below the title. */
+   `.chips` control appears, and one size: the track hugs its labels on every
+   card on every board. */
 .chips {
   /* Single source for the track's inset — read by the pill's position
      *and* by its radius below, so the two can never drift apart the way a
      hardcoded pixel figure eventually does. Concentric corners are
      outerRadius - inset, not a second radius token picked by eye. */
-  --track-pad: var(--spacing-x0-5, 2px);
-  --chips-radius: 10px;
+  --track-pad: var(--fsp-0-5);
   position: relative;
   display: inline-flex;
   flex: none;
-  height: 32px;
+  height: var(--fsp-8);
   align-items: flex-start;
-  gap: var(--spacing-x1-5, 6px);
+  gap: var(--fsp-1-5);
   padding: var(--track-pad);
-  border: var(--hairline) solid rgba(253, 253, 253, 0.1);
-  border-radius: var(--chips-radius);
-  background: rgba(38, 38, 38, 0);
-  box-shadow: 0 0 0.5px 0.5px rgba(253, 253, 253, 0.1);
-  backdrop-filter: blur(calc(256 * var(--u)));
+  border: var(--hairline) solid var(--border-primary);
+  border-radius: var(--radius-track);
+  /* Figma base/bg/ghost — a transparent plate, so the border and the pill
+     are the whole of the track. */
+  background: transparent;
+  box-shadow: 0 0 0.5px 0.5px var(--border-primary);
+  /* blur(0px), and deliberately not `none` — the same trick .widget uses
+     above, for the same reason: any backdrop-filter promotes the element to
+     its own composited layer and Chrome rasterises text and rounded corners
+     differently there, so dropping the property shifts pixels while zeroing
+     the radius does not.
+
+     The track's own background is fully transparent, so the blur used to be
+     the fill rather than a flourish. But on a card the backdrop is the card's
+     own flat plate over a flat page, and a Gaussian of one colour returns
+     that colour — the blur was buying nothing and costing a ~410px-radius
+     Gaussian per track, nineteen of them on the KPI Library. The map is the
+     exception and keeps the real radius (see [data-chips-overlay] above),
+     because there the backdrop is a photograph.
+
+     What made this un-removable before was the KPI Library in Arabic, whose
+     titles ran under the track because that board never reserved the gutter;
+     the blur was smearing a layout collision into a wash rather than
+     revealing it. The Library reserves it now, like every other board (see
+     reanchor() in board.js), so there is nothing left to hide. */
+  backdrop-filter: blur(0px);
   overflow: hidden;
   touch-action: pan-y;
 }
@@ -250,7 +300,16 @@ body.grid-dragging .widget-head {
 /* Sliding pill: an absolutely positioned layer under the chip labels, moved
    by JS (left/right) so the highlight glides between segments instead of
    jump-cutting. --pl/--pr/--pt/--pe are retuned per-gesture from JS so a
-   drag can be instantaneous while a tap keeps the liquid-stretch glide. */
+   drag can be instantaneous while a tap keeps the liquid-stretch glide.
+
+   `left`/`right` rather than a transform because the two edges carry
+   different durations — that lead/trail split IS the liquid stretch, and a
+   single translate cannot give one edge its own clock. That makes the pill
+   the one thing on the wall animating a layout property, so it is kept as
+   cheap as a layout animation can be: no children, `contain: layout paint
+   style` so nothing it does can escape into the board, and no
+   backdrop-filter of its own (see .nav-pill in shell.css, which had one and
+   paid a fresh Gaussian every frame it moved). */
 .chip-pill {
   position: absolute;
   top: var(--track-pad);
@@ -258,15 +317,10 @@ body.grid-dragging .widget-head {
   left: 0;
   right: 0;
   z-index: 0;
-  display: flex;
-  padding: var(--spacing-x2, 8px);
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-x1-5, 6px);
-  align-self: stretch;
-  border-radius: calc(var(--chips-radius) - var(--track-pad));
-  background-color: rgba(253, 253, 253, 0.1);
+  border-radius: calc(var(--radius-track) - var(--track-pad));
+  background-color: var(--chip-fill);
   pointer-events: none;
+  contain: layout paint style;
   transform: translateZ(0);
   --pl: var(--chip-dur-trail);
   --pr: var(--chip-dur-trail);
@@ -294,14 +348,14 @@ body.grid-dragging .widget-head {
   align-self: stretch;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-x1-5, 6px);
-  padding: var(--spacing-x2, 8px);
+  gap: var(--fsp-1-5);
+  padding: var(--fsp-2);
   border: var(--hairline) solid transparent;
-  border-radius: calc(var(--chips-radius) - var(--track-pad));
-  color: #dcdcdc;
-  font-size: var(--size-control_medium, 14px);
+  border-radius: calc(var(--radius-track) - var(--track-pad));
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
   font-weight: 400;
-  line-height: calc(10 * var(--u));
+  line-height: var(--lh-control);
   letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
@@ -310,22 +364,14 @@ body.grid-dragging .widget-head {
 
 .chip:hover {
   background: rgba(253, 253, 253, 0.06);
-  color: #f9f9f9;
+  color: var(--fg-control-on);
 }
 
 .chip[data-on] {
-  color: #f9f9f9;
+  color: var(--fg-control-on);
 }
 
 .chip[data-on]:hover {
   background: none;
-}
-
-/* Card padding/radius are fixed everywhere (see --pad-card/--radius-card in
-   tokens.css). `container-type: size` stays on the grid item for the cqh
-   units chart-dsl.css uses to size chart content inside short cards. */
-
-[data-grid-item] {
-  container-type: size;
 }
 

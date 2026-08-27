@@ -52,7 +52,7 @@
 .splash-eyebrow {
   margin-top: var(--sp-7);
   color: var(--cy);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-control-l);
   font-weight: 500;
   letter-spacing: 0.42em;
   text-transform: uppercase;
@@ -76,7 +76,7 @@
   max-width: calc(880 * var(--u));
   margin-top: var(--sp-5);
   color: var(--tx-2);
-  font-size: var(--fs-md);
+  font-size: var(--fs-heading-m);
   font-weight: 300;
   line-height: 1.55;
 }
@@ -95,7 +95,7 @@
     var(--glow-spectrum);
   backdrop-filter: var(--blur-glass);
   color: var(--tx);
-  font-size: var(--fs-md);
+  font-size: var(--fs-heading-m);
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -125,7 +125,7 @@
 
 .splash-stat-value {
   color: var(--tx);
-  font-size: var(--fs-kpi-sm);
+  font-size: var(--fs-hero-l);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -134,7 +134,7 @@
 .splash-stat-label {
   margin-top: var(--sp-1);
   color: var(--mut);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-control-l);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -144,7 +144,7 @@
   bottom: var(--sp-7);
   left: 50%;
   color: rgba(var(--cy-rgb), 0.34);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-caption-m);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   translate: -50% 0;

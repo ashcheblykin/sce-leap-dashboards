@@ -66,7 +66,10 @@
 
         <div class="hdr-meta">
           <div class="settings">
-            <button class="hdr-settings" id="settingsBtn" type="button" aria-label="Settings" aria-haspopup="true">
+            <!-- Figma node 5065:82983: the same "Circle Button" component as
+                 the dock's play and globe, standing alone in the board's far
+                 corner — hence .dock-btn here rather than a style of its own. -->
+            <button class="dock-btn hdr-settings" id="settingsBtn" type="button" aria-label="Settings" aria-haspopup="true">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.32.66.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.52.02.66-.22l1.92-3.32a.5.5 0 0 0-.12-.64ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
@@ -154,6 +157,7 @@
     <script src="assets/js/data/derive.js"></script>
     <script src="assets/js/core/counter.js"></script>
     <script src="assets/js/core/tooltip.js"></script>
+    <script src="assets/js/core/pill.js"></script>
     <script src="assets/js/core/chart-dsl.js"></script>
     <script src="assets/js/core/map.js"></script>
     <script src="assets/js/core/grid.js"></script>
