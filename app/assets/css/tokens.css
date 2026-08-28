@@ -139,6 +139,12 @@
      --border-ghost or the shared rgba(253,253,253,0.06) hover. */
   --surface: rgba(0, 0, 0, 0.6);
   --plate: rgba(4, 24, 43, 0.72);
+  /* `--surface` already resolved against `--ink` and made near-opaque: the
+     scene menu needs the dock's own ground rather than a blur of whatever
+     board it floats over (see shell.css). It is a token and not a literal
+     because it is the one plate that has to be recomputed by hand whenever
+     the ground changes — which is exactly what the blue palette below does. */
+  --plate-menu: rgba(3, 25, 30, 0.92);
 
   /* One scaling unit drives every size, so the board is designed once at
      2880x1152 and still reads on a laptop preview.
@@ -341,4 +347,32 @@
   /* Fixed rather than scaled: the gesture maths reads it as a constant, and
      Axion's 8px gutter is right at any of the sizes this ever runs at. */
   --grid-gap: 8px;
+}
+
+/* --- Second ground: the blue palette (`html[data-palette="blue"]`) ---
+
+   The default above is the SCE teal the boards were designed on. This is the
+   alternate the settings panel switches to, drawn from saudieng.sa itself: the
+   site's own header band is #3f5372 — hsl(218, 29%, 34%) — a slate navy, and
+   the wall wants that hue at the ground's lightness rather than the site's,
+   which would read as a light grey across 2880px. So the ground keeps the
+   site's hue and takes the teal's lightness (17-18%) and a little more of its
+   saturation, and the two plates are re-resolved against it.
+
+   Only the ground and its plates move. Every accent — the six chart tones,
+   the cyan rim, the gold — is a semantic colour (see the colour-semantics
+   rule) and is the same on both palettes, so a switch never changes what a
+   number means, only the room it is read in.
+
+   `--surface` is Figma's black 60% on the teal; here it is tinted navy
+   instead, so the card keeps the ground's hue rather than draining to a
+   neutral charcoal. Resolved over `--ink` it is #101828, which measures 4.9:1
+   against `--mut-2` — the same margin the teal card gives the smallest type on
+   the wall (4.9:1), so the readability that `--mut-2` was tuned for holds on
+   both grounds. */
+:root[data-palette='blue'] {
+  --ink: #1e2a3f;
+  --surface: rgba(6, 12, 24, 0.6);
+  --plate: rgba(8, 16, 32, 0.72);
+  --plate-menu: rgba(16, 24, 40, 0.92);
 }

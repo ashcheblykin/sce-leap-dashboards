@@ -88,8 +88,10 @@
   border-radius: var(--radius-dock);
   /* Figma's dock reads dark, not light: rgba(0,0,0,0.6) over a heavy
      256px background blur, confirmed against the frame's own screenshot
-     (the pill barely lifts off the page — it is not a light glass chip). */
-  background: rgba(0, 0, 0, 0.6);
+     (the pill barely lifts off the page — it is not a light glass chip). It
+     is `--surface` and not the literal because the dock is the same plate as
+     a widget card, and both have to follow the palette switch. */
+  background: var(--surface);
   box-shadow:
     0 0 0.5px 0.5px var(--border-primary),
     0 calc(10 * var(--fu)) var(--fsp-8) rgba(0, 0, 0, 0.15);
@@ -375,10 +377,12 @@
      options were leaning on a blur for it instead, which is what smeared the
      widget behind them into something the labels could sit on. #03191e is
      that same dock plate resolved against --ink, so an option still reads as
-     one of the tabs it stands in for, and now does so without a Gaussian. */
+     one of the tabs it stands in for, and now does so without a Gaussian.
+     Resolved by hand, so it lives in tokens.css as --plate-menu and each
+     palette states its own. */
   background:
     linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
-    rgba(3, 25, 30, 0.92);
+    var(--plate-menu);
   box-shadow: 0 calc(10 * var(--fu)) var(--fsp-5) rgba(0, 0, 0, 0.1);
   color: var(--tx);
   font-size: var(--fs-subheading-l);
@@ -600,7 +604,7 @@
   padding: var(--fsp-3) var(--fsp-4);
   border: var(--hairline) solid var(--border-primary);
   border-radius: var(--radius-card);
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--surface);
   box-shadow: 0 calc(10 * var(--fu)) var(--fsp-6) rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(calc(10 * var(--fu)));
 }
@@ -625,6 +629,75 @@
   width: calc(16 * var(--fu));
   height: calc(16 * var(--fu));
   accent-color: var(--cy);
+}
+
+/* --- Palette switch ---
+   The ground is a choice between two named palettes rather than a flag, so it
+   is a two-segment track and not a fifth checkbox — the same geometry as the
+   widgets' .chips and the language switch: --fsp-0-5 inset, --radius-track
+   outer, concentric inner, --fs-control-m label. It does not borrow .chips
+   itself because that track's active fill is a single sliding pill positioned
+   by JS; here there are exactly two fixed segments and `:checked` can fill
+   them directly.
+
+   The radio is hidden with opacity rather than `display: none` or
+   `appearance: none`, so it keeps its box and therefore its focus ring, which
+   the label's :has() below lifts onto the visible segment. */
+.settings-row--choice {
+  justify-content: space-between;
+  gap: var(--fsp-4);
+  cursor: default;
+}
+
+.settings-seg {
+  display: inline-flex;
+  flex: none;
+  gap: var(--fsp-1-5);
+  padding: var(--fsp-0-5);
+  border: var(--hairline) solid var(--border-primary);
+  border-radius: var(--radius-track);
+}
+
+.settings-seg__opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--fsp-1) var(--fsp-2);
+  border-radius: calc(var(--radius-track) - var(--fsp-0-5));
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-control);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.settings-seg__opt input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: inherit;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.settings-seg__opt:hover {
+  background: rgba(253, 253, 253, 0.06);
+  color: var(--fg-control-on);
+}
+
+.settings-seg__opt:has(input:checked) {
+  background: var(--chip-fill);
+  color: var(--fg-control-on);
+}
+
+.settings-seg__opt:has(input:focus-visible) {
+  box-shadow: var(--focus-ring);
 }
 
 /* Reset lives at the bottom of the same panel: an action, not a toggle, so it

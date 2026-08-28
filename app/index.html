@@ -107,6 +107,23 @@
                 <input class="settings-check" id="setSplashEnabled" type="checkbox" />
                 <span>Show splash screen</span>
               </label>
+              <!-- Not a checkbox: the ground is a choice between two named
+                   palettes, not a flag, so it gets a two-segment track like
+                   the chips elsewhere on the board. Radios, so arrow keys
+                   move between them without any script of ours. -->
+              <div class="settings-row settings-row--choice" role="group" aria-label="Palette">
+                <span>Palette</span>
+                <div class="settings-seg">
+                  <label class="settings-seg__opt">
+                    <input type="radio" name="palette" value="green" />
+                    <span>Green</span>
+                  </label>
+                  <label class="settings-seg__opt">
+                    <input type="radio" name="palette" value="blue" />
+                    <span>Blue</span>
+                  </label>
+                </div>
+              </div>
               <button class="settings-action" id="reset" type="button">Reset layout</button>
             </div>
           </div>

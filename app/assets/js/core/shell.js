@@ -25,7 +25,16 @@
     tickerPaused: 'sce.leap.settings.tickerPaused',
     splashEnabled: 'sce.leap.settings.splashEnabled',
     autoplay: 'sce.leap.settings.autoplay',
+    palette: 'sce.leap.settings.palette',
   };
+
+  /* The two grounds the board can be read on — the SCE teal it was designed
+     in, and the slate navy taken from saudieng.sa. Both are declared in
+     tokens.css; this list is only the vocabulary of the stored setting, so an
+     unrecognised value in localStorage falls back rather than stamping a
+     palette the stylesheet has never heard of. */
+  var PALETTES = ['green', 'blue'];
+  var PALETTE_DEFAULT = 'green';
 
   function loadFlag(key, fallback) {
     try {
@@ -45,12 +54,42 @@
     }
   }
 
+  /* The flag pair above stores '1'/'0'; the palette is one of a named set, so
+     it needs its own pair that validates against that set on the way in. */
+  function loadChoice(key, allowed, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return allowed.indexOf(raw) === -1 ? fallback : raw;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function saveChoice(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      /* see saveFlag */
+    }
+  }
+
   var settings = {
     tickerVisible: loadFlag(SETTINGS_KEYS.tickerVisible, true),
     tickerPaused: loadFlag(SETTINGS_KEYS.tickerPaused, false),
     splashEnabled: loadFlag(SETTINGS_KEYS.splashEnabled, true),
     autoplay: loadFlag(SETTINGS_KEYS.autoplay, true),
+    palette: loadChoice(SETTINGS_KEYS.palette, PALETTES, PALETTE_DEFAULT),
   };
+
+  /* Stamped on <html> the same way viewport.js stamps the layout mode, and
+     stamped here at load rather than in init() so it is on the element before
+     the first paint — otherwise a wall restored to blue would flash the teal
+     ground for a frame while the boards build. */
+  function applyPalette() {
+    document.documentElement.setAttribute('data-palette', settings.palette);
+  }
+
+  applyPalette();
 
   /* Read by splash.js at its own init(), which runs after this file has
      already set the flag — script order in index.html puts shell.js first. */
@@ -91,6 +130,7 @@
   var setTickerPaused = document.getElementById('setTickerPaused');
   var setSplashEnabled = document.getElementById('setSplashEnabled');
   var setAutoplay = document.getElementById('setAutoplay');
+  var setPalette = document.querySelectorAll('.settings-seg input[name="palette"]');
   /* Two hosts: the header's and the splash's. Both are built from the same
      list, so the switch is in the same place in the same shape wherever the
      wall happens to be. */
@@ -672,6 +712,9 @@
   }
 
   function bindSettings() {
+    for (var i = 0; i < setPalette.length; i++) {
+      setPalette[i].checked = setPalette[i].value === settings.palette;
+    }
     setTickerVisible.checked = settings.tickerVisible;
     setTickerPaused.checked = settings.tickerPaused;
     setSplashEnabled.checked = settings.splashEnabled;
@@ -715,6 +758,20 @@
       setPlaying(setAutoplay.checked);
       if (setAutoplay.checked) holdUntil = 0;
     });
+
+    /* One listener per radio rather than one on the group: the panel is built
+       in the markup, so the set is fixed and there is no delegation to earn.
+       Nothing has to be redrawn — the ground and its plates are custom
+       properties, so the attribute alone repaints the whole wall. */
+    for (var j = 0; j < setPalette.length; j++) {
+      setPalette[j].addEventListener('change', function (ev) {
+        if (!ev.target.checked) return;
+        noteInteraction();
+        settings.palette = ev.target.value;
+        saveChoice(SETTINGS_KEYS.palette, settings.palette);
+        applyPalette();
+      });
+    }
   }
 
   function bindControls() {
