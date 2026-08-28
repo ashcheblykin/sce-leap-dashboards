@@ -150,7 +150,16 @@
      larger again, which is the difference between "a dashboard on a big
      monitor" and something readable from across a stand. */
   --u-scale: 1.3;
-  --u: clamp(0.74px, min(100vw / 2880, 100vh / 1152) * var(--u-scale), 2.4px);
+
+  /* Split into a base and two rails so the compact mode (see responsive.css)
+     can substitute its own three numbers without restating the formula, and
+     `[`/`]` keep working on both. On the wall the base is the fit ratio: the
+     board is 2880x1152 and `--u` is whatever fraction of that the screen
+     actually is. */
+  --u-base: min(100vw / 2880, 100vh / 1152);
+  --u-floor: 0.74px;
+  --u-ceil: 2.4px;
+  --u: clamp(var(--u-floor), var(--u-base) * var(--u-scale), var(--u-ceil));
 
   /* The Figma design pixel: `--u` divided by the default `--u-scale`, so at
      2880x1152 on the default setting `--fu` is exactly 1px and every
@@ -267,6 +276,12 @@
      four rungs, then three; every factoid on the wall now reads at one size
      (see .ax-kpi-value), so one rung is all there is left to name. */
   --cap-kpi: 64cqh;
+  /* There is a second cap on a factoid, and it is deliberately NOT a token:
+     it depends on `--kpi-em`, which is written per tile, and a `var()` inside
+     a custom property is substituted where the property is DECLARED — here,
+     on :root, where `--kpi-em` does not exist and every tile would silently
+     take the fallback. It lives at its point of use instead; see
+     .ax-kpi-value in chart-dsl.css. */
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */

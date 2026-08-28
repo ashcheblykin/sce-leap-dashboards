@@ -369,19 +369,48 @@
   padding: var(--fsp-4);
   padding-inline-start: var(--fsp-5);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.05);
+  /* Figma's 5% white glass, but over a ground of its own rather than over
+     whatever board the menu is floating on. The dock's tabs get that ground
+     for free — they sit on the dock's rgba(0,0,0,0.6) over --ink — and these
+     options were leaning on a blur for it instead, which is what smeared the
+     widget behind them into something the labels could sit on. #03191e is
+     that same dock plate resolved against --ink, so an option still reads as
+     one of the tabs it stands in for, and now does so without a Gaussian. */
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    rgba(3, 25, 30, 0.92);
   box-shadow: 0 calc(10 * var(--fu)) var(--fsp-5) rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(calc(10 * var(--fu)));
   color: var(--tx);
   font-size: var(--fs-subheading-l);
   line-height: var(--lh-subheading-l);
   font-weight: 500;
   white-space: nowrap;
+  /* blur(0px), and deliberately not blur(10px) — the same call .widget and
+     .nav-pill make, here for a motion reason rather than a cost one.
+
+     The menu's open state is a 160ms fade-and-rise on the parent, which puts
+     three backdrop-filtered options inside an element whose opacity is
+     animating. Chrome does not resolve that combination smoothly: the blurred
+     backdrop is not carried through the group's opacity frame by frame, so
+     the wash arrives at full radius on whichever frame the layer lands and
+     the fade underneath it never gets read — the menu reads as a snap, not an
+     entrance. Transitioning the radius alongside the fade does not fix it
+     (the composited value goes stale and stays at full radius after the menu
+     closes); the property simply should not be animated.
+
+     The menu does float over the board rather than over a flat plate, so the
+     blur was doing something here — but it was a wash under a 5% white plate
+     on an already dark board, and a legible entrance is worth more than it.
+     Keeping the property at zero radius rather than dropping it keeps the
+     composited layer and its text rasterisation exactly as they were. */
+  backdrop-filter: blur(0px);
   transition: background var(--dur-fast) var(--ease);
 }
 
 .nav-scene-option:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+    rgba(3, 25, 30, 0.92);
 }
 
 .nav-scene-badge {
@@ -467,6 +496,78 @@
 
 .shell-toast[data-on] {
   opacity: 1;
+}
+
+/* --- Online-updates indicator ---
+   A green dot with one word beside it, sitting in the board's far corner next
+   to the settings button. It is the customer's "real time" ask reduced to the
+   smallest thing that carries it: no counter, no clock, no figure that could
+   be read as data. Every value on this wall is the customer's own reconciled
+   dataset and none of them move, so nothing here may imply otherwise.
+
+   Two elements, one animation, and it runs for the life of the session — so
+   it is the same shape as the map's ping: transform and opacity on a single
+   composited element, on its own layer, invalidating nothing around it. The
+   halo is a pseudo-element rather than a box-shadow so the pulse scales a
+   layer instead of repainting a blur every frame. */
+.live {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--fsp-2);
+  padding: var(--fsp-1-5) var(--fsp-3);
+  border: var(--hairline) solid var(--border-primary);
+  border-radius: var(--radius-pill);
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-control);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.live-dot {
+  position: relative;
+  display: block;
+  width: var(--fsp-2);
+  height: var(--fsp-2);
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--green);
+}
+
+.live-dot::after {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background: var(--green);
+  content: '';
+  inset: 0;
+  animation: live-pulse 2400ms cubic-bezier(0.16, 0.8, 0.4, 1) infinite;
+}
+
+@keyframes live-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  70% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* A permanent pulse is exactly what this setting is for: the dot stays, lit,
+   and stops breathing. */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after {
+    animation: none;
+  }
 }
 
 /* --- Settings --- */

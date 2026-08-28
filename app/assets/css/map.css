@@ -19,14 +19,14 @@
    vignette painted into the pixels would drift off the visible edges. */
 .map::after {
   position: absolute;
-  background: radial-gradient(120% 110% at 50% 48%, transparent 52%, rgba(2, 10, 20, 0.82) 100%);
+  background: radial-gradient(120% 110% at 50% 48%, transparent 52%, color-mix(in srgb, var(--ink) 82%, transparent) 100%);
   content: '';
   inset: 0;
   pointer-events: none;
 }
 
 .map-ground {
-  fill: #020a14;
+  fill: var(--ink);
 }
 
 .map-plate {
@@ -38,7 +38,7 @@
    raster. Matches .map-ground so the neighbours read as empty background
    rather than a still-visible, just-darkened plate. */
 .map-scrim {
-  fill: #020a14;
+  fill: var(--ink);
 }
 
 .map-focus {
@@ -62,6 +62,94 @@
   stroke: currentColor;
   stroke-opacity: 0.95;
   stroke-width: 0.022;
+}
+
+/* --- The living map ---
+   See the note above `STAGGER_MAX` in core/map.js for why there are two
+   arrivals rather than one. Both are transform-and-opacity only, and both run
+   once: a mode switch rebuilds the markers, which restarts them, which is
+   exactly the moment the effect is wanted.
+
+   `transform-box: fill-box` is what makes `transform-origin: center` mean the
+   bubble's own centre rather than the SVG's origin — without it a scaled dot
+   flies in from the top-left corner of the peninsula. */
+.map-markers.is-seeding .map-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-dot-seed 520ms var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 14ms);
+}
+
+@keyframes map-dot-seed {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Thousands of offices at once: one animation on the group, not one per dot. */
+.map-markers.is-bulk {
+  animation: map-bulk-in 700ms var(--ease) backwards;
+}
+
+@keyframes map-bulk-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* The pulse. Three of them, on the three largest points of the current mode
+   (see PINGS in core/map.js) — a ring that expands out of the bubble and
+   fades, staggered so they never fire together. It is the one thing on the
+   board that never stops, so it is the one thing here that had to cost
+   nothing: three elements whatever the mode plots, and both animated
+   properties composited.
+
+   HTML rings in a layer over the plate rather than SVG circles beside the
+   bubbles, and the note above the layer in core/map.js has the measurement:
+   as SVG this took an idle board from 0 layout passes in six seconds to 684,
+   because Chrome relays out an SVG rather than compositing a transform on one
+   of its children. Their position is projected by hand in placePings(). */
+.map-pings {
+  z-index: 1;
+  position: absolute;
+  overflow: hidden;
+  inset: 0;
+  pointer-events: none;
+}
+
+.map-ping {
+  position: absolute;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  animation: map-ping 3200ms cubic-bezier(0.16, 0.8, 0.4, 1) infinite;
+  animation-delay: calc(var(--i, 0) * 640ms);
+}
+
+@keyframes map-ping {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.7);
+  }
+
+  55% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
 }
 
 /* Field-verification variants: the dot's colour carries the licence state, so
@@ -149,3 +237,17 @@
   letter-spacing: 0.02em;
 }
 
+
+/* Reduced motion takes the whole of it: the arrivals land instantly and the
+   ping stands down entirely rather than running slower. A permanent pulse is
+   precisely what the setting exists to switch off. */
+@media (prefers-reduced-motion: reduce) {
+  .map-markers.is-seeding .map-dot,
+  .map-markers.is-bulk {
+    animation: none;
+  }
+
+  .map-ping {
+    display: none;
+  }
+}

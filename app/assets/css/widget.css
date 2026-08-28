@@ -166,9 +166,9 @@ body.grid-dragging .widget-head {
    data-icon-chart (set by Chart.mount/Kit.mapView, but only for kinds that
    have a glyph) is the only one shown. A chip that switches between two
    iconized kinds (e.g. pie -> progress-bars) swaps the glyph with it; a chip
-   that switches to a kind with no Figma glyph (cartesian, radar, sankey,
-   sunburst, table) leaves data-icon-chart — and the glyph — untouched
-   instead of the header icon vanishing. */
+   that switches to a kind with no Figma glyph (only `table` now) leaves
+   data-icon-chart — and the glyph — untouched instead of the header icon
+   vanishing. */
 .widget-icon {
   display: none;
   flex: none;
@@ -186,19 +186,25 @@ body.grid-dragging .widget-head {
 .widget[data-icon-chart='indicator'] .widget-icon[data-icon='indicator'],
 .widget[data-icon-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
 .widget[data-icon-chart='pie'] .widget-icon[data-icon='pie'],
-.widget[data-icon-chart='map'] .widget-icon[data-icon='map'] {
+.widget[data-icon-chart='map'] .widget-icon[data-icon='map'],
+.widget[data-icon-chart='sankey'] .widget-icon[data-icon='sankey'],
+.widget[data-icon-chart='sunburst'] .widget-icon[data-icon='sunburst'],
+.widget[data-icon-chart='cartesian'] .widget-icon[data-icon='cartesian'],
+.widget[data-icon-chart='radar'] .widget-icon[data-icon='radar'] {
   display: flex;
 }
 
 /* Nothing matched — the current view is a kind Figma has no D-item glyph for
-   (cartesian, radar, sankey, sunburst, table). The slot stays, empty: with it
+   (table). The slot stays, empty: with it
    collapsing, a table card's title started 20px to the left of the title on
    the card beside it, so a row of cards had two different left edges for the
    same piece of text. Reserving the slot is what makes every title on the
    wall start in the same place, whatever is drawn underneath it. */
 .widget:not([data-icon-chart='indicator']):not([data-icon-chart='progress-bars']):not(
     [data-icon-chart='pie']
-  ):not([data-icon-chart='map'])
+  ):not([data-icon-chart='map']):not([data-icon-chart='sankey']):not(
+    [data-icon-chart='sunburst']
+  ):not([data-icon-chart='cartesian']):not([data-icon-chart='radar'])
   .widget-icon[data-icon='indicator'] {
   display: flex;
   visibility: hidden;
@@ -375,3 +381,11 @@ body.grid-dragging .widget-head {
   background: none;
 }
 
+
+/* Proactive monitoring is the one indicator card whose tiles are label-first:
+   the label sits on the top line, so giving the header's padding back to the
+   grid (see .widget[data-chart='indicator'] .widget-head) puts the card title
+   directly above a second row of text. It keeps Figma's 12px label gap. */
+[data-grid-item='bs-mon'] .widget[data-chart='indicator'] .widget-head {
+  padding-bottom: var(--pad-card);
+}

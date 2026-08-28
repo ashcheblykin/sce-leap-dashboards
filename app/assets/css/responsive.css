@@ -1,0 +1,409 @@
+/* The tablet and the small screen.
+
+   Every rule in this file is behind `[data-view='compact']`, written by
+   core/viewport.js — one query, one decision, no breakpoint restated in two
+   places. Nothing here changes a colour, a radius, a type rung, a chart or a
+   number: the card is the same Figma card, the widgets are the same widgets in
+   the same order, and the only thing that changes is that a 2.5:1 composition
+   which cannot fit across an upright screen is allowed to run down it instead.
+
+   Three moves, in order of how much they matter:
+
+   1. `--u` stops being a fit ratio and becomes a device ratio. On the wall
+      `--u` answers "what fraction of 2880x1152 is this screen", because the
+      whole design has to land inside the panel at once. On a tablet that
+      question has no useful answer — an 820px-wide screen is 28% of the wall,
+      and 28% of a 16px title is 4.5px. A tablet is read at arm's length, not
+      from across a stand, so its type wants to sit near Figma's own px sizes
+      whatever the width, which is what the `0.58px + 0.046vw` base gives:
+      ~1.23 at an iPad's 820, ~1.36 at 1024, floored at 0.95 on a phone.
+
+   2. The 24x8 grid becomes a flow. Each widget keeps its identity and its
+      reading position — `applyGeometry` writes an `order` from the same x/y
+      the wall lays it out at, so the sequence down the tablet is the sequence
+      across the wall — and a widget that spans 9+ of the wall's 24 columns
+      (the map, a sankey, the enforcement wing) takes the full width here
+      rather than half of it.
+
+   3. The stage scrolls. It is the one thing the wall must never do and the
+      one thing the tablet must: the brief asks for every block to stay
+      reachable, and on an upright screen that means downwards.
+
+   The panel heights are `--flow-unit` per wall row, so a card that is a third
+   of the wall's height is about a quarter of the tablet's — tall enough for
+   the bar list, the donut and the four-up factoid grid the cqh caps in
+   chart-dsl.css already size themselves against. */
+
+:root[data-view='compact'] {
+  /* Near Figma's own pixel at a tablet's width, and never so small that the
+     control rungs stop being controls. See note 1 above. */
+  --u-base: calc(0.58px + 0.046vw);
+  --u-floor: 0.95px;
+  --u-ceil: 1.7px;
+
+  /* The chrome gives a little back: on a 1180px-tall iPad the header and the
+     ticker were taking a sixth of the screen before a single card. */
+  --shell-header: calc(76 * var(--u));
+  --shell-ticker: calc(44 * var(--u));
+
+  /* One wall row's worth of height in the flow. A 8/3-row wing panel lands at
+     ~25vh — enough for a four-up factoid grid whose labels run to two lines,
+     which is what 8.5 was half a line short of — and the full-height map at
+     76vh, which the 70vh clamp below brings back so a single panel can never
+     take the whole screen. */
+  --flow-unit: 9.5vh;
+
+  /* The one type rung that does not simply ride `--u` here.
+
+     72 design pixels is 10% of the width of the card a factoid sits in on the
+     wall (a 704px wing panel). On a reflowed tablet the same card is 388px,
+     where 72 is 18% — the number stops being the loudest thing on the panel
+     and becomes the only thing on it, and against a two-line Arabic caption
+     the pair does not fit the tile at all. 56 puts the factoid back at
+     roughly the share of its card that Figma drew, which is what "the same
+     design at this size" has to mean. Every other rung is unchanged. */
+  --fs-hero-l: calc(56 * var(--fu));
+}
+
+/* The column count is published by core/viewport.js rather than decided by a
+   second copy of its breakpoint here — see the note at the top of that file.
+   The KPI Library follows the same count, so a browse surface and a panel
+   board never disagree about how wide the screen is. */
+:root[data-cols='1'] {
+  --flow-cols: 1;
+  --lib-cols: 1;
+}
+
+:root[data-cols='2'] {
+  --flow-cols: 2;
+  --lib-cols: 2;
+}
+
+/* --- The scrolling stage ------------------------------------------------
+   `100dvh`, not `100vh`: on iOS the address bar counts towards `vh` and the
+   dock would sit under it, which on a board whose only navigation IS the dock
+   means the tablet has no navigation. The `100vh` line before it is the
+   fallback for anything that has not shipped dvh. */
+:root[data-view='compact'] .shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
+:root[data-view='compact'] .stage {
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Momentum scrolling on the tablet, and a scroll container that does not
+     hand its overscroll to the page behind it (there is no page behind it). */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--sp-3);
+}
+
+/* Released from the absolute inset the wall gives it: in the flow the surface
+   is as tall as its widgets, and that is what the stage scrolls. */
+:root[data-view='compact'] .stage > [data-grid-surface] {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  /* `inline-size`, not `size`: the surface's height is now its content's, so
+     a size container here would collapse it to nothing. Its children keep
+     their own `size` containers, which is what the cqh caps measure. */
+  container-type: inline-size;
+}
+
+:root[data-view='compact'] [data-grid-surface] {
+  display: grid;
+  height: auto;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--flow-cols), minmax(0, 1fr));
+  grid-auto-rows: auto;
+  /* `dense`, and it earns it. The wall's reading order alternates narrow and
+     full-width panels — a factoid card, then the map, then two more cards —
+     and sparse packing leaves the half-row beside every full-width panel
+     empty. Dense only ever pulls a LATER narrow panel back into an earlier
+     hole, never reorders two panels of the same width, so the sequence a
+     visitor reads stays the wall's own with the gaps closed. */
+  grid-auto-flow: row dense;
+  container-type: inline-size;
+}
+
+/* Out of absolute placement and into the flow. `order` and `data-flow` are
+   both written by AxGrid.applyGeometry from the same layout that positions
+   the wall, so the tablet's sequence is the wall's reading order and a wide
+   widget stays wide. */
+:root[data-view='compact'] [data-grid-item] {
+  position: static;
+  width: auto;
+  height: auto;
+  /* The 340px floor is not a round number: it is what a two-row factoid grid
+     needs once its captions wrap. A short wall card (h=2, e.g. Ecosystem's
+     reach panel) holds three factoids across on the wall and two-by-two here,
+     and an Arabic caption runs to two lines — value, gap and caption come to
+     ~99px a tile, plus the card's own title, padding and footnote. Below this
+     the tile clips its own caption, which `tools/shoot.mjs` reports and which
+     is the one thing a reflow must not do.
+
+     It was 300, which held in one column and did not in two: at 1024x768 —
+     an iPad on its side, the shape this board is most often previewed at —
+     the same card is half as wide, `eco-reach`'s Arabic caption wraps to two
+     lines it has no room for, and the tile clipped 13px of it. The floor is
+     the same idea it always was, measured against the narrower card. */
+  min-height: clamp(340px, calc(var(--flow-unit) * var(--grid-item-h, 2)), 70vh);
+  transform: none;
+  grid-column: span 1;
+}
+
+:root[data-view='compact'] [data-grid-item][data-flow='wide'] {
+  grid-column: 1 / -1;
+}
+
+/* No drag on a touch board, and no handles to promise one. The wall boards
+   are already `kiosk`; this covers the three that are not. */
+:root[data-view='compact'] [data-resize-handle] {
+  display: none;
+}
+
+:root[data-view='compact'] .widget-head {
+  cursor: default;
+}
+
+/* --- KPI Library ---
+   Twenty cards, which on the wall are exactly five columns of a full stage
+   and here are two columns of a scroll. `.lib` stops being 100% tall and
+   `.lib-grid` stops dividing a fixed height into equal rows. */
+:root[data-view='compact'] [data-grid-surface][data-custom] {
+  display: block;
+  overflow: visible;
+}
+
+:root[data-view='compact'] .lib {
+  height: auto;
+}
+
+:root[data-view='compact'] .lib-grid {
+  flex: none;
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(var(--lib-cols, 2), minmax(0, 1fr));
+}
+
+/* A Library cell is the one card here whose height is a floor rather than a
+   fit, and 30vh — 230px on a landscape iPad — was below every one of its
+   contents' own floors.
+
+   A bar row cannot be squeezed: Figma's row is a 10px label line, a 16px gap
+   and a 6px rail (32px), and two of those three are absolute — `--lh-control`
+   is a fixed 10 design px, not a multiple of the font size. So the row's cqh
+   caps in chart-dsl.css can only ever tighten the gap and the rail, and the
+   arithmetic bottoms out at exactly Figma's 32: below it the row overruns
+   itself whatever the caps do. At 230px a cell gave its five rows 20px each
+   and 9px type — a bar list nobody at arm's length can read, with the rail of
+   every row cut off. The eight-row tables (`k-regions`, `k-onsite`) hit the
+   same wall from the other side and pushed their footnotes out of the card.
+
+   46vh is that floor read back out: 353px on this screen, which is a 32px row
+   per bar plus the card's own title, footnote and padding — and, being a
+   scrolling browse surface, height is the one thing this board has to spend.
+   The 420px ceiling keeps a tall screen from turning twenty cards into twenty
+   screenfuls. */
+:root[data-view='compact'] .lib-cell {
+  min-height: clamp(300px, 46vh, 420px);
+}
+
+/* --- Tab tracks on a narrow card ---
+   A card's tabs are pinned to its top-right corner and its title reserves
+   their measured width as padding (reanchorChips in board.js), so on the
+   wall's 704px card a three-segment track leaves the title 400px and on a
+   tablet's 388px card it leaves it 80 — which is "Top spec…". Down one Figma
+   rung (regular/control_S, the one the donut legends already use) with the
+   segment padding at spacing/x1-5, the same track is 234px and the title gets
+   its name back. Still one control, still the Figma tabs component; only the
+   rung inside it moves, the way the type scale is meant to be used. */
+:root[data-view='compact'] .chip {
+  padding: var(--fsp-2) var(--fsp-1-5);
+  font-size: var(--fs-control-s);
+}
+
+/* --- The dock ---
+   Figma's 24px tab label is a wall figure: read at five metres it is small,
+   and four of them plus two 64px buttons is 1100px, which is more than an
+   upright iPad has. At arm's length the 16px control rung reads perfectly
+   well, and the whole dock comes back to ~640px. */
+:root[data-view='compact'] .hdr {
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+}
+
+/* The dock is the widest thing in the header and the only one that must not
+   shrink, so the mark gives way to it: it keeps its aspect and takes whatever
+   the 1fr column has left rather than overflowing a clipped box. */
+:root[data-view='compact'] .hdr-logo {
+  height: calc(44 * var(--u));
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* `dir` lives on <html>, which is also `:root` — hence one compound selector
+   rather than a descendant one. */
+:root[dir='rtl'][data-view='compact'] .hdr-logo {
+  object-position: right center;
+}
+
+:root[data-view='compact'] .nav-item,
+:root[data-view='compact'] .nav-scene-option {
+  padding: var(--fsp-3);
+  font-size: var(--fs-control-l);
+  line-height: 1.2;
+}
+
+:root[data-view='compact'] .nav-item:first-of-type {
+  padding-inline-start: var(--fsp-4);
+}
+
+:root[data-view='compact'] .dock-btn {
+  padding: var(--fsp-3);
+}
+
+:root[data-view='compact'] .dock-btn svg,
+:root[data-view='compact'] .nav-badge,
+:root[data-view='compact'] .nav-scene-badge {
+  width: calc(24 * var(--fu));
+  height: calc(24 * var(--fu));
+}
+
+:root[data-view='compact'] .nav-badge,
+:root[data-view='compact'] .nav-scene-badge {
+  font-size: var(--fs-control-m);
+  line-height: 1;
+}
+
+:root[data-view='compact'] .nav-divider {
+  width: var(--fsp-2);
+}
+
+/* --- The map's six modes ---
+   The one track in the app with six segments, floating over the imagery in a
+   card that is 790px wide here instead of 1184. In English the six fit; in
+   Arabic they do not, and `overflow: hidden` on the track means the sixth
+   simply disappears — a mode the room cannot reach. So on a tablet this track
+   wraps, and a wrapped track stands its pill down (the pill's mechanic is two
+   edges on one line, each with its own clock — see .chip-pill in widget.css)
+   in favour of painting the active segment directly. */
+:root[data-view='compact'] .widget[data-chips-overlay] .widget-body > .chips {
+  height: auto;
+  max-width: calc(100% - 2 * var(--fsp-2));
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+:root[data-view='compact'] .widget[data-chips-overlay] .chip-pill {
+  display: none;
+}
+
+:root[data-view='compact'] .widget[data-chips-overlay] .chip[data-on] {
+  background: var(--chip-fill);
+}
+
+/* --- One column ---
+   A card the full width of the screen, and a tab track that no longer fits
+   its six map modes on one line. A wrapped track cannot carry the sliding
+   pill — the pill's whole mechanic is two edges on one line, each with its
+   own clock (see .chip-pill in widget.css) — so on a wrapped track the active
+   segment is painted directly and the pill stands down rather than sliding
+   diagonally across two rows. */
+:root[data-cols='1'] .chips {
+  height: auto;
+  flex-wrap: wrap;
+}
+
+:root[data-cols='1'] .chip-pill {
+  display: none;
+}
+
+:root[data-cols='1'] .chip[data-on] {
+  background: var(--chip-fill);
+}
+
+/* --- Phone ---
+   The dock has run out of room for four labels beside two buttons. */
+:root[data-narrow] .hdr {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 0 var(--sp-2);
+}
+
+:root[data-narrow] .hdr-logo {
+  height: calc(34 * var(--u));
+}
+
+:root[data-narrow] .nav-item,
+:root[data-narrow] .nav-scene-option {
+  padding: var(--fsp-2);
+  font-size: var(--fs-control-m);
+}
+
+:root[data-narrow] .nav-item:first-of-type {
+  padding-inline-start: var(--fsp-3);
+}
+
+/* The scene picker floats above the dock and is wider than a phone; the badge
+   advances the scene directly instead (see cycleScene in shell.js). */
+:root[data-narrow] .nav-scene-menu {
+  display: none;
+}
+
+/* Four labels beside two buttons is ~520px of dock, and the phone has 390.
+   The dock scrolls sideways rather than shrinking its type past the control
+   rung or dropping a tab the visitor then cannot reach.
+
+   The scroll goes on `.dock`, not on `.nav` inside it, and that is the whole
+   of the trick: the sliding pill is absolutely positioned against `.nav`, so
+   scrolling `.nav` itself would leave the pill pinned to the track's padding
+   box while the labels slid out from under it. Scrolling the dock moves
+   `.nav` bodily, pill and all.
+
+   `overflow` on the dock is also why the scene picker above had to go: it
+   floats out of the top of this box, and a scroll container clips it. */
+:root[data-narrow] .dock {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:root[data-narrow] .dock::-webkit-scrollbar {
+  display: none;
+}
+
+:root[data-narrow] .ticker-item {
+  font-size: var(--fs-control-l);
+}
+
+/* The dot is the indicator; the word is the caption on it. The header's two
+   side columns have to give the dock everything they have on a tablet — in
+   Arabic the caption was being clipped mid-word by the dock's own edge — so
+   the caption goes and the signal stays. */
+:root[data-view='compact'] .live-label {
+  display: none;
+}
+
+:root[data-view='compact'] .live {
+  padding: var(--fsp-2);
+}
+
+/* --- Attract screen ---
+   112 design pixels is a wall headline. On a phone it is four characters per
+   line, so the splash takes the same two-rail treatment the board does. */
+:root[data-view='compact'] {
+  --fs-splash: clamp(40px, 9vw, 84px);
+}
+
+:root[data-view='compact'] .splash-inner {
+  padding: var(--sp-6);
+}
+
+:root[data-narrow] .splash-stats {
+  flex-wrap: wrap;
+}

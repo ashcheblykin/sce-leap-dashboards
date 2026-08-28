@@ -17,6 +17,16 @@
 
    States the walk drives by hand, because nothing else reaches them:
    the settings panel, drag/resize attributes, and the tooltip's own classes.
+
+   ONE STATE IT CANNOT REACH BY WALKING: the layout mode. Every rule in
+   responsive.css is behind an attribute core/viewport.js writes only on a
+   compact screen, so at the default 2880x1152 the whole file reads as dead.
+   Run it twice and read the intersection:
+
+     node tools/css-coverage.mjs            # the wall
+     node tools/css-coverage.mjs 820 1180   # a tablet
+
+   A selector is dead only if it never matched in either.
 */
 
 import { spawn } from 'node:child_process';

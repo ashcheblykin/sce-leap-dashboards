@@ -23,8 +23,8 @@
      view mounts (see chart-dsl.js and boards/kit.js) — widget.css keys off
      that same attribute to show only the matching glyph, so a chip switch
      between chart kinds (e.g. pie -> progress-bars) swaps the icon with it.
-     Kinds without a Figma glyph (cartesian, radar, sankey, sunburst, table)
-     render no icon rather than a guessed one. */
+     Only `table` is left without a glyph; it renders no icon rather than a
+     guessed one. */
   /* The gap the title leaves between its ellipsis and the tab track, on top
      of the track's own measured width. The track sits 8px in from the card
      edge (see .widget-head > .chips) and the card's padding is 12px, so 8
@@ -58,6 +58,57 @@
     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
     '<circle cx="8" cy="8" r="8" fill="#6366F1" fill-opacity="0.2"/>' +
     '<path d="M8.0625 1.00098C11.804 1.03524 14.842 4.00429 14.9893 7.71777L14.624 9.4375C14.5702 9.68988 14.2132 9.69926 14.1465 9.4502C14.1179 9.34274 14.0204 9.26765 13.9092 9.26758H13.2236C13.1823 9.26758 13.1409 9.27558 13.1025 9.29102L11.7715 9.82617C11.4945 9.93754 11.5027 10.3324 11.7842 10.4316L12.7266 10.7637C12.9998 10.8598 13.0191 11.2393 12.7568 11.3623L11.2529 12.0674C11.0969 12.1406 10.9102 12.0789 10.8291 11.9268L10.4668 11.2461C10.3978 11.1165 10.2494 11.0495 10.1064 11.083L9.54492 11.2148C9.32772 11.2658 9.22574 11.5161 9.3457 11.7041L9.91895 12.6006C9.99006 12.7118 10.1222 12.7685 10.252 12.7441L11.0938 12.5859C11.3276 12.5421 11.5277 12.7574 11.4668 12.9873L11.3154 13.5557C11.2967 13.6258 11.2543 13.6879 11.1963 13.7314L9.83301 14.7539C9.24769 14.9126 8.63263 15 7.99707 15C4.90728 15 2.28779 12.9972 1.35938 10.2197L1.49414 10.0166C1.56081 9.91651 1.67824 9.86155 1.79785 9.87402L4.33984 10.1387C4.38878 10.1438 4.43581 10.1605 4.47754 10.1865L5.28613 10.6924C5.3289 10.7191 5.37751 10.7355 5.42773 10.7402L8.18848 10.999C8.3519 11.0143 8.50094 10.9047 8.53516 10.7441L8.75781 9.69922C8.77656 9.61073 8.75747 9.51808 8.70508 9.44434L8.45605 9.09375C8.31925 8.90121 8.42801 8.63146 8.66016 8.58789L9.19531 8.4873C9.43503 8.44205 9.54 8.15842 9.3877 7.96777L9.09473 7.59961C8.94943 7.41806 8.66504 7.44513 8.55566 7.65039L8.5 7.75488C8.48335 7.78608 8.46133 7.81467 8.43555 7.83887L7.63965 8.58496C7.5745 8.64612 7.53812 8.73193 7.53809 8.82129V9.2373C7.53787 9.41588 7.3925 9.56055 7.21387 9.56055H6.79492C6.67541 9.56049 6.56598 9.49416 6.50977 9.38867L6.30273 9.00098C6.29336 8.98339 6.28197 8.96674 6.26953 8.95117L5.92383 8.51855C5.76694 8.32227 5.45144 8.46057 5.48926 8.70898C5.52883 8.97095 5.18296 9.10107 5.04004 8.87793L4.91699 8.68652C4.818 8.53171 4.60286 8.50433 4.46875 8.62988L3.61523 9.43164C3.53011 9.51152 3.40829 9.53875 3.29688 9.50391L2.02832 9.10742C1.81841 9.04177 1.73398 8.79063 1.86133 8.61133L2.0918 8.28711C2.17298 8.17284 2.31836 8.12319 2.45215 8.16504L2.8252 8.28223C3.00707 8.33911 3.1994 8.22733 3.23926 8.04102L3.4375 7.10742C3.46188 6.99334 3.54594 6.90116 3.65723 6.86621L4.36719 6.64453C4.39844 6.63477 4.43113 6.62988 4.46387 6.62988H5.84766C5.92989 6.62988 6.00934 6.59823 6.06934 6.54199L6.97363 5.69336C7.1099 5.5655 7.1099 5.34856 6.97363 5.2207L6.64941 4.91602C6.47926 4.75651 6.20127 4.82424 6.12305 5.04395L6.00195 5.38281C5.9847 5.43137 5.9565 5.47546 5.91895 5.51074L5.65918 5.75391C5.50375 5.89955 5.25253 5.85794 5.15234 5.66992L4.84277 5.08984C4.774 4.96079 4.80059 4.80124 4.90723 4.70117L6.19531 3.49316C6.25531 3.43692 6.33475 3.40527 6.41699 3.40527H6.84082C6.88834 3.40527 6.93549 3.41634 6.97852 3.43652L7.33887 3.60547C7.4589 3.66178 7.60155 3.63858 7.69824 3.54785L8.60645 2.69531C8.713 2.59529 8.73954 2.43662 8.6709 2.30762L8.08887 1.21484C8.05145 1.14462 8.04584 1.06935 8.0625 1.00098Z" fill="#10B981"/>' +
+    '</svg></span>' +
+    /* --- The two the Profession board needed ---
+       Its headline panels are the two chart kinds the Figma D-item set has no
+       glyph for, so the only two cards on the wall built around a sankey and
+       a sunburst were also the only two whose titles started with an empty
+       icon slot. Drawn to the same recipe as the four above: a 16px box, the
+       same four flat tones (indigo / green / amber / red), and a 0.2-opacity
+       backer behind the solid figure so the glyph reads as a small diagram
+       rather than an outline. */
+    '<span class="widget-icon" data-icon="sankey" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M3.2 2.4C7 2.4 9 1.8 12.8 1.8V5C9 5 7 5.6 3.2 5.6Z" fill="#6366F1" fill-opacity="0.35"/>' +
+    '<path d="M3.2 6.1C7 6.1 9 10.6 12.8 10.6V13.9C9 13.9 7 9.3 3.2 9.3Z" fill="#6366F1" fill-opacity="0.2"/>' +
+    '<path d="M3.2 9.8C7 9.8 9 6.2 12.8 6.2V9.9C9 9.9 7 13.5 3.2 13.5Z" fill="#10B981" fill-opacity="0.28"/>' +
+    '<rect x="1.4" y="2" width="1.6" height="5" rx="0.5" fill="#6366F1"/>' +
+    '<rect x="1.4" y="8.6" width="1.6" height="5.4" rx="0.5" fill="#10B981"/>' +
+    '<rect x="13" y="1.6" width="1.6" height="3.6" rx="0.5" fill="#6366F1"/>' +
+    '<rect x="13" y="6" width="1.6" height="4.1" rx="0.5" fill="#F59E0B"/>' +
+    '<rect x="13" y="10.8" width="1.6" height="3.3" rx="0.5" fill="#EF4444"/>' +
+    '</svg></span>' +
+    '<span class="widget-icon" data-icon="sunburst" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    /* The rings are stroked circles cut into arcs with dash patterns rather
+       than five hand-written arc paths: one radius, one circumference
+       (2*pi*6.4 = 40.2), and the four shares read straight off the dasharray. */
+    '<g fill="none" transform="rotate(-90 8 8)">' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#6366F1" stroke-width="2.6" stroke-dasharray="14.6 25.6"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#10B981" stroke-width="2.6" stroke-dasharray="9.6 30.6" stroke-dashoffset="-15.6"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#F59E0B" stroke-width="2.6" stroke-dasharray="7.6 32.6" stroke-dashoffset="-26.2"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#EF4444" stroke-width="2.6" stroke-dasharray="5.4 34.8" stroke-dashoffset="-34.8"/>' +
+    '<circle cx="8" cy="8" r="2.6" stroke="#6366F1" stroke-width="2.4" stroke-opacity="0.35"/>' +
+    '</g>' +
+    '</svg></span>' +
+    /* --- The last two the Profession board needed ---
+       Its trend panel is a cartesian chart and its balance panel a radar, the
+       two remaining kinds with no glyph, so both cards still opened their
+       title with an empty slot. Both marks come straight from the Figma
+       D-item set (Lines / V) and keep its own tones rather than the four
+       flat chart colours. */
+    '<span class="widget-icon" data-icon="cartesian" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect x="1.32031" y="1.16504" width="1" height="7.50879" fill="#39D7F5"/>' +
+    '<rect x="1.32031" y="9" width="1" height="5.41406" fill="#3EE6A4"/>' +
+    '<path d="M2 4.0032C8.60648 4.0032 8.60648 3.83984 15.213 3.83984" stroke="#39D7F5" stroke-opacity="0.4" stroke-width="3"/>' +
+    '<path d="M1.55469 7.09082C8.16117 7.09082 8.63451 10.2562 15.241 10.2562" stroke="#39D7F5" stroke-opacity="0.4" stroke-width="3"/>' +
+    '<path d="M2 12.8887C8.60648 12.8887 8.60648 13.6172 15.213 13.6172" stroke="#3EE6A4" stroke-opacity="0.4" stroke-width="3"/>' +
+    '</svg></span>' +
+    '<span class="widget-icon" data-icon="radar" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M8 8.00017V0M8 8.00017L14.9283 4M8 8.00017L14.9283 12.0001M8 8.00017V16.0002M1.07031 12.0001L7.99866 8L1.07031 4M7.99812 1.56836C8.84274 1.56836 9.67909 1.73472 10.4594 2.05794C11.2398 2.38117 11.9488 2.85492 12.546 3.45216C13.1433 4.0494 13.617 4.75843 13.9402 5.53876C14.2635 6.31909 14.4298 7.15544 14.4298 8.00007C14.4298 8.84469 14.2635 9.68105 13.9402 10.4614C13.617 11.2417 13.1433 11.9507 12.546 12.548C11.9488 13.1452 11.2398 13.619 10.4594 13.9422C9.67909 14.2654 8.84274 14.4318 7.99812 14.4318C7.15349 14.4318 6.31714 14.2654 5.53681 13.9422C4.75648 13.619 4.04745 13.1452 3.45021 12.548C2.85297 11.9507 2.37921 11.2417 2.05599 10.4614C1.73277 9.68105 1.56641 8.84469 1.56641 8.00007C1.56641 7.15544 1.73277 6.31909 2.05599 5.53876C2.37921 4.75843 2.85297 4.0494 3.45021 3.45216C4.04745 2.85492 4.75648 2.38117 5.53681 2.05794C6.31714 1.73472 7.15349 1.56836 7.99812 1.56836Z" stroke="white" stroke-opacity="0.4"/>' +
+    '<path d="M7.83905 3.17578L13.6245 4.28919L11.8452 9.97454L7.83905 12.8254L3.01783 10.413L2.375 4.47476L7.83905 3.17578Z" fill="#F59E0B" fill-opacity="0.36" stroke="#F59E0B" stroke-linejoin="round"/>' +
     '</svg></span>';
 
   function loadLayout(boardId, widgets) {
@@ -376,11 +427,17 @@
       var chipsEl = widgetEls[i].querySelector('.chips');
       if (!chipsEl) continue;
       var title = widgetEls[i].querySelector('.widget-head .widget-title');
+      /* Overlay boards (the map) float their track over the imagery inside
+         .widget-body, so it never shares the header row and there is nothing
+         for the title to get out of the way of. Reserving there was pure
+         loss: the map's title was clipped to one letter to make room for a
+         track sitting 200px below it. */
+      var inHead = chipsEl.parentNode === widgetEls[i].querySelector('.widget-head');
       plan.push({
         tabs: chipsEl._tabs || null,
         edges: chipsEl._tabs ? chipsEl._tabs.measure() : null,
         title: title,
-        width: title ? chipsEl.offsetWidth : 0,
+        width: title && inHead ? chipsEl.offsetWidth : 0,
       });
     }
     if (!plan.length) return;

@@ -223,11 +223,40 @@
     document.body.classList.add('grid-dragging');
   }
 
+  /* The wall's own reading order, as a flex/grid `order`.
+
+     A compact screen drops the absolute placement and lets the widgets run
+     down the page (see responsive.css), and the one thing that must survive
+     that is the sequence: the tablet should show the panels in the order the
+     wall shows them across, not in the order the board definition happens to
+     list them (which is column-by-column — left wing, map, right wing — and
+     would put all three left panels above the map).
+
+     Rows first, then columns, which is exactly `compact()`'s own sort above.
+     `y` can be fractional (the Big Screen's three equal thirds are 8/3 apart),
+     so it is scaled by 100 before rounding rather than truncated to a row
+     index, which would collapse those three onto each other. */
+  function flowOrder(item) {
+    return Math.round(item.y * 100) + Math.round(item.x);
+  }
+
+  /* A widget that takes 9 or more of the wall's 24 columns is the panel its
+     row is built around — the national map, the register sankey, the specialty
+     list — and it takes the compact grid's full width rather than half of it.
+     Everything narrower pairs up two to a row. */
+  var WIDE_COLS = 9;
+
   function applyGeometry(el, item) {
     el.style.setProperty('--grid-item-x', item.x);
     el.style.setProperty('--grid-item-y', item.y);
     el.style.setProperty('--grid-item-w', item.w);
     el.style.setProperty('--grid-item-h', item.h);
+    /* Both are inert on the wall — nothing reads `order` under absolute
+       positioning — so they are written once here rather than on every mode
+       change, and the compact stylesheet simply starts obeying them. */
+    el.style.order = flowOrder(item);
+    if (item.w >= WIDE_COLS) el.setAttribute('data-flow', 'wide');
+    else el.removeAttribute('data-flow');
   }
 
   /**

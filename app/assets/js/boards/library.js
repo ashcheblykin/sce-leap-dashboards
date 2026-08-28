@@ -503,9 +503,14 @@
   /* --- rendering --- */
 
   /* Five columns is the widest a card can be and still hold a legible donut
-     legend at wall scale; below six cards the filter is a single tall row,
-     which fills the stage rather than leaving a ragged one. */
+     legend at wall scale; below six cards the grid is a single tall row,
+     which fills the stage rather than leaving a ragged one.
+
+     On a tablet the count comes from the viewport instead — the board scrolls
+     there, so a column count picked to make the grid exactly full has nothing
+     to be full of. */
   function columnsFor(count) {
+    if (Viewport.isCompact()) return Math.min(count, Viewport.columns());
     return count <= 5 ? count : 5;
   }
 
@@ -526,10 +531,12 @@
       mountedBodies = [];
       grid.innerHTML = '';
 
-      var cols = columnsFor(all.length);
+      var shown = all;
+
+      var cols = columnsFor(shown.length);
       grid.style.setProperty('--lib-cols', cols);
 
-      all.forEach(function (card) {
+      shown.forEach(function (card) {
         var cell = document.createElement('div');
         cell.className = 'lib-cell';
         cell.setAttribute('data-card', card.id);

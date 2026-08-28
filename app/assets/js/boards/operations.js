@@ -108,6 +108,9 @@
         x: 6, y: 0, w: 11, h: 5, minW: 6, minH: 3,
         titleKey: 'w.map',
         chipKeys: ['c.actions', 'c.value'],
+        /* Same as the Big Screen map (Figma node 5039:94568): the tabs float
+           over the imagery, top-right, instead of spending a header row. */
+        chipsOverlay: true,
         views: [
           function (el) {
             Kit.mapView(el, {

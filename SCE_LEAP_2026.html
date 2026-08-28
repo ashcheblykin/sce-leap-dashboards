@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>SCE · Smart Monitoring Center — LEAP 2026</title>
     <meta name="description" content="Saudi Council of Engineers national monitoring dashboards, LEAP 2026." />
 
@@ -168,7 +168,16 @@
      larger again, which is the difference between "a dashboard on a big
      monitor" and something readable from across a stand. */
   --u-scale: 1.3;
-  --u: clamp(0.74px, min(100vw / 2880, 100vh / 1152) * var(--u-scale), 2.4px);
+
+  /* Split into a base and two rails so the compact mode (see responsive.css)
+     can substitute its own three numbers without restating the formula, and
+     `[`/`]` keep working on both. On the wall the base is the fit ratio: the
+     board is 2880x1152 and `--u` is whatever fraction of that the screen
+     actually is. */
+  --u-base: min(100vw / 2880, 100vh / 1152);
+  --u-floor: 0.74px;
+  --u-ceil: 2.4px;
+  --u: clamp(var(--u-floor), var(--u-base) * var(--u-scale), var(--u-ceil));
 
   /* The Figma design pixel: `--u` divided by the default `--u-scale`, so at
      2880x1152 on the default setting `--fu` is exactly 1px and every
@@ -285,6 +294,12 @@
      four rungs, then three; every factoid on the wall now reads at one size
      (see .ax-kpi-value), so one rung is all there is left to name. */
   --cap-kpi: 64cqh;
+  /* There is a second cap on a factoid, and it is deliberately NOT a token:
+     it depends on `--kpi-em`, which is written per tile, and a `var()` inside
+     a custom property is substituted where the property is DECLARED — here,
+     on :root, where `--kpi-em` does not exist and every tile would silently
+     take the fallback. It lives at its point of use instead; see
+     .ax-kpi-value in chart-dsl.css. */
 
   /* Latin first even in Arabic: the Arabic subset carries no Latin glyphs, so
      digits and the few Latin words ("LEAP 2026", "SAR") need the fallback. */
@@ -797,7 +812,9 @@ body.grid-dragging .widget-head {
 .widget[data-icon-chart='indicator'] .widget-icon[data-icon='indicator'],
 .widget[data-icon-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
 .widget[data-icon-chart='pie'] .widget-icon[data-icon='pie'],
-.widget[data-icon-chart='map'] .widget-icon[data-icon='map'] {
+.widget[data-icon-chart='map'] .widget-icon[data-icon='map'],
+.widget[data-icon-chart='sankey'] .widget-icon[data-icon='sankey'],
+.widget[data-icon-chart='sunburst'] .widget-icon[data-icon='sunburst'] {
   display: flex;
 }
 
@@ -809,7 +826,7 @@ body.grid-dragging .widget-head {
    wall start in the same place, whatever is drawn underneath it. */
 .widget:not([data-icon-chart='indicator']):not([data-icon-chart='progress-bars']):not(
     [data-icon-chart='pie']
-  ):not([data-icon-chart='map'])
+  ):not([data-icon-chart='map']):not([data-icon-chart='sankey']):not([data-icon-chart='sunburst'])
   .widget-icon[data-icon='indicator'] {
   display: flex;
   visibility: hidden;
@@ -986,6 +1003,14 @@ body.grid-dragging .widget-head {
   background: none;
 }
 
+
+/* Proactive monitoring is the one indicator card whose tiles are label-first:
+   the label sits on the top line, so giving the header's padding back to the
+   grid (see .widget[data-chart='indicator'] .widget-head) puts the card title
+   directly above a second row of text. It keeps Figma's 12px label gap. */
+[data-grid-item='bs-mon'] .widget[data-chart='indicator'] .widget-head {
+  padding-bottom: var(--pad-card);
+}
 
     </style>
     <style>
@@ -1527,7 +1552,28 @@ body.grid-dragging .widget-head {
    keeps the proportion instead of opening a gap under a shrunken number. */
 .ax-kpi-value {
   color: var(--fg-primary);
-  font-size: min(var(--fs-hero-l), var(--cap-kpi));
+  /* Three ceilings, and the rung wins at every size the wall runs at.
+
+     The third is the one that is not in tokens.css, because it cannot be: a
+     factoid is `white-space: nowrap` — "1.12M" must never break after the dot
+     — so a tile narrower than its number overflows rather than wrapping, and
+     no cqh cap can see that coming; height says nothing about how many digits
+     a figure has. `--kpi-em` is the width of THIS tile's own figure in ems,
+     measured glyph by glyph in chart-dsl.js (see widthEm) and written onto
+     the tile, so `100cqw / --kpi-em` is exactly the size at which this number
+     fills this tile. "1 116 186" and "402" therefore get different ceilings,
+     which one shared cqw figure could never do.
+
+     It has to be written here rather than as a token: `var()` inside a custom
+     property is substituted where that property is declared, so a
+     `--cap-kpi-w` on :root would resolve `--kpi-em` against :root — where it
+     does not exist — and hand every tile the fallback.
+
+     A floor under a narrow tile, not a design figure. At 2880 a two-up tile
+     is 340px and even the longest figure in the set reads 95px against the
+     72px rung, so the rung draws and this never bites; it bites on a tablet,
+     where the same card is 183px across. */
+  font-size: min(var(--fs-hero-l), var(--cap-kpi), calc(100cqw / var(--kpi-em, 3)));
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.04;
@@ -1611,14 +1657,14 @@ body.grid-dragging .widget-head {
    vignette painted into the pixels would drift off the visible edges. */
 .map::after {
   position: absolute;
-  background: radial-gradient(120% 110% at 50% 48%, transparent 52%, rgba(2, 10, 20, 0.82) 100%);
+  background: radial-gradient(120% 110% at 50% 48%, transparent 52%, color-mix(in srgb, var(--ink) 82%, transparent) 100%);
   content: '';
   inset: 0;
   pointer-events: none;
 }
 
 .map-ground {
-  fill: #020a14;
+  fill: var(--ink);
 }
 
 .map-plate {
@@ -1630,7 +1676,7 @@ body.grid-dragging .widget-head {
    raster. Matches .map-ground so the neighbours read as empty background
    rather than a still-visible, just-darkened plate. */
 .map-scrim {
-  fill: #020a14;
+  fill: var(--ink);
 }
 
 .map-focus {
@@ -1654,6 +1700,94 @@ body.grid-dragging .widget-head {
   stroke: currentColor;
   stroke-opacity: 0.95;
   stroke-width: 0.022;
+}
+
+/* --- The living map ---
+   See the note above `STAGGER_MAX` in core/map.js for why there are two
+   arrivals rather than one. Both are transform-and-opacity only, and both run
+   once: a mode switch rebuilds the markers, which restarts them, which is
+   exactly the moment the effect is wanted.
+
+   `transform-box: fill-box` is what makes `transform-origin: center` mean the
+   bubble's own centre rather than the SVG's origin — without it a scaled dot
+   flies in from the top-left corner of the peninsula. */
+.map-markers.is-seeding .map-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-dot-seed 520ms var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 14ms);
+}
+
+@keyframes map-dot-seed {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Thousands of offices at once: one animation on the group, not one per dot. */
+.map-markers.is-bulk {
+  animation: map-bulk-in 700ms var(--ease) backwards;
+}
+
+@keyframes map-bulk-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* The pulse. Three of them, on the three largest points of the current mode
+   (see PINGS in core/map.js) — a ring that expands out of the bubble and
+   fades, staggered so they never fire together. It is the one thing on the
+   board that never stops, so it is the one thing here that had to cost
+   nothing: three elements whatever the mode plots, and both animated
+   properties composited.
+
+   HTML rings in a layer over the plate rather than SVG circles beside the
+   bubbles, and the note above the layer in core/map.js has the measurement:
+   as SVG this took an idle board from 0 layout passes in six seconds to 684,
+   because Chrome relays out an SVG rather than compositing a transform on one
+   of its children. Their position is projected by hand in placePings(). */
+.map-pings {
+  z-index: 1;
+  position: absolute;
+  overflow: hidden;
+  inset: 0;
+  pointer-events: none;
+}
+
+.map-ping {
+  position: absolute;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  animation: map-ping 3200ms cubic-bezier(0.16, 0.8, 0.4, 1) infinite;
+  animation-delay: calc(var(--i, 0) * 640ms);
+}
+
+@keyframes map-ping {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.7);
+  }
+
+  55% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
 }
 
 /* Field-verification variants: the dot's colour carries the licence state, so
@@ -1741,6 +1875,20 @@ body.grid-dragging .widget-head {
   letter-spacing: 0.02em;
 }
 
+
+/* Reduced motion takes the whole of it: the arrivals land instantly and the
+   ping stands down entirely rather than running slower. A permanent pulse is
+   precisely what the setting exists to switch off. */
+@media (prefers-reduced-motion: reduce) {
+  .map-markers.is-seeding .map-dot,
+  .map-markers.is-bulk {
+    animation: none;
+  }
+
+  .map-ping {
+    display: none;
+  }
+}
 
     </style>
     <style>
@@ -2335,19 +2483,48 @@ body.grid-dragging [data-grid-item] {
   padding: var(--fsp-4);
   padding-inline-start: var(--fsp-5);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.05);
+  /* Figma's 5% white glass, but over a ground of its own rather than over
+     whatever board the menu is floating on. The dock's tabs get that ground
+     for free — they sit on the dock's rgba(0,0,0,0.6) over --ink — and these
+     options were leaning on a blur for it instead, which is what smeared the
+     widget behind them into something the labels could sit on. #03191e is
+     that same dock plate resolved against --ink, so an option still reads as
+     one of the tabs it stands in for, and now does so without a Gaussian. */
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    rgba(3, 25, 30, 0.92);
   box-shadow: 0 calc(10 * var(--fu)) var(--fsp-5) rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(calc(10 * var(--fu)));
   color: var(--tx);
   font-size: var(--fs-subheading-l);
   line-height: var(--lh-subheading-l);
   font-weight: 500;
   white-space: nowrap;
+  /* blur(0px), and deliberately not blur(10px) — the same call .widget and
+     .nav-pill make, here for a motion reason rather than a cost one.
+
+     The menu's open state is a 160ms fade-and-rise on the parent, which puts
+     three backdrop-filtered options inside an element whose opacity is
+     animating. Chrome does not resolve that combination smoothly: the blurred
+     backdrop is not carried through the group's opacity frame by frame, so
+     the wash arrives at full radius on whichever frame the layer lands and
+     the fade underneath it never gets read — the menu reads as a snap, not an
+     entrance. Transitioning the radius alongside the fade does not fix it
+     (the composited value goes stale and stays at full radius after the menu
+     closes); the property simply should not be animated.
+
+     The menu does float over the board rather than over a flat plate, so the
+     blur was doing something here — but it was a wash under a 5% white plate
+     on an already dark board, and a legible entrance is worth more than it.
+     Keeping the property at zero radius rather than dropping it keeps the
+     composited layer and its text rasterisation exactly as they were. */
+  backdrop-filter: blur(0px);
   transition: background var(--dur-fast) var(--ease);
 }
 
 .nav-scene-option:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+    rgba(3, 25, 30, 0.92);
 }
 
 .nav-scene-badge {
@@ -2433,6 +2610,78 @@ body.grid-dragging [data-grid-item] {
 
 .shell-toast[data-on] {
   opacity: 1;
+}
+
+/* --- Online-updates indicator ---
+   A green dot with one word beside it, sitting in the board's far corner next
+   to the settings button. It is the customer's "real time" ask reduced to the
+   smallest thing that carries it: no counter, no clock, no figure that could
+   be read as data. Every value on this wall is the customer's own reconciled
+   dataset and none of them move, so nothing here may imply otherwise.
+
+   Two elements, one animation, and it runs for the life of the session — so
+   it is the same shape as the map's ping: transform and opacity on a single
+   composited element, on its own layer, invalidating nothing around it. The
+   halo is a pseudo-element rather than a box-shadow so the pulse scales a
+   layer instead of repainting a blur every frame. */
+.live {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--fsp-2);
+  padding: var(--fsp-1-5) var(--fsp-3);
+  border: var(--hairline) solid var(--border-primary);
+  border-radius: var(--radius-pill);
+  color: var(--fg-control);
+  font-size: var(--fs-control-m);
+  line-height: var(--lh-control);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.live-dot {
+  position: relative;
+  display: block;
+  width: var(--fsp-2);
+  height: var(--fsp-2);
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--green);
+}
+
+.live-dot::after {
+  position: absolute;
+  border-radius: var(--radius-pill);
+  background: var(--green);
+  content: '';
+  inset: 0;
+  animation: live-pulse 2400ms cubic-bezier(0.16, 0.8, 0.4, 1) infinite;
+}
+
+@keyframes live-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  70% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* A permanent pulse is exactly what this setting is for: the dot stays, lit,
+   and stops breathing. */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after {
+    animation: none;
+  }
 }
 
 /* --- Settings --- */
@@ -2823,6 +3072,396 @@ body.grid-dragging .ticker-track,
 }
 
     </style>
+    <!-- Last: every rule in it is an override of the ones above, for the
+         tablet and the small screen. See core/viewport.js for the one place
+         the breakpoints live. -->
+    <style>
+/* The tablet and the small screen.
+
+   Every rule in this file is behind `[data-view='compact']`, written by
+   core/viewport.js — one query, one decision, no breakpoint restated in two
+   places. Nothing here changes a colour, a radius, a type rung, a chart or a
+   number: the card is the same Figma card, the widgets are the same widgets in
+   the same order, and the only thing that changes is that a 2.5:1 composition
+   which cannot fit across an upright screen is allowed to run down it instead.
+
+   Three moves, in order of how much they matter:
+
+   1. `--u` stops being a fit ratio and becomes a device ratio. On the wall
+      `--u` answers "what fraction of 2880x1152 is this screen", because the
+      whole design has to land inside the panel at once. On a tablet that
+      question has no useful answer — an 820px-wide screen is 28% of the wall,
+      and 28% of a 16px title is 4.5px. A tablet is read at arm's length, not
+      from across a stand, so its type wants to sit near Figma's own px sizes
+      whatever the width, which is what the `0.58px + 0.046vw` base gives:
+      ~1.23 at an iPad's 820, ~1.36 at 1024, floored at 0.95 on a phone.
+
+   2. The 24x8 grid becomes a flow. Each widget keeps its identity and its
+      reading position — `applyGeometry` writes an `order` from the same x/y
+      the wall lays it out at, so the sequence down the tablet is the sequence
+      across the wall — and a widget that spans 9+ of the wall's 24 columns
+      (the map, a sankey, the enforcement wing) takes the full width here
+      rather than half of it.
+
+   3. The stage scrolls. It is the one thing the wall must never do and the
+      one thing the tablet must: the brief asks for every block to stay
+      reachable, and on an upright screen that means downwards.
+
+   The panel heights are `--flow-unit` per wall row, so a card that is a third
+   of the wall's height is about a quarter of the tablet's — tall enough for
+   the bar list, the donut and the four-up factoid grid the cqh caps in
+   chart-dsl.css already size themselves against. */
+
+:root[data-view='compact'] {
+  /* Near Figma's own pixel at a tablet's width, and never so small that the
+     control rungs stop being controls. See note 1 above. */
+  --u-base: calc(0.58px + 0.046vw);
+  --u-floor: 0.95px;
+  --u-ceil: 1.7px;
+
+  /* The chrome gives a little back: on a 1180px-tall iPad the header and the
+     ticker were taking a sixth of the screen before a single card. */
+  --shell-header: calc(76 * var(--u));
+  --shell-ticker: calc(44 * var(--u));
+
+  /* One wall row's worth of height in the flow. A 8/3-row wing panel lands at
+     ~25vh — enough for a four-up factoid grid whose labels run to two lines,
+     which is what 8.5 was half a line short of — and the full-height map at
+     76vh, which the 70vh clamp below brings back so a single panel can never
+     take the whole screen. */
+  --flow-unit: 9.5vh;
+
+  /* The one type rung that does not simply ride `--u` here.
+
+     72 design pixels is 10% of the width of the card a factoid sits in on the
+     wall (a 704px wing panel). On a reflowed tablet the same card is 388px,
+     where 72 is 18% — the number stops being the loudest thing on the panel
+     and becomes the only thing on it, and against a two-line Arabic caption
+     the pair does not fit the tile at all. 56 puts the factoid back at
+     roughly the share of its card that Figma drew, which is what "the same
+     design at this size" has to mean. Every other rung is unchanged. */
+  --fs-hero-l: calc(56 * var(--fu));
+}
+
+/* The column count is published by core/viewport.js rather than decided by a
+   second copy of its breakpoint here — see the note at the top of that file.
+   The KPI Library follows the same count, so a browse surface and a panel
+   board never disagree about how wide the screen is. */
+:root[data-cols='1'] {
+  --flow-cols: 1;
+  --lib-cols: 1;
+}
+
+:root[data-cols='2'] {
+  --flow-cols: 2;
+  --lib-cols: 2;
+}
+
+/* --- The scrolling stage ------------------------------------------------
+   `100dvh`, not `100vh`: on iOS the address bar counts towards `vh` and the
+   dock would sit under it, which on a board whose only navigation IS the dock
+   means the tablet has no navigation. The `100vh` line before it is the
+   fallback for anything that has not shipped dvh. */
+:root[data-view='compact'] .shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
+:root[data-view='compact'] .stage {
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Momentum scrolling on the tablet, and a scroll container that does not
+     hand its overscroll to the page behind it (there is no page behind it). */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--sp-3);
+}
+
+/* Released from the absolute inset the wall gives it: in the flow the surface
+   is as tall as its widgets, and that is what the stage scrolls. */
+:root[data-view='compact'] .stage > [data-grid-surface] {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  /* `inline-size`, not `size`: the surface's height is now its content's, so
+     a size container here would collapse it to nothing. Its children keep
+     their own `size` containers, which is what the cqh caps measure. */
+  container-type: inline-size;
+}
+
+:root[data-view='compact'] [data-grid-surface] {
+  display: grid;
+  height: auto;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--flow-cols), minmax(0, 1fr));
+  grid-auto-rows: auto;
+  /* `dense`, and it earns it. The wall's reading order alternates narrow and
+     full-width panels — a factoid card, then the map, then two more cards —
+     and sparse packing leaves the half-row beside every full-width panel
+     empty. Dense only ever pulls a LATER narrow panel back into an earlier
+     hole, never reorders two panels of the same width, so the sequence a
+     visitor reads stays the wall's own with the gaps closed. */
+  grid-auto-flow: row dense;
+  container-type: inline-size;
+}
+
+/* Out of absolute placement and into the flow. `order` and `data-flow` are
+   both written by AxGrid.applyGeometry from the same layout that positions
+   the wall, so the tablet's sequence is the wall's reading order and a wide
+   widget stays wide. */
+:root[data-view='compact'] [data-grid-item] {
+  position: static;
+  width: auto;
+  height: auto;
+  /* The 300px floor is not a round number: it is what a two-row factoid grid
+     needs once its captions wrap. A short wall card (h=2, e.g. Ecosystem's
+     reach panel) holds three factoids across on the wall and two-by-two here,
+     and an Arabic caption runs to two lines — value, gap and caption come to
+     ~99px a tile, plus the card's own title, padding and footnote. Below this
+     the tile clips its own caption, which `tools/shoot.mjs` reports and which
+     is the one thing a reflow must not do. */
+  min-height: clamp(300px, calc(var(--flow-unit) * var(--grid-item-h, 2)), 70vh);
+  transform: none;
+  grid-column: span 1;
+}
+
+:root[data-view='compact'] [data-grid-item][data-flow='wide'] {
+  grid-column: 1 / -1;
+}
+
+/* No drag on a touch board, and no handles to promise one. The wall boards
+   are already `kiosk`; this covers the three that are not. */
+:root[data-view='compact'] [data-resize-handle] {
+  display: none;
+}
+
+:root[data-view='compact'] .widget-head {
+  cursor: default;
+}
+
+/* --- KPI Library ---
+   Twenty cards, which on the wall are exactly five columns of a full stage
+   and here are two columns of a scroll. `.lib` stops being 100% tall and
+   `.lib-grid` stops dividing a fixed height into equal rows. */
+:root[data-view='compact'] [data-grid-surface][data-custom] {
+  display: block;
+  overflow: visible;
+}
+
+:root[data-view='compact'] .lib {
+  height: auto;
+}
+
+:root[data-view='compact'] .lib-grid {
+  flex: none;
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(var(--lib-cols, 2), minmax(0, 1fr));
+}
+
+:root[data-view='compact'] .lib-cell {
+  min-height: clamp(200px, 30vh, 340px);
+}
+
+/* --- Tab tracks on a narrow card ---
+   A card's tabs are pinned to its top-right corner and its title reserves
+   their measured width as padding (reanchorChips in board.js), so on the
+   wall's 704px card a three-segment track leaves the title 400px and on a
+   tablet's 388px card it leaves it 80 — which is "Top spec…". Down one Figma
+   rung (regular/control_S, the one the donut legends already use) with the
+   segment padding at spacing/x1-5, the same track is 234px and the title gets
+   its name back. Still one control, still the Figma tabs component; only the
+   rung inside it moves, the way the type scale is meant to be used. */
+:root[data-view='compact'] .chip {
+  padding: var(--fsp-2) var(--fsp-1-5);
+  font-size: var(--fs-control-s);
+}
+
+/* --- The dock ---
+   Figma's 24px tab label is a wall figure: read at five metres it is small,
+   and four of them plus two 64px buttons is 1100px, which is more than an
+   upright iPad has. At arm's length the 16px control rung reads perfectly
+   well, and the whole dock comes back to ~640px. */
+:root[data-view='compact'] .hdr {
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+}
+
+/* The dock is the widest thing in the header and the only one that must not
+   shrink, so the mark gives way to it: it keeps its aspect and takes whatever
+   the 1fr column has left rather than overflowing a clipped box. */
+:root[data-view='compact'] .hdr-logo {
+  height: calc(44 * var(--u));
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* `dir` lives on <html>, which is also `:root` — hence one compound selector
+   rather than a descendant one. */
+:root[dir='rtl'][data-view='compact'] .hdr-logo {
+  object-position: right center;
+}
+
+:root[data-view='compact'] .nav-item,
+:root[data-view='compact'] .nav-scene-option {
+  padding: var(--fsp-3);
+  font-size: var(--fs-control-l);
+  line-height: 1.2;
+}
+
+:root[data-view='compact'] .nav-item:first-of-type {
+  padding-inline-start: var(--fsp-4);
+}
+
+:root[data-view='compact'] .dock-btn {
+  padding: var(--fsp-3);
+}
+
+:root[data-view='compact'] .dock-btn svg,
+:root[data-view='compact'] .nav-badge,
+:root[data-view='compact'] .nav-scene-badge {
+  width: calc(24 * var(--fu));
+  height: calc(24 * var(--fu));
+}
+
+:root[data-view='compact'] .nav-badge,
+:root[data-view='compact'] .nav-scene-badge {
+  font-size: var(--fs-control-m);
+  line-height: 1;
+}
+
+:root[data-view='compact'] .nav-divider {
+  width: var(--fsp-2);
+}
+
+/* --- The map's six modes ---
+   The one track in the app with six segments, floating over the imagery in a
+   card that is 790px wide here instead of 1184. In English the six fit; in
+   Arabic they do not, and `overflow: hidden` on the track means the sixth
+   simply disappears — a mode the room cannot reach. So on a tablet this track
+   wraps, and a wrapped track stands its pill down (the pill's mechanic is two
+   edges on one line, each with its own clock — see .chip-pill in widget.css)
+   in favour of painting the active segment directly. */
+:root[data-view='compact'] .widget[data-chips-overlay] .widget-body > .chips {
+  height: auto;
+  max-width: calc(100% - 2 * var(--fsp-2));
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+:root[data-view='compact'] .widget[data-chips-overlay] .chip-pill {
+  display: none;
+}
+
+:root[data-view='compact'] .widget[data-chips-overlay] .chip[data-on] {
+  background: var(--chip-fill);
+}
+
+/* --- One column ---
+   A card the full width of the screen, and a tab track that no longer fits
+   its six map modes on one line. A wrapped track cannot carry the sliding
+   pill — the pill's whole mechanic is two edges on one line, each with its
+   own clock (see .chip-pill in widget.css) — so on a wrapped track the active
+   segment is painted directly and the pill stands down rather than sliding
+   diagonally across two rows. */
+:root[data-cols='1'] .chips {
+  height: auto;
+  flex-wrap: wrap;
+}
+
+:root[data-cols='1'] .chip-pill {
+  display: none;
+}
+
+:root[data-cols='1'] .chip[data-on] {
+  background: var(--chip-fill);
+}
+
+/* --- Phone ---
+   The dock has run out of room for four labels beside two buttons. */
+:root[data-narrow] .hdr {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 0 var(--sp-2);
+}
+
+:root[data-narrow] .hdr-logo {
+  height: calc(34 * var(--u));
+}
+
+:root[data-narrow] .nav-item,
+:root[data-narrow] .nav-scene-option {
+  padding: var(--fsp-2);
+  font-size: var(--fs-control-m);
+}
+
+:root[data-narrow] .nav-item:first-of-type {
+  padding-inline-start: var(--fsp-3);
+}
+
+/* The scene picker floats above the dock and is wider than a phone; the badge
+   advances the scene directly instead (see cycleScene in shell.js). */
+:root[data-narrow] .nav-scene-menu {
+  display: none;
+}
+
+/* Four labels beside two buttons is ~520px of dock, and the phone has 390.
+   The dock scrolls sideways rather than shrinking its type past the control
+   rung or dropping a tab the visitor then cannot reach.
+
+   The scroll goes on `.dock`, not on `.nav` inside it, and that is the whole
+   of the trick: the sliding pill is absolutely positioned against `.nav`, so
+   scrolling `.nav` itself would leave the pill pinned to the track's padding
+   box while the labels slid out from under it. Scrolling the dock moves
+   `.nav` bodily, pill and all.
+
+   `overflow` on the dock is also why the scene picker above had to go: it
+   floats out of the top of this box, and a scroll container clips it. */
+:root[data-narrow] .dock {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:root[data-narrow] .dock::-webkit-scrollbar {
+  display: none;
+}
+
+:root[data-narrow] .ticker-item {
+  font-size: var(--fs-control-l);
+}
+
+/* The dot is the indicator; the word is the caption on it. The header's two
+   side columns have to give the dock everything they have on a tablet — in
+   Arabic the caption was being clipped mid-word by the dock's own edge — so
+   the caption goes and the signal stays. */
+:root[data-view='compact'] .live-label {
+  display: none;
+}
+
+:root[data-view='compact'] .live {
+  padding: var(--fsp-2);
+}
+
+/* --- Attract screen ---
+   112 design pixels is a wall headline. On a phone it is four characters per
+   line, so the splash takes the same two-rail treatment the board does. */
+:root[data-view='compact'] {
+  --fs-splash: clamp(40px, 9vw, 84px);
+}
+
+:root[data-view='compact'] .splash-inner {
+  padding: var(--sp-6);
+}
+
+:root[data-narrow] .splash-stats {
+  flex-wrap: wrap;
+}
+
+    </style>
   </head>
 
   <body>
@@ -2862,6 +3501,15 @@ body.grid-dragging .ticker-track,
         </div>
 
         <div class="hdr-meta">
+          <!-- Online-updates indicator. Not a Figma component: the customer
+               asked for the wall to say, without words, that it is being
+               watched rather than printed. It states nothing about the data
+               and carries no figure — the pulse is the whole message. -->
+          <div class="live">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-label" data-i18n="live.label"></span>
+          </div>
+
           <div class="settings">
             <!-- Figma node 5065:82983: the same "Circle Button" component as
                  the dock's play and globe, standing alone in the board's far
@@ -2968,6 +3616,131 @@ var KSA_BASEMAP = {
 };
 
     </script>
+    <!-- Before anything that reads --u or lays a board out: it stamps the
+         layout mode on <html>, which every stylesheet below keys off. -->
+    <script>
+/* Which shape of screen the wall is running on.
+
+   The board is designed once, at 2880x1152, and every other size is that
+   design rescaled by `--u` (see tokens.css). That works down to a laptop
+   because a laptop is still a wide screen: 24 columns of a 1280px window are
+   53px each, which is narrow but legible. It stops working the moment the
+   screen is not wide — an iPad held upright is 820px across, so the same 24
+   columns are 34px each and a card title reads "National ecosys...".
+
+   So there are two modes, and exactly one place that decides which:
+
+     wall     — the design, fitted to the screen. Nothing scrolls. Every board
+                fills its stage exactly, as the LED panel and every laptop
+                preview have always done.
+     compact  — the same widgets, the same data, the same card, reflowed into
+                one or two columns and allowed to scroll vertically. The
+                brief's own words for the tablet: content does not fit across,
+                so it goes down, and every block stays reachable.
+
+   EVERY breakpoint in the app is here and nowhere else. The stylesheet does
+   not repeat one: each is published as an attribute on <html> and
+   responsive.css keys off `[data-view]`, `[data-cols]` and `[data-narrow]`,
+   so the CSS half and the JS half cannot drift into disagreeing about what a
+   tablet is — which is what two copies of a breakpoint always eventually do.
+
+   Why these numbers.
+
+   1080px is where 24 columns stop being a layout: below it a wing panel is
+   under 240px and the Figma card's own 12px padding is a tenth of it. It was
+   set at 1000, which let 1024x768 — an iPad on its side, and the shape the
+   wall is most often previewed at — stay on the wall with 228px wings. Type
+   does not shrink with them: `--u` has a 0.74px floor (tokens.css), so below
+   ~1640px the columns keep narrowing while the type holds, and at 1024 a card
+   title had 46px of the 228 left after its own tab track and read
+   "Top spe...". The floor is deliberate — the alternative is 8pt type — so
+   the honest answer is the one this file already has: reflow.
+
+   5/4 is the aspect at which the board stops being a board. The design is
+   2.5:1. A 4:3 screen (1024x768, and every 12.9" iPad on its side) is 1.33
+   and still reads as a wide dashboard; anything squarer or taller is being
+   asked to show a 2.5:1 composition in a box with no room for it, and
+   reflowing is the honest answer rather than shrinking the type to 8pt.
+
+   760px is where two cards side by side stop holding a five-row bar list.
+
+   640px is where the dock runs out of room for four labels beside two
+   buttons, so its floating scene picker is wider than the screen it floats
+   over. */
+
+(function (global) {
+  'use strict';
+
+  var QUERIES = {
+    compact: '(max-width: 1080px), (max-aspect-ratio: 5 / 4)',
+    single: '(max-width: 760px)',
+    narrow: '(max-width: 640px)',
+  };
+
+  var mqs = {};
+  for (var key in QUERIES) {
+    if (QUERIES.hasOwnProperty(key)) mqs[key] = global.matchMedia(QUERIES[key]);
+  }
+
+  var listeners = [];
+  var mode = null;
+  var cols = 0;
+
+  function apply() {
+    var nextMode = mqs.compact.matches ? 'compact' : 'wall';
+    /* Column count is a compact-mode idea; on the wall the boards are placed
+       absolutely on 24 columns and this says nothing. */
+    var nextCols = nextMode === 'compact' ? (mqs.single.matches ? 1 : 2) : 24;
+
+    var root = document.documentElement;
+    root.setAttribute('data-cols', nextCols);
+    if (mqs.narrow.matches) root.setAttribute('data-narrow', '');
+    else root.removeAttribute('data-narrow');
+
+    if (nextMode === mode && nextCols === cols) return;
+    var changed = nextMode !== mode || nextCols !== cols;
+    mode = nextMode;
+    cols = nextCols;
+    root.setAttribute('data-view', mode);
+    if (!changed) return;
+    for (var i = 0; i < listeners.length; i++) listeners[i](mode, cols);
+  }
+
+  /* `addEventListener` on a MediaQueryList is the modern form; Safari carried
+     only `addListener` until 14, and the wall's browser is fixed but the
+     tablet's is not. */
+  function watch(mq) {
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    else if (mq.addListener) mq.addListener(apply);
+  }
+
+  for (var k in mqs) if (mqs.hasOwnProperty(k)) watch(mqs[k]);
+  apply();
+
+  global.Viewport = {
+    /** 'wall' | 'compact' — also mirrored on <html data-view>. */
+    mode: function () {
+      return mode;
+    },
+    isCompact: function () {
+      return mode === 'compact';
+    },
+    /** How many columns a reflowed board runs in; 24 on the wall. */
+    columns: function () {
+      return cols;
+    },
+    /** Too narrow for the dock's floating scene picker. */
+    isNarrow: function () {
+      return mqs.narrow.matches;
+    },
+    /** Called with (mode, columns) whenever either changes. */
+    onChange: function (fn) {
+      listeners.push(fn);
+    },
+  };
+})(window);
+
+    </script>
     <script>
 /* Localisation, following axion.gen.web frontend/src/shared/lib/i18n.
 
@@ -2996,7 +3769,14 @@ var KSA_BASEMAP = {
        own words: bigscreen.html, index.html, kpis.html, field-survey.html.
        Arabic taken verbatim from the translators' `pages` table — see
        i18n-source/SCE_LEAP_*_AR.html. */
-    'nav.bigscreen': ['Big Screen', 'الشاشة الكبرى'],
+    /* "Overview", not "Big Screen". The source file's own name for this
+       surface described the hardware it ran on, which says nothing to a
+       visitor reading a tab in a dock, and read as a fourth board rather than
+       as the wall's own front page. It keeps `nav.bigscreen` as its key and
+       `bigscreen` as its board id: the id is the localStorage layout key, and
+       renaming it would silently discard every arrangement already saved on
+       the stand. */
+    'nav.bigscreen': ['Overview', 'نظرة عامة'],
     'nav.ecosystem': ['Ecosystem', 'المنظومة'],
     'nav.library': ['KPI Library', 'مكتبة المؤشرات'],
     'nav.field': ['Field Verification', 'التحقق الميداني'],
@@ -3007,6 +3787,12 @@ var KSA_BASEMAP = {
     'sc.operations': ['Operations', 'العمليات'],
 
     'hdr.event': ['LEAP 2026', 'LEAP 2026'],
+
+    /* The online-updates indicator in the board's far corner. Deliberately
+       one word: it says the monitoring centre is live, which is what the
+       centre is, and claims nothing about when any particular figure was
+       last written. */
+    'live.label': ['Live', 'مباشر'],
 
     'ctl.play': ['Play', 'تشغيل'],
     'ctl.pause': ['Pause', 'إيقاف'],
@@ -3163,8 +3949,8 @@ var KSA_BASEMAP = {
       '{a} مرخّص + {b} من التغذية الرقمية المنظمة',
     ],
     'n.bubbleWorkforce': [
-      'Bubble ≈ regulated workforce per city · {n} cities mapped',
-      'حجم الدائرة ≈ القوى العاملة لكل مدينة · {n} مدينة',
+      'Regulated workforce per city · {n} cities',
+      'القوى العاملة لكل مدينة · {n} مدينة',
     ],
     'n.bubbleRegistered': [
       'Bubble ≈ SCE-registered professionals per city',
@@ -6508,8 +7294,68 @@ var KSA_BASEMAP = {
    * the wall reads at one rung instead, capped against the tile's own height,
    * so a KPI row can never have one headline louder than its neighbours.
    */
+  /* --- How wide a factoid is, in ems of its own type ---------------------
+     A factoid is `white-space: nowrap` — "1.12M" must never break after the
+     dot — so a tile narrower than its number overflows instead of wrapping,
+     and no cqh cap can see that coming: height says nothing about how many
+     digits a figure has. On the wall this never bit, because a wing panel is
+     704px and the longest figure in the set is nine glyphs. Reflowed onto a
+     tablet the same card is 388px and "1 116 186" ran off the tile.
+
+     So the cap is computed per figure rather than guessed at: measure the
+     string in ems here, hand it to CSS as `--kpi-em`, and let the rule say
+     `100cqw / var(--kpi-em)` — the exact size at which THIS number fills its
+     own tile. Below that the type rung draws and this never bites, which is
+     what keeps every factoid on the wall at one size.
+
+     The em figures are Roboto Flex 500 at the value's own -0.01em tracking
+     and tabular numerals, measured in the browser rather than estimated
+     (tools/probe.mjs). Tabular numerals are what makes one digit width
+     enough for all ten. */
+  var EM_DIGIT = 0.4683;
+  var EM_GLYPH = {
+    '\u202f': 0.184, // the narrow no-break space Fmt groups thousands with
+    ' ': 0.184,
+    '.': 0.246,
+    ',': 0.246,
+    '%': 0.703,
+    '-': 0.31,
+    K: 0.494,
+    M: 0.77,
+    B: 0.77,
+  };
+
+  /* 5%, because the sum of the glyph table is 3-4% short of the box the
+     browser actually draws: the K/M/B rides in its own span with a 0.03em
+     lead-in and its own tracking, and the value's -0.01em is not applied
+     after the last glyph. Erring wide is the right direction for a ceiling
+     — a factoid 5% smaller than it could be is invisible, one 3% wider than
+     its tile is a clipped number. */
+  var EM_SLACK = 1.05;
+
+  function widthEm(text) {
+    var total = 0;
+    for (var i = 0; i < text.length; i++) {
+      var glyph = text.charAt(i);
+      total += EM_GLYPH.hasOwnProperty(glyph) ? EM_GLYPH[glyph] : EM_DIGIT;
+    }
+    return total * EM_SLACK;
+  }
+
+  /** The string a tile will actually show once its counters have landed. */
+  function tileText(item) {
+    if (item.raw !== undefined) return String(item.raw);
+    var format = item.format || 'grouped';
+    if (format === 'compact') return Fmt.compactValue(item.value) + Fmt.compactUnit(item.value);
+    if (format === 'sar') return Fmt.sarValue(item.value) + Fmt.sarUnit(item.value);
+    return (Fmt.by[format] || Fmt.grouped)(item.value);
+  }
+
   function indicatorTile(item) {
     var tile = html('div', 'ax-kpi' + (item.labelFirst ? ' is-label-first' : ''));
+    /* On the tile, not the value: `cqw` resolves against the nearest size
+       container, which is the tile, and the cap is read there. */
+    tile.style.setProperty('--kpi-em', widthEm(tileText(item)).toFixed(3));
 
     /* The number leads and the label trails directly under it (the Figma
        "factoid" cell, node 5039:94565). */
@@ -6565,6 +7411,14 @@ var KSA_BASEMAP = {
     host.innerHTML = '';
     var items = spec.items || [spec];
     var cols = spec.cols || Math.min(items.length, 2);
+    /* Three factoids across is a wall figure: it needs a 933px panel, which
+       is what an 8-of-24-column card is at 2880. The same card on a reflowed
+       tablet is 388px, where three 72px numbers do not merely crowd — they
+       overlap. Two across, and the third wraps to its own row, which the
+       card's compact min-height already has room for. The cap is only ever
+       downwards, so a board that asks for one or two columns still gets what
+       it asked for. */
+    if (global.Viewport && Viewport.isCompact()) cols = Math.min(cols, 2);
     var rows = Math.ceil(items.length / cols);
     var shell = html('div', 'ax-chart-shell');
     var grid = html('div', 'ax-kpis');
@@ -6611,7 +7465,20 @@ var KSA_BASEMAP = {
 
   /* Chart kinds with a Figma title glyph (see WIDGET_ICONS in board.js) —
      'map' is stamped by Kit.mapView, not through this DSL. */
-  var ICON_CHART_KINDS = { indicator: true, 'progress-bars': true, pie: true, map: true };
+  var ICON_CHART_KINDS = {
+    indicator: true,
+    'progress-bars': true,
+    pie: true,
+    map: true,
+    /* Added with their glyphs (see WIDGET_ICONS in board.js): the Profession
+       board's two headline panels are a sankey and a sunburst, and they were
+       the only cards on the wall whose title started with a reserved but
+       empty icon slot. Still no glyph for cartesian, radar or table, which
+       therefore still keep the previous kind's icon on a chip switch rather
+       than blanking it — see the note below. */
+    sankey: true,
+    sunburst: true,
+  };
 
   /* Every number handed to a chart, in the order it was handed over. The
      deliverable's whole claim is that it displays the dataset and never invents
@@ -6755,6 +7622,27 @@ var KSA_BASEMAP = {
 
   var uid = 0;
 
+  /* --- The living map ------------------------------------------------------
+     The customer's one presentational ask that is not in Figma: the wall must
+     read as something being watched right now rather than a printed poster.
+     None of it touches a figure — the dataset is the customer's own and
+     reconciled — so the whole of it is arrival and rhythm.
+
+     Two devices, and the split between them is a performance decision.
+
+     A bubble grows into place. Below `STAGGER_MAX` points each dot gets its
+     own delay and the map seeds itself city by city, which is the effect
+     asked for. Above it — the field-survey mode plots 2,840 offices — a
+     per-element animation would be 2,840 keyframed transforms on one SVG, so
+     the whole marker layer fades in as one instead. The line is drawn at the
+     number of animated elements, not at anything the viewer can see.
+
+     Three rings ping, forever, on the three largest points of whatever mode
+     is showing. Three, because that is the whole cost: three composited
+     transforms, no matter how many thousand dots are underneath them. */
+  var STAGGER_MAX = 80;
+  var PINGS = 3;
+
   function svgEl(name, attrs) {
     var el = document.createElementNS('http://www.w3.org/2000/svg', name);
     for (var k in attrs) if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
@@ -6841,9 +7729,50 @@ var KSA_BASEMAP = {
     svg.appendChild(markers);
     container.appendChild(svg);
 
+    /* --- The ping layer, and why it is HTML ---
+       The rings that pulse over the three largest points are plain <div>s in a
+       layer over the plate, not <circle>s in the SVG beside the bubbles they
+       ring. That is not a preference; it is the only version of this that is
+       free.
+
+       Chrome does not composite a transform animation on an SVG child: it
+       relays out the SVG on every frame. Measured with tools/perf.mjs, three
+       ringed circles took an idle, untouched board from 0 layout passes in six
+       seconds to 684 — about two a frame, for the lifetime of a wall that runs
+       unattended all day. `will-change: transform` did not help; it is not a
+       promotion problem. The same three rings as HTML transforms cost 0.
+
+       The price is this: an HTML overlay has no viewBox, so the projection the
+       SVG does for free has to be done by hand. `place()` below is that, and
+       it runs where the viewBox is already being computed — every fit(), i.e.
+       every resize — so the rings track the plate exactly. */
+    var resizeObserver = null;
+    var pingLayer = document.createElement('div');
+    pingLayer.className = 'map-pings';
+    container.appendChild(pingLayer);
+    var pings = [];
+
     /* Grow the viewBox along whichever axis the panel has to spare, so the core
-       area is always fully visible no matter how the operator resizes. */
-    var view = { w: coreW, h: coreH };
+       area is always fully visible no matter how the operator resizes -- but
+       never past the plate, which is the other half of this and the half that
+       was missing.
+
+       The baked raster covers lon 24-67 by lat 8-38, i.e. 43 by 33.1 units of
+       this screen space. The growth above is unbounded, so a portrait panel
+       asked for more latitude than exists: on a 4:3 tablet the Big Screen's
+       map card is 395x635, aspect 0.62, and the core grew to 38.6 units tall
+       against a 33.1-unit plate. `slice` cannot cover what the image does not
+       contain, so the panel showed a hard horizontal cut with the ground
+       colour above and below it -- the map "cropped in height".
+
+       So the extent is capped at the plate's own, on both axes, keeping the
+       panel's aspect (one factor, not one per axis, or the peninsula would
+       stretch). Past the cap the core stops being fully visible -- there is no
+       third option once the panel is squarer than the imagery -- and what goes
+       is the outer margin the core carries for exactly this, not the country. */
+    var plateW = px(bbox[2]) - px(bbox[0]);
+    var plateH = py(bbox[1]) - py(bbox[3]);
+    var view = { w: coreW, h: coreH, x: coreCx - coreW / 2, y: coreCy - coreH / 2, scale: 1, ox: 0, oy: 0 };
 
     function fit() {
       var box = container.getBoundingClientRect();
@@ -6855,12 +7784,31 @@ var KSA_BASEMAP = {
       if (aspect > coreW / coreH) w = coreH * aspect;
       else h = coreW / aspect;
 
+      var cap = Math.min(1, plateW / w, plateH / h);
+      if (cap < 1) {
+        w *= cap;
+        h *= cap;
+      }
+
       view.w = w;
       view.h = h;
 
-      var x = coreCx - w / 2;
-      var y = coreCy - h / 2;
+      /* Centred on the core, then pushed back inside the plate: at the cap the
+         two centres do not coincide (the raster carries more sea to the south
+         than desert to the north), and an extent centred on the core would
+         hang off the top edge by the difference. */
+      var x = Math.min(Math.max(coreCx - w / 2, px(bbox[0])), px(bbox[2]) - w);
+      var y = Math.min(Math.max(coreCy - h / 2, py(bbox[3])), py(bbox[1]) - h);
       svg.setAttribute('viewBox', x.toFixed(3) + ' ' + y.toFixed(3) + ' ' + w.toFixed(3) + ' ' + h.toFixed(3));
+
+      /* The same mapping `preserveAspectRatio="xMidYMid slice"` applies to the
+         SVG's own contents, written out so the HTML layer above can use it:
+         cover the box, then centre the overflow. */
+      view.x = x;
+      view.y = y;
+      view.scale = Math.max(box.width / w, box.height / h);
+      view.ox = (box.width - w * view.scale) / 2;
+      view.oy = (box.height - h * view.scale) / 2;
 
       // Everything that has to cover the viewport rather than a fixed extent.
       var full = [ground, maskAll, scrim];
@@ -6870,10 +7818,47 @@ var KSA_BASEMAP = {
         full[i].setAttribute('width', w);
         full[i].setAttribute('height', h);
       }
+
+      placePings();
+    }
+
+    /** Project each ring's map position into the layer's pixel box. */
+    function placePings() {
+      for (var i = 0; i < pings.length; i++) {
+        var ping = pings[i];
+        var size = ping.r * 2 * view.scale;
+        var left = view.ox + (px(ping.lng) - view.x) * view.scale - size / 2;
+        var top = view.oy + (py(ping.lat) - view.y) * view.scale - size / 2;
+        ping.el.style.width = size.toFixed(2) + 'px';
+        ping.el.style.height = size.toFixed(2) + 'px';
+        ping.el.style.left = left.toFixed(2) + 'px';
+        ping.el.style.top = top.toFixed(2) + 'px';
+        ping.el.style.borderWidth = Math.max(1, size * 0.06).toFixed(2) + 'px';
+      }
     }
 
     fit();
-    new ResizeObserver(fit).observe(container);
+
+    /* The observer is held, not dropped on the floor.
+
+       `new ResizeObserver(fit).observe(container)` keeps no reference to the
+       observer, and an observer nothing references is collectable: it fired
+       once and then, at some point after the first GC, stopped. That was
+       invisible for as long as the only thing it drove was the viewBox, since
+       `preserveAspectRatio="slice"` covers the panel whatever aspect the
+       viewBox claims — a stale one just reads as a slightly different zoom.
+       It stopped being invisible the moment fit() also had to place the HTML
+       ping layer, which has no slice to hide behind. Every other observer in
+       the app (chart-dsl's shared one, board.js's two) is already held; this
+       was the one that was not.
+
+       The rAF is the other half. A map mounts before its grid item is
+       painted, so the first fit() measures a 1x1 box — the card's own
+       hairline, with no content between — and one frame later the geometry is
+       real. */
+    resizeObserver = new ResizeObserver(fit);
+    resizeObserver.observe(container);
+    requestAnimationFrame(fit);
 
     var hud = document.createElement('div');
     hud.className = 'map-hud';
@@ -6938,6 +7923,24 @@ var KSA_BASEMAP = {
          no such moment to be wrong at. */
       var touchMinR = coreW * 0.02;
 
+      /* Which points get a ping, decided before the loop so the loop stays a
+         loop: the three largest by the same value the radius is drawn from. */
+      var tone = mode.tone || Chart.TONE.cy;
+      var staggered = points.length <= STAGGER_MAX;
+      var rank = points
+        .map(function (p, index) {
+          return { index: index, value: p[2] };
+        })
+        .sort(function (a, b) {
+          return b.value - a.value;
+        })
+        .slice(0, PINGS);
+      var pingAt = {};
+      for (var k = 0; k < rank.length; k++) pingAt[rank[k].index] = k;
+
+      pingLayer.innerHTML = '';
+      pings = [];
+
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         var ratio = max ? Math.sqrt(p[2] / max) : 0;
@@ -6949,9 +7952,20 @@ var KSA_BASEMAP = {
           cy: cy,
           r: r.toFixed(3),
           class: 'map-dot' + (p[4] ? ' map-dot--' + p[4] : ''),
-          style: 'color:' + (mode.tone || Chart.TONE.cy),
+          /* `--i` is the seeding delay's only input; it is read by the
+             keyframe's `animation-delay` and ignored under `.is-bulk`. */
+          style: 'color:' + tone + ';--i:' + (staggered ? i : 0),
         });
         frag.appendChild(circle);
+
+        if (pingAt[i] !== undefined) {
+          var ring = document.createElement('div');
+          ring.className = 'map-ping';
+          ring.style.color = tone;
+          ring.style.setProperty('--i', pingAt[i]);
+          pingLayer.appendChild(ring);
+          pings.push({ el: ring, lat: p[0], lng: p[1], r: Math.max(r, coreW * 0.012) });
+        }
 
         if (p[3]) {
           var hit = svgEl('circle', {
@@ -6967,6 +7981,21 @@ var KSA_BASEMAP = {
         }
       }
       markers.appendChild(frag);
+
+      /* The class is written after the fragment lands, and written twice.
+         `.is-seeding` restarts on its own because every dot under it is a new
+         element; `.is-bulk` animates the group, which is the same element as
+         last time, and re-adding a class an element already carries restarts
+         nothing. Clearing it and flushing is what makes re-entering the
+         field-survey mode seed again rather than sit there. */
+      markers.setAttribute('class', 'map-markers');
+      void markers.getBoundingClientRect();
+      markers.setAttribute('class', 'map-markers ' + (staggered ? 'is-seeding' : 'is-bulk'));
+      /* fit(), not placePings(): a chip switch happens with the panel laid
+         out, so this is the cheapest moment to re-measure, and it lands the
+         rings on the first frame of the mode they belong to rather than one
+         observer callback later. */
+      fit();
 
       /* No inline colour on the figure. It is a factoid — Figma's Tips block
          (node 5044:95235) draws it in the same white as the ones in the panels
@@ -7218,11 +8247,40 @@ var KSA_BASEMAP = {
     document.body.classList.add('grid-dragging');
   }
 
+  /* The wall's own reading order, as a flex/grid `order`.
+
+     A compact screen drops the absolute placement and lets the widgets run
+     down the page (see responsive.css), and the one thing that must survive
+     that is the sequence: the tablet should show the panels in the order the
+     wall shows them across, not in the order the board definition happens to
+     list them (which is column-by-column — left wing, map, right wing — and
+     would put all three left panels above the map).
+
+     Rows first, then columns, which is exactly `compact()`'s own sort above.
+     `y` can be fractional (the Big Screen's three equal thirds are 8/3 apart),
+     so it is scaled by 100 before rounding rather than truncated to a row
+     index, which would collapse those three onto each other. */
+  function flowOrder(item) {
+    return Math.round(item.y * 100) + Math.round(item.x);
+  }
+
+  /* A widget that takes 9 or more of the wall's 24 columns is the panel its
+     row is built around — the national map, the register sankey, the specialty
+     list — and it takes the compact grid's full width rather than half of it.
+     Everything narrower pairs up two to a row. */
+  var WIDE_COLS = 9;
+
   function applyGeometry(el, item) {
     el.style.setProperty('--grid-item-x', item.x);
     el.style.setProperty('--grid-item-y', item.y);
     el.style.setProperty('--grid-item-w', item.w);
     el.style.setProperty('--grid-item-h', item.h);
+    /* Both are inert on the wall — nothing reads `order` under absolute
+       positioning — so they are written once here rather than on every mode
+       change, and the compact stylesheet simply starts obeying them. */
+    el.style.order = flowOrder(item);
+    if (item.w >= WIDE_COLS) el.setAttribute('data-flow', 'wide');
+    else el.removeAttribute('data-flow');
   }
 
   /**
@@ -7458,6 +8516,38 @@ var KSA_BASEMAP = {
     '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
     '<circle cx="8" cy="8" r="8" fill="#6366F1" fill-opacity="0.2"/>' +
     '<path d="M8.0625 1.00098C11.804 1.03524 14.842 4.00429 14.9893 7.71777L14.624 9.4375C14.5702 9.68988 14.2132 9.69926 14.1465 9.4502C14.1179 9.34274 14.0204 9.26765 13.9092 9.26758H13.2236C13.1823 9.26758 13.1409 9.27558 13.1025 9.29102L11.7715 9.82617C11.4945 9.93754 11.5027 10.3324 11.7842 10.4316L12.7266 10.7637C12.9998 10.8598 13.0191 11.2393 12.7568 11.3623L11.2529 12.0674C11.0969 12.1406 10.9102 12.0789 10.8291 11.9268L10.4668 11.2461C10.3978 11.1165 10.2494 11.0495 10.1064 11.083L9.54492 11.2148C9.32772 11.2658 9.22574 11.5161 9.3457 11.7041L9.91895 12.6006C9.99006 12.7118 10.1222 12.7685 10.252 12.7441L11.0938 12.5859C11.3276 12.5421 11.5277 12.7574 11.4668 12.9873L11.3154 13.5557C11.2967 13.6258 11.2543 13.6879 11.1963 13.7314L9.83301 14.7539C9.24769 14.9126 8.63263 15 7.99707 15C4.90728 15 2.28779 12.9972 1.35938 10.2197L1.49414 10.0166C1.56081 9.91651 1.67824 9.86155 1.79785 9.87402L4.33984 10.1387C4.38878 10.1438 4.43581 10.1605 4.47754 10.1865L5.28613 10.6924C5.3289 10.7191 5.37751 10.7355 5.42773 10.7402L8.18848 10.999C8.3519 11.0143 8.50094 10.9047 8.53516 10.7441L8.75781 9.69922C8.77656 9.61073 8.75747 9.51808 8.70508 9.44434L8.45605 9.09375C8.31925 8.90121 8.42801 8.63146 8.66016 8.58789L9.19531 8.4873C9.43503 8.44205 9.54 8.15842 9.3877 7.96777L9.09473 7.59961C8.94943 7.41806 8.66504 7.44513 8.55566 7.65039L8.5 7.75488C8.48335 7.78608 8.46133 7.81467 8.43555 7.83887L7.63965 8.58496C7.5745 8.64612 7.53812 8.73193 7.53809 8.82129V9.2373C7.53787 9.41588 7.3925 9.56055 7.21387 9.56055H6.79492C6.67541 9.56049 6.56598 9.49416 6.50977 9.38867L6.30273 9.00098C6.29336 8.98339 6.28197 8.96674 6.26953 8.95117L5.92383 8.51855C5.76694 8.32227 5.45144 8.46057 5.48926 8.70898C5.52883 8.97095 5.18296 9.10107 5.04004 8.87793L4.91699 8.68652C4.818 8.53171 4.60286 8.50433 4.46875 8.62988L3.61523 9.43164C3.53011 9.51152 3.40829 9.53875 3.29688 9.50391L2.02832 9.10742C1.81841 9.04177 1.73398 8.79063 1.86133 8.61133L2.0918 8.28711C2.17298 8.17284 2.31836 8.12319 2.45215 8.16504L2.8252 8.28223C3.00707 8.33911 3.1994 8.22733 3.23926 8.04102L3.4375 7.10742C3.46188 6.99334 3.54594 6.90116 3.65723 6.86621L4.36719 6.64453C4.39844 6.63477 4.43113 6.62988 4.46387 6.62988H5.84766C5.92989 6.62988 6.00934 6.59823 6.06934 6.54199L6.97363 5.69336C7.1099 5.5655 7.1099 5.34856 6.97363 5.2207L6.64941 4.91602C6.47926 4.75651 6.20127 4.82424 6.12305 5.04395L6.00195 5.38281C5.9847 5.43137 5.9565 5.47546 5.91895 5.51074L5.65918 5.75391C5.50375 5.89955 5.25253 5.85794 5.15234 5.66992L4.84277 5.08984C4.774 4.96079 4.80059 4.80124 4.90723 4.70117L6.19531 3.49316C6.25531 3.43692 6.33475 3.40527 6.41699 3.40527H6.84082C6.88834 3.40527 6.93549 3.41634 6.97852 3.43652L7.33887 3.60547C7.4589 3.66178 7.60155 3.63858 7.69824 3.54785L8.60645 2.69531C8.713 2.59529 8.73954 2.43662 8.6709 2.30762L8.08887 1.21484C8.05145 1.14462 8.04584 1.06935 8.0625 1.00098Z" fill="#10B981"/>' +
+    '</svg></span>' +
+    /* --- The two the Profession board needed ---
+       Its headline panels are the two chart kinds the Figma D-item set has no
+       glyph for, so the only two cards on the wall built around a sankey and
+       a sunburst were also the only two whose titles started with an empty
+       icon slot. Drawn to the same recipe as the four above: a 16px box, the
+       same four flat tones (indigo / green / amber / red), and a 0.2-opacity
+       backer behind the solid figure so the glyph reads as a small diagram
+       rather than an outline. */
+    '<span class="widget-icon" data-icon="sankey" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M3.2 2.4C7 2.4 9 1.8 12.8 1.8V5C9 5 7 5.6 3.2 5.6Z" fill="#6366F1" fill-opacity="0.35"/>' +
+    '<path d="M3.2 6.1C7 6.1 9 10.6 12.8 10.6V13.9C9 13.9 7 9.3 3.2 9.3Z" fill="#6366F1" fill-opacity="0.2"/>' +
+    '<path d="M3.2 9.8C7 9.8 9 6.2 12.8 6.2V9.9C9 9.9 7 13.5 3.2 13.5Z" fill="#10B981" fill-opacity="0.28"/>' +
+    '<rect x="1.4" y="2" width="1.6" height="5" rx="0.5" fill="#6366F1"/>' +
+    '<rect x="1.4" y="8.6" width="1.6" height="5.4" rx="0.5" fill="#10B981"/>' +
+    '<rect x="13" y="1.6" width="1.6" height="3.6" rx="0.5" fill="#6366F1"/>' +
+    '<rect x="13" y="6" width="1.6" height="4.1" rx="0.5" fill="#F59E0B"/>' +
+    '<rect x="13" y="10.8" width="1.6" height="3.3" rx="0.5" fill="#EF4444"/>' +
+    '</svg></span>' +
+    '<span class="widget-icon" data-icon="sunburst" aria-hidden="true">' +
+    '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">' +
+    /* The rings are stroked circles cut into arcs with dash patterns rather
+       than five hand-written arc paths: one radius, one circumference
+       (2*pi*6.4 = 40.2), and the four shares read straight off the dasharray. */
+    '<g fill="none" transform="rotate(-90 8 8)">' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#6366F1" stroke-width="2.6" stroke-dasharray="14.6 25.6"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#10B981" stroke-width="2.6" stroke-dasharray="9.6 30.6" stroke-dashoffset="-15.6"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#F59E0B" stroke-width="2.6" stroke-dasharray="7.6 32.6" stroke-dashoffset="-26.2"/>' +
+    '<circle cx="8" cy="8" r="6.4" stroke="#EF4444" stroke-width="2.6" stroke-dasharray="5.4 34.8" stroke-dashoffset="-34.8"/>' +
+    '<circle cx="8" cy="8" r="2.6" stroke="#6366F1" stroke-width="2.4" stroke-opacity="0.35"/>' +
+    '</g>' +
     '</svg></span>';
 
   function loadLayout(boardId, widgets) {
@@ -7776,11 +8866,17 @@ var KSA_BASEMAP = {
       var chipsEl = widgetEls[i].querySelector('.chips');
       if (!chipsEl) continue;
       var title = widgetEls[i].querySelector('.widget-head .widget-title');
+      /* Overlay boards (the map) float their track over the imagery inside
+         .widget-body, so it never shares the header row and there is nothing
+         for the title to get out of the way of. Reserving there was pure
+         loss: the map's title was clipped to one letter to make room for a
+         track sitting 200px below it. */
+      var inHead = chipsEl.parentNode === widgetEls[i].querySelector('.widget-head');
       plan.push({
         tabs: chipsEl._tabs || null,
         edges: chipsEl._tabs ? chipsEl._tabs.measure() : null,
         title: title,
-        width: title ? chipsEl.offsetWidth : 0,
+        width: title && inHead ? chipsEl.offsetWidth : 0,
       });
     }
     if (!plan.length) return;
@@ -8313,6 +9409,9 @@ var KSA_BASEMAP = {
         x: 6, y: 0, w: 11, h: 8, minW: 6, minH: 4,
         titleKey: 'w.map',
         chipKeys: ['c.workforce', 'c.registered', 'c.reach', 'c.enforcement'],
+        /* Same as the Big Screen map (Figma node 5039:94568): the tabs float
+           over the imagery, top-right, instead of spending a header row. */
+        chipsOverlay: true,
         views: [
           function (el) {
             Kit.mapView(el, {
@@ -8901,6 +10000,9 @@ var KSA_BASEMAP = {
         x: 6, y: 0, w: 11, h: 5, minW: 6, minH: 3,
         titleKey: 'w.map',
         chipKeys: ['c.actions', 'c.value'],
+        /* Same as the Big Screen map (Figma node 5039:94568): the tabs float
+           over the imagery, top-right, instead of spending a header row. */
+        chipsOverlay: true,
         views: [
           function (el) {
             Kit.mapView(el, {
@@ -9943,9 +11045,14 @@ var KSA_BASEMAP = {
   /* --- rendering --- */
 
   /* Five columns is the widest a card can be and still hold a legible donut
-     legend at wall scale; below six cards the filter is a single tall row,
-     which fills the stage rather than leaving a ragged one. */
+     legend at wall scale; below six cards the grid is a single tall row,
+     which fills the stage rather than leaving a ragged one.
+
+     On a tablet the count comes from the viewport instead — the board scrolls
+     there, so a column count picked to make the grid exactly full has nothing
+     to be full of. */
   function columnsFor(count) {
+    if (Viewport.isCompact()) return Math.min(count, Viewport.columns());
     return count <= 5 ? count : 5;
   }
 
@@ -9966,10 +11073,12 @@ var KSA_BASEMAP = {
       mountedBodies = [];
       grid.innerHTML = '';
 
-      var cols = columnsFor(all.length);
+      var shown = all;
+
+      var cols = columnsFor(shown.length);
       grid.style.setProperty('--lib-cols', cols);
 
-      all.forEach(function (card) {
+      shown.forEach(function (card) {
         var cell = document.createElement('div');
         cell.className = 'lib-cell';
         cell.setAttribute('data-card', card.id);
@@ -10166,6 +11275,9 @@ var KSA_BASEMAP = {
         x: 6, y: 0, w: 11, h: 8, minW: 6, minH: 4,
         titleKey: 'w.fieldmap',
         chipKeys: ['c.offices', 'c.cities'],
+        /* Same as the Big Screen map (Figma node 5039:94568): the tabs float
+           over the imagery, top-right, instead of spending a header row. */
+        chipsOverlay: true,
         views: [
           function (el) {
             Kit.mapView(el, {
@@ -10399,6 +11511,14 @@ var KSA_BASEMAP = {
 
   function applyScale() {
     document.documentElement.style.setProperty('--u-scale', scale.toFixed(2));
+    refreshGeometry();
+  }
+
+  /* Everything that has to happen after `--u` changes for any reason: the
+     `[`/`]` keys, and now also a rotation that moves the app between the wall
+     and the compact layout (see core/viewport.js), which substitutes its own
+     `--u-base` and therefore moves every derived figure on the board. */
+  function refreshGeometry() {
     /* Chart constants derive from --u, so the DSL has to re-read it and every
        mounted chart has to repaint at the new geometry. */
     Chart.refreshUnit();
@@ -10590,7 +11710,25 @@ var KSA_BASEMAP = {
     if (sceneMenu) sceneMenu.removeAttribute('data-open');
   }
 
+  /* Step to the next scene without opening anything — what the badge did
+     before the dropdown existed, and what it goes back to doing on a phone,
+     where a floating list is wider than the screen it would float over
+     (responsive.css hides the menu there). */
+  function cycleScene() {
+    var board = boards[0];
+    if (!board || board.sceneCount <= 1) return;
+    var next = (board.sceneIndex() + 1) % board.sceneCount;
+    if (sceneTabs) sceneTabs.select(next);
+    else board.setScene(next);
+    sceneStartedAt = Date.now();
+    updateNavBadge();
+  }
+
   function toggleSceneMenu() {
+    if (Viewport.isNarrow()) {
+      cycleScene();
+      return;
+    }
     if (sceneMenu && sceneMenu.hasAttribute('data-open')) closeSceneMenu();
     else openSceneMenu();
   }
@@ -10696,6 +11834,30 @@ var KSA_BASEMAP = {
     buildTicker();
     localizeStatic();
     if (keep >= 0) show(keep);
+  }
+
+  /* --- Rotation ---
+     Moving between the wall layout and the compact one is not a resize: the
+     grid goes from absolute placement to flow, `--u` changes base, and the KPI
+     Library changes column count, which changes whether its bar lists render
+     dense. Charts are rebuilt from their spec on every mount anyway, so the
+     honest response is to rebuild the boards rather than to teach a dozen
+     renderers to re-measure themselves — an iPad is rotated seconds apart, not
+     frames apart, and the cost is one board's mount. */
+  function remount() {
+    var keep = current;
+    switching = false;
+    pendingIndex = -1;
+    for (var i = 0; i < boards.length; i++) {
+      if (boards[i]) boards[i].destroy();
+      boards[i] = null;
+    }
+    current = -1;
+    refreshGeometry();
+    if (keep >= 0) {
+      show(keep);
+      if (stage) stage.scrollTop = 0;
+    }
   }
 
   /** The parts of index.html that are markup rather than board output. */
@@ -11061,6 +12223,8 @@ var KSA_BASEMAP = {
     window.addEventListener('resize', measure);
     window.addEventListener('resize', resnapNavPill);
     window.addEventListener('resize', positionSceneMenu);
+
+    Viewport.onChange(remount);
   }
 
   function start() {

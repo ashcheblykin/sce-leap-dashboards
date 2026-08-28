@@ -121,6 +121,14 @@
 
   function applyScale() {
     document.documentElement.style.setProperty('--u-scale', scale.toFixed(2));
+    refreshGeometry();
+  }
+
+  /* Everything that has to happen after `--u` changes for any reason: the
+     `[`/`]` keys, and now also a rotation that moves the app between the wall
+     and the compact layout (see core/viewport.js), which substitutes its own
+     `--u-base` and therefore moves every derived figure on the board. */
+  function refreshGeometry() {
     /* Chart constants derive from --u, so the DSL has to re-read it and every
        mounted chart has to repaint at the new geometry. */
     Chart.refreshUnit();
@@ -312,7 +320,25 @@
     if (sceneMenu) sceneMenu.removeAttribute('data-open');
   }
 
+  /* Step to the next scene without opening anything — what the badge did
+     before the dropdown existed, and what it goes back to doing on a phone,
+     where a floating list is wider than the screen it would float over
+     (responsive.css hides the menu there). */
+  function cycleScene() {
+    var board = boards[0];
+    if (!board || board.sceneCount <= 1) return;
+    var next = (board.sceneIndex() + 1) % board.sceneCount;
+    if (sceneTabs) sceneTabs.select(next);
+    else board.setScene(next);
+    sceneStartedAt = Date.now();
+    updateNavBadge();
+  }
+
   function toggleSceneMenu() {
+    if (Viewport.isNarrow()) {
+      cycleScene();
+      return;
+    }
     if (sceneMenu && sceneMenu.hasAttribute('data-open')) closeSceneMenu();
     else openSceneMenu();
   }
@@ -418,6 +444,30 @@
     buildTicker();
     localizeStatic();
     if (keep >= 0) show(keep);
+  }
+
+  /* --- Rotation ---
+     Moving between the wall layout and the compact one is not a resize: the
+     grid goes from absolute placement to flow, `--u` changes base, and the KPI
+     Library changes column count, which changes whether its bar lists render
+     dense. Charts are rebuilt from their spec on every mount anyway, so the
+     honest response is to rebuild the boards rather than to teach a dozen
+     renderers to re-measure themselves — an iPad is rotated seconds apart, not
+     frames apart, and the cost is one board's mount. */
+  function remount() {
+    var keep = current;
+    switching = false;
+    pendingIndex = -1;
+    for (var i = 0; i < boards.length; i++) {
+      if (boards[i]) boards[i].destroy();
+      boards[i] = null;
+    }
+    current = -1;
+    refreshGeometry();
+    if (keep >= 0) {
+      show(keep);
+      if (stage) stage.scrollTop = 0;
+    }
   }
 
   /** The parts of index.html that are markup rather than board output. */
@@ -783,6 +833,8 @@
     window.addEventListener('resize', measure);
     window.addEventListener('resize', resnapNavPill);
     window.addEventListener('resize', positionSceneMenu);
+
+    Viewport.onChange(remount);
   }
 
   function start() {

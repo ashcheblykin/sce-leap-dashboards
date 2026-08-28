@@ -1928,8 +1928,68 @@
    * the wall reads at one rung instead, capped against the tile's own height,
    * so a KPI row can never have one headline louder than its neighbours.
    */
+  /* --- How wide a factoid is, in ems of its own type ---------------------
+     A factoid is `white-space: nowrap` — "1.12M" must never break after the
+     dot — so a tile narrower than its number overflows instead of wrapping,
+     and no cqh cap can see that coming: height says nothing about how many
+     digits a figure has. On the wall this never bit, because a wing panel is
+     704px and the longest figure in the set is nine glyphs. Reflowed onto a
+     tablet the same card is 388px and "1 116 186" ran off the tile.
+
+     So the cap is computed per figure rather than guessed at: measure the
+     string in ems here, hand it to CSS as `--kpi-em`, and let the rule say
+     `100cqw / var(--kpi-em)` — the exact size at which THIS number fills its
+     own tile. Below that the type rung draws and this never bites, which is
+     what keeps every factoid on the wall at one size.
+
+     The em figures are Roboto Flex 500 at the value's own -0.01em tracking
+     and tabular numerals, measured in the browser rather than estimated
+     (tools/probe.mjs). Tabular numerals are what makes one digit width
+     enough for all ten. */
+  var EM_DIGIT = 0.4683;
+  var EM_GLYPH = {
+    '\u202f': 0.184, // the narrow no-break space Fmt groups thousands with
+    ' ': 0.184,
+    '.': 0.246,
+    ',': 0.246,
+    '%': 0.703,
+    '-': 0.31,
+    K: 0.494,
+    M: 0.77,
+    B: 0.77,
+  };
+
+  /* 5%, because the sum of the glyph table is 3-4% short of the box the
+     browser actually draws: the K/M/B rides in its own span with a 0.03em
+     lead-in and its own tracking, and the value's -0.01em is not applied
+     after the last glyph. Erring wide is the right direction for a ceiling
+     — a factoid 5% smaller than it could be is invisible, one 3% wider than
+     its tile is a clipped number. */
+  var EM_SLACK = 1.05;
+
+  function widthEm(text) {
+    var total = 0;
+    for (var i = 0; i < text.length; i++) {
+      var glyph = text.charAt(i);
+      total += EM_GLYPH.hasOwnProperty(glyph) ? EM_GLYPH[glyph] : EM_DIGIT;
+    }
+    return total * EM_SLACK;
+  }
+
+  /** The string a tile will actually show once its counters have landed. */
+  function tileText(item) {
+    if (item.raw !== undefined) return String(item.raw);
+    var format = item.format || 'grouped';
+    if (format === 'compact') return Fmt.compactValue(item.value) + Fmt.compactUnit(item.value);
+    if (format === 'sar') return Fmt.sarValue(item.value) + Fmt.sarUnit(item.value);
+    return (Fmt.by[format] || Fmt.grouped)(item.value);
+  }
+
   function indicatorTile(item) {
     var tile = html('div', 'ax-kpi' + (item.labelFirst ? ' is-label-first' : ''));
+    /* On the tile, not the value: `cqw` resolves against the nearest size
+       container, which is the tile, and the cap is read there. */
+    tile.style.setProperty('--kpi-em', widthEm(tileText(item)).toFixed(3));
 
     /* The number leads and the label trails directly under it (the Figma
        "factoid" cell, node 5039:94565). */
@@ -1985,6 +2045,14 @@
     host.innerHTML = '';
     var items = spec.items || [spec];
     var cols = spec.cols || Math.min(items.length, 2);
+    /* Three factoids across is a wall figure: it needs a 933px panel, which
+       is what an 8-of-24-column card is at 2880. The same card on a reflowed
+       tablet is 388px, where three 72px numbers do not merely crowd — they
+       overlap. Two across, and the third wraps to its own row, which the
+       card's compact min-height already has room for. The cap is only ever
+       downwards, so a board that asks for one or two columns still gets what
+       it asked for. */
+    if (global.Viewport && Viewport.isCompact()) cols = Math.min(cols, 2);
     var rows = Math.ceil(items.length / cols);
     var shell = html('div', 'ax-chart-shell');
     var grid = html('div', 'ax-kpis');
@@ -2031,7 +2099,22 @@
 
   /* Chart kinds with a Figma title glyph (see WIDGET_ICONS in board.js) —
      'map' is stamped by Kit.mapView, not through this DSL. */
-  var ICON_CHART_KINDS = { indicator: true, 'progress-bars': true, pie: true, map: true };
+  var ICON_CHART_KINDS = {
+    indicator: true,
+    'progress-bars': true,
+    pie: true,
+    map: true,
+    /* Added with their glyphs (see WIDGET_ICONS in board.js): the Profession
+       board's panels are a sankey, a sunburst, a cartesian and a radar, and
+       they were the only cards on the wall whose titles started with a
+       reserved but empty icon slot. Only `table` is still un-iconized, so a
+       chip that swaps to it keeps the previous kind's icon rather than
+       blanking it — see the note below. */
+    sankey: true,
+    sunburst: true,
+    cartesian: true,
+    radar: true,
+  };
 
   /* Every number handed to a chart, in the order it was handed over. The
      deliverable's whole claim is that it displays the dataset and never invents

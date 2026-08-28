@@ -25,7 +25,14 @@
        own words: bigscreen.html, index.html, kpis.html, field-survey.html.
        Arabic taken verbatim from the translators' `pages` table — see
        i18n-source/SCE_LEAP_*_AR.html. */
-    'nav.bigscreen': ['Big Screen', 'الشاشة الكبرى'],
+    /* "Overview", not "Big Screen". The source file's own name for this
+       surface described the hardware it ran on, which says nothing to a
+       visitor reading a tab in a dock, and read as a fourth board rather than
+       as the wall's own front page. It keeps `nav.bigscreen` as its key and
+       `bigscreen` as its board id: the id is the localStorage layout key, and
+       renaming it would silently discard every arrangement already saved on
+       the stand. */
+    'nav.bigscreen': ['Overview', 'نظرة عامة'],
     'nav.ecosystem': ['Ecosystem', 'المنظومة'],
     'nav.library': ['KPI Library', 'مكتبة المؤشرات'],
     'nav.field': ['Field Verification', 'التحقق الميداني'],
@@ -36,6 +43,12 @@
     'sc.operations': ['Operations', 'العمليات'],
 
     'hdr.event': ['LEAP 2026', 'LEAP 2026'],
+
+    /* The online-updates indicator in the board's far corner. Deliberately
+       one word: it says the monitoring centre is live, which is what the
+       centre is, and claims nothing about when any particular figure was
+       last written. */
+    'live.label': ['Live', 'مباشر'],
 
     'ctl.play': ['Play', 'تشغيل'],
     'ctl.pause': ['Pause', 'إيقاف'],
@@ -192,8 +205,8 @@
       '{a} مرخّص + {b} من التغذية الرقمية المنظمة',
     ],
     'n.bubbleWorkforce': [
-      'Bubble ≈ regulated workforce per city · {n} cities mapped',
-      'حجم الدائرة ≈ القوى العاملة لكل مدينة · {n} مدينة',
+      'Regulated workforce per city · {n} cities',
+      'القوى العاملة لكل مدينة · {n} مدينة',
     ],
     'n.bubbleRegistered': [
       'Bubble ≈ SCE-registered professionals per city',

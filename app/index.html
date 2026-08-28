@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>SCE · Smart Monitoring Center — LEAP 2026</title>
     <meta name="description" content="Saudi Council of Engineers national monitoring dashboards, LEAP 2026." />
 
@@ -26,6 +26,10 @@
     <link rel="stylesheet" href="assets/css/motion.css" />
     <link rel="stylesheet" href="assets/css/shell.css" />
     <link rel="stylesheet" href="assets/css/splash.css" />
+    <!-- Last: every rule in it is an override of the ones above, for the
+         tablet and the small screen. See core/viewport.js for the one place
+         the breakpoints live. -->
+    <link rel="stylesheet" href="assets/css/responsive.css" />
   </head>
 
   <body>
@@ -65,6 +69,15 @@
         </div>
 
         <div class="hdr-meta">
+          <!-- Online-updates indicator. Not a Figma component: the customer
+               asked for the wall to say, without words, that it is being
+               watched rather than printed. It states nothing about the data
+               and carries no figure — the pulse is the whole message. -->
+          <div class="live">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-label" data-i18n="live.label"></span>
+          </div>
+
           <div class="settings">
             <!-- Figma node 5065:82983: the same "Circle Button" component as
                  the dock's play and globe, standing alone in the board's far
@@ -151,6 +164,9 @@
     <script src="assets/js/data/leap_data.js"></script>
     <script src="assets/js/data/ksa-geo.js"></script>
     <script src="assets/js/data/ksa-basemap.js"></script>
+    <!-- Before anything that reads --u or lays a board out: it stamps the
+         layout mode on <html>, which every stylesheet below keys off. -->
+    <script src="assets/js/core/viewport.js"></script>
     <script src="assets/js/core/i18n.js"></script>
     <script src="assets/js/core/format.js"></script>
     <script src="assets/js/data/labels.js"></script>

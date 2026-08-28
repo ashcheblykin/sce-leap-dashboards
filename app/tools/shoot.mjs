@@ -213,7 +213,14 @@ await sleep(1600);
 const PROBE = `(() => {
   const out = { overflow: [], clipping: [], inventory: [] };
   const cellId = (el) => el.getAttribute('data-grid-item') || el.getAttribute('data-card');
-  const stage = document.querySelector('.stage').getBoundingClientRect();
+  const stageEl = document.querySelector('.stage');
+  const stage = stageEl.getBoundingClientRect();
+  /* On a compact screen the stage scrolls by design (see core/viewport.js), so
+     a card below the fold is the layout working, not failing. The rule there
+     is the horizontal one only: nothing may run off the side, and every card
+     must still fill its cell exactly. */
+  const compact = document.documentElement.getAttribute('data-view') === 'compact';
+  const bottomOf = (r) => (compact ? stageEl.scrollHeight + stage.top : stage.bottom);
   document.querySelectorAll('[data-grid-surface]').forEach((s) => {
     if (s.style.display === 'none') return;
     // The KPI Library lays its cards out itself rather than on the 24x8
@@ -223,10 +230,14 @@ const PROBE = `(() => {
       ' faded=' + Array.from(items).filter(i => +getComputedStyle(i).opacity < 0.99).length);
     items.forEach((el) => {
       const r = el.getBoundingClientRect();
-      if (r.bottom > stage.bottom + 1 || r.right > stage.right + 1 || r.width < 2 || r.height < 2) {
+      /* Measured against the scroll extent, not the viewport, when the board
+         scrolls: a rect's bottom is viewport-relative, so a card the visitor
+         has simply not scrolled to yet is not an overflow. */
+      const floor = bottomOf(r) + (compact ? stageEl.scrollTop : 0);
+      if (r.bottom > floor + 1 || r.right > stage.right + 1 || r.width < 2 || r.height < 2) {
         out.overflow.push(cellId(el) + ' ' + JSON.stringify({
           w: Math.round(r.width), h: Math.round(r.height),
-          overBottom: Math.round(r.bottom - stage.bottom),
+          overBottom: Math.round(r.bottom - floor),
           overRight: Math.round(r.right - stage.right),
         }));
       }

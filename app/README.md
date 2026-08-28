@@ -4,8 +4,10 @@ Offline wall dashboards for the Saudi Council of Engineers, built on Axion Gen's
 chart DSL, grid, widget anatomy and motion, styled in SCE's navy-and-cyan brand,
 in English and Arabic.
 
-Target panel: **2880 × 1152**. The layout scales to any other size from the same
-source.
+Target panel: **2880 × 1152**. The layout scales to any other size from the
+same source, and on a screen too narrow or too upright for a 2.5 : 1
+composition it reflows and scrolls instead — see
+[Two layouts, one design](#two-layouts-one-design).
 
 ## Running it
 
@@ -34,21 +36,27 @@ names — `bigscreen.html`, `index.html`, `kpis.html`, `field-survey.html`:
 
 | Board | What it answers |
 | --- | --- |
-| Big Screen | The wall's main screen: ecosystem, enforcement and the field survey at once, over three self-cycling scenes |
+| Overview | The wall's main screen: ecosystem, enforcement and the field survey at once, over three self-cycling scenes |
 | Ecosystem | How big is the profession, and where is it? |
 | KPI Library | Every indicator in the set as its own card, filterable by family |
 | Field Verification | What the field teams found at 6,371 offices |
 
 **Profession and Operations are not missing.** In the source they were never
-boards — they were scenes two and three of the Big Screen, and that is where
+boards — they were scenes two and three of the Overview screen, and that is where
 they live here, with the sankey, the sunburst, the class radar and the
 enforcement money donut intact. Reading the nav as "two boards were dropped"
 gets the structure backwards.
 
+The first tab is called **Overview**, not "Big Screen". The source file's name
+described the hardware the page ran on, which says nothing to a visitor reading
+a tab, and read as a fourth board rather than as the wall's own front page. Its
+board id is still `bigscreen`: that id is the localStorage layout key, and
+renaming it would silently discard every arrangement already saved on a stand.
+
 Each of the three panel boards fills all 24 × 8 cells: no empty space on the
 wall. The KPI Library is the exception, and deliberately — see below.
 
-### Big Screen
+### Overview
 
 Seven panels: `National Ecosystem`, `Top Specialties`, `Profession Structure`
 in the left wing, one map in the centre, `Proactive Monitoring`,
@@ -85,11 +93,21 @@ is not on the 24 × 8 grid: its card count changes with the filter (20 / 5 / 5 /
 filter lands on a grid that is exactly full — no ragged last row, and nothing
 scrolls on a wall that has no scrollbar.
 
+The filter row itself had gone missing at some point during the rebuild onto
+the grid: the cards kept their `cat` tags, this section kept describing it, and
+six translated strings sat in `i18n.js` with no caller. It is back, and it is
+the same `.chips` segmented control as a card's own view switcher rather than a
+third control style — one track, one sliding pill, one implementation.
+
+On a tablet the Library follows the viewport's column count (1 or 2) and
+scrolls with everything else, which also means `dense` is off there and every
+card shows its full list.
+
 Two departures from the prototype, both deliberate:
 
 - **The views are chart specs, not bespoke HTML.** The source drew its own
   `bignum`, conic `gauge` and `donut`; here a library card and the same figure
-  on the Big Screen go through one renderer and cannot drift apart. The GAUGE
+  on Overview go through one renderer and cannot drift apart. The GAUGE
   becomes the two-slice donut Field Verification already uses for those same
   percentages.
 - **Row-based views show their leading three rows in the All grid.** A
@@ -106,7 +124,7 @@ Two departures from the prototype, both deliberate:
 | Input | Effect |
 | --- | --- |
 | Dock tabs | Jump to a board |
-| The page badge on the Big Screen tab | Open Overview / Profession / Operations |
+| The page badge on the Overview tab | Open Overview / Profession / Operations |
 | The globe in the dock | Switch language (the splash has its own `EN` / `ع`) |
 | Play/pause | Stop or resume the 45-second rotation |
 | `←` `→` | Previous / next board |
@@ -125,7 +143,7 @@ press `R` and `\` and switch back to `EN`.
 
 ## Timing
 
-- Boards rotate every **45 s**, except the Big Screen, which holds **75 s** to
+- Boards rotate every **45 s**, except Overview, which holds **75 s** to
   play its three 25-second scenes; the active pill fills to show the time left.
 - Touching anything holds the rotation for **90 s**.
 - **5 min** with no interaction returns to the SCE splash.
@@ -138,7 +156,10 @@ press `R` and `\` and switch back to `EN`.
 index.html            markup and load order
 assets/css/           tokens -> base -> grid -> widget -> chart-dsl -> map
                       -> library -> tooltip -> motion -> shell -> splash
-assets/js/core/       i18n, format, counter, tooltip, pill, chart-dsl, map,
+                      -> responsive (last: every rule in it is an override,
+                      and every one is behind an attribute viewport.js writes)
+assets/js/core/       viewport (first: it stamps the layout mode on <html>),
+                      i18n, format, counter, tooltip, pill, chart-dsl, map,
                       grid, motion, board, shell, splash
 assets/js/boards/     kit.js plus one file per board: layout and view specs
                       only. profession.js and operations.js define the widget
@@ -149,7 +170,7 @@ assets/js/data/       leap_data.js (verbatim), derive.js (aggregations),
                       ksa-geo.js (country outlines), ksa-basemap.js (the basemap)
 ```
 
-Six decisions worth knowing about.
+Seven decisions worth knowing about.
 
 **The charts are Axion Gen's, ported.** `assets/js/core/chart-dsl.js` is a
 vanilla-SVG port of `frontend/src/shared/ui/charts` — not an approximation of
@@ -209,11 +230,13 @@ where to look before wording anything in Arabic by hand. Where the four files
 translate the same English differently, `i18n-source/DECISIONS.md` records which
 one the board uses and why.
 
-**Sizes scale from one unit.** `--u` is `min(100vw/2880, 100vh/1152) × --u-scale`,
-and every font size, radius, gap and chart constant is expressed in it. The
-wall's real viewing distance is not knowable from a laptop, so `[` and `]` retune
-`--u-scale` live and the choice is remembered — one keypress rescales type,
-padding and chart geometry together.
+**Sizes scale from one unit.** `--u` is `--u-base × --u-scale`, and every font
+size, radius, gap and chart constant is expressed in it. On the wall `--u-base`
+is `min(100vw/2880, 100vh/1152)` — the fraction of the design the screen
+actually is. The wall's real viewing distance is not knowable from a laptop, so
+`[` and `]` retune `--u-scale` live and the choice is remembered: one keypress
+rescales type, padding and chart geometry together. (On a tablet `--u-base` is
+a different formula; see [Two layouts, one design](#two-layouts-one-design).)
 
 **Figma's numbers are a second unit off the same knob.** The dashboard in Figma
 is drawn at exactly the target panel size in plain px, so one Figma px is one
@@ -233,6 +256,89 @@ bar list renders three deep or eight deep. So each tile, bar row and table is a
 CSS container and the headline sizes are `min(token, N cqh)`. A card that is
 short also tightens its own header and chips, because at this scale a two-row
 panel was spending a quarter of its height on chrome.
+
+## Two layouts, one design
+
+The board is composed once, at 2880 × 1152, and that ratio is 2.5 : 1. Scaling
+it works for as long as the screen is still wide — 24 columns of a 1280px
+laptop window are 53px each, narrow but legible. It stops working the moment
+the screen is not wide: an iPad held upright is 820px across, the same 24
+columns are 34px each, and a card title reads "National ecosys…".
+
+So there are two layouts, and exactly one place decides which — `core/viewport.js`.
+Every breakpoint in the app lives in that file and nowhere else; it publishes
+the decision as `data-view`, `data-cols` and `data-narrow` on `<html>`, and
+`assets/css/responsive.css` keys off those attributes rather than repeating a
+media query. Two copies of a breakpoint always eventually disagree.
+
+| | wall | compact |
+| --- | --- | --- |
+| When | width > 1000px **and** aspect > 5 : 4 | anything narrower or squarer |
+| Covers | the LED panel, every MacBook, an iPad on its side | an iPad upright, a phone, a narrow window |
+| Layout | 24 × 8 absolute grid, fills the stage exactly | one or two columns, flowed |
+| Scrolling | never | vertically, and every block stays reachable |
+| `--u-base` | `min(100vw/2880, 100vh/1152)` | `0.58px + 0.046vw` |
+
+Three things change and nothing else does. No colour, no radius, no chart, no
+figure, and not one widget added or dropped.
+
+1. **`--u` stops being a fit ratio and becomes a device ratio.** On the wall the
+   question "what fraction of 2880 × 1152 is this screen" is the right one,
+   because the whole design has to land inside the panel at once. On a tablet it
+   has no useful answer — 820px is 28% of the wall, and 28% of a 16px title is
+   4.5px. A tablet is read at arm's length, not from across a stand, so its type
+   sits near Figma's own pixel sizes whatever the width: ~1.23 at an iPad's 820,
+   ~1.36 at 1024, floored at 0.95 on a phone. The single exception is the
+   headline factoid rung, which drops 72 → 56: 72 design px is 10% of the width
+   of the card it sits in on the wall and 18% of the same card reflowed, so
+   holding the number constant would have changed its share of the panel.
+
+2. **The 24 × 8 grid becomes a flow, in the wall's own reading order.**
+   `AxGrid.applyGeometry` writes an `order` from the same x/y that positions the
+   wall, so the sequence down the tablet is the sequence across the wall — not
+   the order the board definition happens to list, which is column by column and
+   would stack all three left-wing panels above the map. A widget spanning 9 or
+   more of the wall's 24 columns (the map, the register sankey, the specialty
+   list) takes the full width here; everything else pairs up. The grid packs
+   `dense`, which only ever pulls a later narrow panel into an earlier half-row
+   and never reorders two panels of the same width.
+
+3. **The stage scrolls** — the one thing the wall must never do and the one
+   thing the tablet must.
+
+Two smaller adjustments follow from the narrower card: a tab track drops one
+Figma rung (`control_M` → `control_S`) so a three-segment switcher stops eating
+its own card title, and the map's six-mode track — the only one in the app that
+does not fit an 820px card in Arabic — wraps, standing its sliding pill down in
+favour of painting the active segment, since the pill's whole mechanic is two
+edges on one line each with its own clock.
+
+Verified with `tools/shoot.mjs` at 2880 × 1152, 1728 × 1117, 1440 × 900,
+1024 × 768 and 820 × 1180, in both locales: no overflow, no clipped text.
+
+## Live, without moving a number
+
+The customer asked for the wall to read as something being watched rather than
+printed. **No value moves** — the dataset is theirs and reconciled, and
+`tools/audit-data.mjs` proves every figure on screen still comes out of it. The
+liveness is arrival and rhythm only:
+
+- **Bubbles grow into place.** Below 80 points each dot has its own delay and
+  the map seeds itself city by city. Above it — the field-survey mode plots
+  2,840 offices — the marker layer fades in as one, because the line is drawn
+  at the number of animated elements, not at anything a viewer can see.
+- **Three rings pulse**, on the three largest points of whatever mode is
+  showing. Three, whatever the mode plots, because that is the whole cost.
+- **A LIVE dot** in the board's far corner, beside the settings button.
+- The ticker, which was always there.
+
+All of it is transform and opacity, and all of it stands down under
+`prefers-reduced-motion`. The rings are HTML in a layer over the plate rather
+than SVG circles beside the bubbles, and that is not a preference: Chrome does
+not composite a transform animation on an SVG child, it relays out the SVG. As
+SVG, three rings took an idle board from **0 layout passes in six seconds to
+684**; as HTML, back to 0. `tools/perf.mjs` is where that is measured, and the
+note above the ping layer in `core/map.js` is where it is recorded.
 
 ## The scales
 
@@ -400,6 +506,14 @@ node tools/bundle.mjs              # rebuild SCE_LEAP_2026.html
 node tools/shoot.mjs 2880 1152     # screenshot every board in both locales;
                                    # report console errors, off-machine
                                    # requests, overflow and clipping
+node tools/shoot.mjs 820 1180      # ...and any other size. The overflow rule
+                                   # follows the layout mode: on the wall a
+                                   # card below the fold is a failure, on a
+                                   # compact screen it is the scroll working,
+                                   # so there the check is horizontal only.
+                                   # tools/shots/<WxH>/ holds a set each for
+                                   # 3840x1080, 2560x1440, 1920x1080,
+                                   # 1440x900, 1180x820, 820x1180 and 390x844
 node tools/audit-data.mjs          # reconcile every figure on screen with leap_data.js
 node tools/resize.mjs              # chart-tracks-container, transitions, counters
 node tools/timing.mjs              # slideshow, idle and attract behaviour

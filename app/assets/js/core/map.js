@@ -28,6 +28,27 @@
 
   var uid = 0;
 
+  /* --- The living map ------------------------------------------------------
+     The customer's one presentational ask that is not in Figma: the wall must
+     read as something being watched right now rather than a printed poster.
+     None of it touches a figure — the dataset is the customer's own and
+     reconciled — so the whole of it is arrival and rhythm.
+
+     Two devices, and the split between them is a performance decision.
+
+     A bubble grows into place. Below `STAGGER_MAX` points each dot gets its
+     own delay and the map seeds itself city by city, which is the effect
+     asked for. Above it — the field-survey mode plots 2,840 offices — a
+     per-element animation would be 2,840 keyframed transforms on one SVG, so
+     the whole marker layer fades in as one instead. The line is drawn at the
+     number of animated elements, not at anything the viewer can see.
+
+     Three rings ping, forever, on the three largest points of whatever mode
+     is showing. Three, because that is the whole cost: three composited
+     transforms, no matter how many thousand dots are underneath them. */
+  var STAGGER_MAX = 80;
+  var PINGS = 3;
+
   function svgEl(name, attrs) {
     var el = document.createElementNS('http://www.w3.org/2000/svg', name);
     for (var k in attrs) if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
@@ -114,9 +135,50 @@
     svg.appendChild(markers);
     container.appendChild(svg);
 
+    /* --- The ping layer, and why it is HTML ---
+       The rings that pulse over the three largest points are plain <div>s in a
+       layer over the plate, not <circle>s in the SVG beside the bubbles they
+       ring. That is not a preference; it is the only version of this that is
+       free.
+
+       Chrome does not composite a transform animation on an SVG child: it
+       relays out the SVG on every frame. Measured with tools/perf.mjs, three
+       ringed circles took an idle, untouched board from 0 layout passes in six
+       seconds to 684 — about two a frame, for the lifetime of a wall that runs
+       unattended all day. `will-change: transform` did not help; it is not a
+       promotion problem. The same three rings as HTML transforms cost 0.
+
+       The price is this: an HTML overlay has no viewBox, so the projection the
+       SVG does for free has to be done by hand. `place()` below is that, and
+       it runs where the viewBox is already being computed — every fit(), i.e.
+       every resize — so the rings track the plate exactly. */
+    var resizeObserver = null;
+    var pingLayer = document.createElement('div');
+    pingLayer.className = 'map-pings';
+    container.appendChild(pingLayer);
+    var pings = [];
+
     /* Grow the viewBox along whichever axis the panel has to spare, so the core
-       area is always fully visible no matter how the operator resizes. */
-    var view = { w: coreW, h: coreH };
+       area is always fully visible no matter how the operator resizes -- but
+       never past the plate, which is the other half of this and the half that
+       was missing.
+
+       The baked raster covers lon 24-67 by lat 8-38, i.e. 43 by 33.1 units of
+       this screen space. The growth above is unbounded, so a portrait panel
+       asked for more latitude than exists: on a 4:3 tablet the Big Screen's
+       map card is 395x635, aspect 0.62, and the core grew to 38.6 units tall
+       against a 33.1-unit plate. `slice` cannot cover what the image does not
+       contain, so the panel showed a hard horizontal cut with the ground
+       colour above and below it -- the map "cropped in height".
+
+       So the extent is capped at the plate's own, on both axes, keeping the
+       panel's aspect (one factor, not one per axis, or the peninsula would
+       stretch). Past the cap the core stops being fully visible -- there is no
+       third option once the panel is squarer than the imagery -- and what goes
+       is the outer margin the core carries for exactly this, not the country. */
+    var plateW = px(bbox[2]) - px(bbox[0]);
+    var plateH = py(bbox[1]) - py(bbox[3]);
+    var view = { w: coreW, h: coreH, x: coreCx - coreW / 2, y: coreCy - coreH / 2, scale: 1, ox: 0, oy: 0 };
 
     function fit() {
       var box = container.getBoundingClientRect();
@@ -128,12 +190,31 @@
       if (aspect > coreW / coreH) w = coreH * aspect;
       else h = coreW / aspect;
 
+      var cap = Math.min(1, plateW / w, plateH / h);
+      if (cap < 1) {
+        w *= cap;
+        h *= cap;
+      }
+
       view.w = w;
       view.h = h;
 
-      var x = coreCx - w / 2;
-      var y = coreCy - h / 2;
+      /* Centred on the core, then pushed back inside the plate: at the cap the
+         two centres do not coincide (the raster carries more sea to the south
+         than desert to the north), and an extent centred on the core would
+         hang off the top edge by the difference. */
+      var x = Math.min(Math.max(coreCx - w / 2, px(bbox[0])), px(bbox[2]) - w);
+      var y = Math.min(Math.max(coreCy - h / 2, py(bbox[3])), py(bbox[1]) - h);
       svg.setAttribute('viewBox', x.toFixed(3) + ' ' + y.toFixed(3) + ' ' + w.toFixed(3) + ' ' + h.toFixed(3));
+
+      /* The same mapping `preserveAspectRatio="xMidYMid slice"` applies to the
+         SVG's own contents, written out so the HTML layer above can use it:
+         cover the box, then centre the overflow. */
+      view.x = x;
+      view.y = y;
+      view.scale = Math.max(box.width / w, box.height / h);
+      view.ox = (box.width - w * view.scale) / 2;
+      view.oy = (box.height - h * view.scale) / 2;
 
       // Everything that has to cover the viewport rather than a fixed extent.
       var full = [ground, maskAll, scrim];
@@ -143,10 +224,47 @@
         full[i].setAttribute('width', w);
         full[i].setAttribute('height', h);
       }
+
+      placePings();
+    }
+
+    /** Project each ring's map position into the layer's pixel box. */
+    function placePings() {
+      for (var i = 0; i < pings.length; i++) {
+        var ping = pings[i];
+        var size = ping.r * 2 * view.scale;
+        var left = view.ox + (px(ping.lng) - view.x) * view.scale - size / 2;
+        var top = view.oy + (py(ping.lat) - view.y) * view.scale - size / 2;
+        ping.el.style.width = size.toFixed(2) + 'px';
+        ping.el.style.height = size.toFixed(2) + 'px';
+        ping.el.style.left = left.toFixed(2) + 'px';
+        ping.el.style.top = top.toFixed(2) + 'px';
+        ping.el.style.borderWidth = Math.max(1, size * 0.06).toFixed(2) + 'px';
+      }
     }
 
     fit();
-    new ResizeObserver(fit).observe(container);
+
+    /* The observer is held, not dropped on the floor.
+
+       `new ResizeObserver(fit).observe(container)` keeps no reference to the
+       observer, and an observer nothing references is collectable: it fired
+       once and then, at some point after the first GC, stopped. That was
+       invisible for as long as the only thing it drove was the viewBox, since
+       `preserveAspectRatio="slice"` covers the panel whatever aspect the
+       viewBox claims — a stale one just reads as a slightly different zoom.
+       It stopped being invisible the moment fit() also had to place the HTML
+       ping layer, which has no slice to hide behind. Every other observer in
+       the app (chart-dsl's shared one, board.js's two) is already held; this
+       was the one that was not.
+
+       The rAF is the other half. A map mounts before its grid item is
+       painted, so the first fit() measures a 1x1 box — the card's own
+       hairline, with no content between — and one frame later the geometry is
+       real. */
+    resizeObserver = new ResizeObserver(fit);
+    resizeObserver.observe(container);
+    requestAnimationFrame(fit);
 
     var hud = document.createElement('div');
     hud.className = 'map-hud';
@@ -211,6 +329,24 @@
          no such moment to be wrong at. */
       var touchMinR = coreW * 0.02;
 
+      /* Which points get a ping, decided before the loop so the loop stays a
+         loop: the three largest by the same value the radius is drawn from. */
+      var tone = mode.tone || Chart.TONE.cy;
+      var staggered = points.length <= STAGGER_MAX;
+      var rank = points
+        .map(function (p, index) {
+          return { index: index, value: p[2] };
+        })
+        .sort(function (a, b) {
+          return b.value - a.value;
+        })
+        .slice(0, PINGS);
+      var pingAt = {};
+      for (var k = 0; k < rank.length; k++) pingAt[rank[k].index] = k;
+
+      pingLayer.innerHTML = '';
+      pings = [];
+
       for (var i = 0; i < points.length; i++) {
         var p = points[i];
         var ratio = max ? Math.sqrt(p[2] / max) : 0;
@@ -222,9 +358,20 @@
           cy: cy,
           r: r.toFixed(3),
           class: 'map-dot' + (p[4] ? ' map-dot--' + p[4] : ''),
-          style: 'color:' + (mode.tone || Chart.TONE.cy),
+          /* `--i` is the seeding delay's only input; it is read by the
+             keyframe's `animation-delay` and ignored under `.is-bulk`. */
+          style: 'color:' + tone + ';--i:' + (staggered ? i : 0),
         });
         frag.appendChild(circle);
+
+        if (pingAt[i] !== undefined) {
+          var ring = document.createElement('div');
+          ring.className = 'map-ping';
+          ring.style.color = tone;
+          ring.style.setProperty('--i', pingAt[i]);
+          pingLayer.appendChild(ring);
+          pings.push({ el: ring, lat: p[0], lng: p[1], r: Math.max(r, coreW * 0.012) });
+        }
 
         if (p[3]) {
           var hit = svgEl('circle', {
@@ -240,6 +387,21 @@
         }
       }
       markers.appendChild(frag);
+
+      /* The class is written after the fragment lands, and written twice.
+         `.is-seeding` restarts on its own because every dot under it is a new
+         element; `.is-bulk` animates the group, which is the same element as
+         last time, and re-adding a class an element already carries restarts
+         nothing. Clearing it and flushing is what makes re-entering the
+         field-survey mode seed again rather than sit there. */
+      markers.setAttribute('class', 'map-markers');
+      void markers.getBoundingClientRect();
+      markers.setAttribute('class', 'map-markers ' + (staggered ? 'is-seeding' : 'is-bulk'));
+      /* fit(), not placePings(): a chip switch happens with the panel laid
+         out, so this is the cheapest moment to re-measure, and it lands the
+         rings on the first frame of the mode they belong to rather than one
+         observer callback later. */
+      fit();
 
       /* No inline colour on the figure. It is a factoid — Figma's Tips block
          (node 5044:95235) draws it in the same white as the ones in the panels

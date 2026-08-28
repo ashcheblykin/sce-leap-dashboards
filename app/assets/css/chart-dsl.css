@@ -97,7 +97,7 @@
 .ax-chart-note {
   flex: none;
   padding-top: var(--fsp-2);
-  color: var(--mut-2);
+  color: rgba(255, 255, 255, 0.5);
   font-size: min(var(--fs-control-m), var(--cap-note));
   line-height: var(--lh-caption);
   text-align: center;
@@ -536,7 +536,28 @@
    keeps the proportion instead of opening a gap under a shrunken number. */
 .ax-kpi-value {
   color: var(--fg-primary);
-  font-size: min(var(--fs-hero-l), var(--cap-kpi));
+  /* Three ceilings, and the rung wins at every size the wall runs at.
+
+     The third is the one that is not in tokens.css, because it cannot be: a
+     factoid is `white-space: nowrap` — "1.12M" must never break after the dot
+     — so a tile narrower than its number overflows rather than wrapping, and
+     no cqh cap can see that coming; height says nothing about how many digits
+     a figure has. `--kpi-em` is the width of THIS tile's own figure in ems,
+     measured glyph by glyph in chart-dsl.js (see widthEm) and written onto
+     the tile, so `100cqw / --kpi-em` is exactly the size at which this number
+     fills this tile. "1 116 186" and "402" therefore get different ceilings,
+     which one shared cqw figure could never do.
+
+     It has to be written here rather than as a token: `var()` inside a custom
+     property is substituted where that property is declared, so a
+     `--cap-kpi-w` on :root would resolve `--kpi-em` against :root — where it
+     does not exist — and hand every tile the fallback.
+
+     A floor under a narrow tile, not a design figure. At 2880 a two-up tile
+     is 340px and even the longest figure in the set reads 95px against the
+     72px rung, so the rung draws and this never bites; it bites on a tablet,
+     where the same card is 183px across. */
+  font-size: min(var(--fs-hero-l), var(--cap-kpi), calc(100cqw / var(--kpi-em, 3)));
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.04;
