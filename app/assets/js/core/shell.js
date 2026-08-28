@@ -236,9 +236,39 @@
     document.documentElement.style.setProperty('--grid-rows', AxGrid.ROWS);
   }
 
+  /* Raised while the slideshow itself is driving a widget's view switcher.
+     Selecting a chip runs the board's onInteract, which is this very
+     function — without the guard the wall would park its own slideshow the
+     first time it advanced a card's tabs by itself. */
+  var autoDriving = false;
+
   function noteInteraction() {
+    if (autoDriving) return;
     lastInteraction = Date.now();
     holdUntil = lastInteraction + INTERACTION_PAUSE_MS;
+  }
+
+  /* --- Presentation mode ---
+     "/" strips the board of everything an operator needs and nobody in the
+     room does: the dock, the settings corner, the wall title. What is left
+     is the header overlay in index.html — the SCE mark between the centre's
+     line in English and Arabic. Deliberately an obscure key: the wall is
+     driven by whoever is standing at it, and a visible button would be
+     pressed by a visitor and never pressed back. */
+  var clean = false;
+
+  function setClean(on) {
+    clean = on;
+    if (on) {
+      document.documentElement.setAttribute('data-clean', '');
+      settingsPanel.hidden = true;
+      closeSceneMenu();
+    } else {
+      document.documentElement.removeAttribute('data-clean');
+      /* The dock was faded out, not removed, but a locale or scale change
+         while it was hidden left the pill anchored to stale boxes. */
+      resnapNavPill();
+    }
   }
 
   /* --- Navigation ---
@@ -621,6 +651,45 @@
     if (setAutoplay) setAutoplay.checked = on;
   }
 
+  /* --- View cycling ---
+     A card that ships two or three views only ever showed the first one on
+     an unattended wall, and the map — six of them — showed a sixth of what
+     it knows. Every switcher on the board therefore walks its own segments
+     within the slot the board is on screen for: the segments divide the
+     dwell, so a two-view card turns once at 22.5s of a 45s slot and the map
+     turns every 7.5s. The Big Screen divides its 25s scene instead, since
+     that is how long its cards are actually up.
+
+     Driven off elapsed time rather than per-widget timers so the whole board
+     stays in step with the dwell bar in the dock, and so a hold (see the
+     caller) rewinds every switcher together simply by moving the clock. */
+  function cycleViews(now, dwellMs) {
+    var board = current >= 0 ? boards[current] : null;
+    if (!board) return;
+    var tracks = board.surface.querySelectorAll('.chips');
+    for (var i = 0; i < tracks.length; i++) {
+      var track = tracks[i];
+      var tabs = track._tabs;
+      if (!tabs) continue;
+      var count = track.querySelectorAll('.chip').length;
+      if (count < 2) continue;
+
+      /* Clamped: a scene that changed earlier in this same tick set its
+         start a hair after `now`, and a negative step would index off the
+         front of the track. */
+      var step = Math.floor(Math.max(0, now - sceneStartedAt) / (dwellMs / count));
+      if (step === track._autoStep) continue;
+      /* Whatever the card opened on is step 0, so a widget with a
+         defaultView still leads with it before the rotation starts. */
+      if (track._autoBase == null) track._autoBase = tabs.index();
+      track._autoStep = step;
+
+      autoDriving = true;
+      tabs.select((track._autoBase + step) % count);
+      autoDriving = false;
+    }
+  }
+
   function slideshowTick() {
     var now = Date.now();
 
@@ -648,12 +717,16 @@
        OVERVIEW -> PROFESSION -> OPERATIONS every 25s and only then hands the
        wall on, which is why its slot is three scenes long. */
     var board = current >= 0 ? boards[current] : null;
+    var dwellMs = current >= 0 && BOARDS[current].sceneMs ? BOARDS[current].sceneMs : SLIDE_MS;
     if (board && board.sceneCount > 1 && sceneTabs) {
-      var sceneMs = BOARDS[current].sceneMs || SLIDE_MS;
-      if (now - sceneStartedAt >= sceneMs) {
+      if (now - sceneStartedAt >= dwellMs) {
         sceneTabs.select((board.sceneIndex() + 1) % board.sceneCount);
       }
     }
+
+    /* After the scene step above, so a scene that has just changed cycles
+       against its own fresh sceneStartedAt rather than the outgoing one's. */
+    cycleViews(now, dwellMs);
 
     var slideMs = current >= 0 && BOARDS[current].slideMs ? BOARDS[current].slideMs : SLIDE_MS;
     var elapsed = now - slideStartedAt;
@@ -876,6 +949,10 @@
         nudgeScale(SCALE_STEP);
       } else if (ev.key === '[') {
         nudgeScale(-SCALE_STEP);
+      } else if (ev.key === '/') {
+        ev.preventDefault();
+        noteInteraction();
+        setClean(!clean);
       } else if (ev.key === '\\') {
         scale = SCALE_DEFAULT;
         applyScale();

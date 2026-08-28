@@ -60,6 +60,70 @@
   filter: drop-shadow(0 0 18px rgba(var(--cy-rgb), 0.22));
 }
 
+/* --- Presentation mode ("/" key) ---
+   The wall in front of an audience does not need its own controls in shot,
+   but it does still have to say whose board it is. Everything interactive
+   drops out and the header becomes the SCE mark alone between the centre's
+   line in both languages. The overlay is always in the DOM and only ever
+   toggled to visible, so pressing the key costs a fade and no reflow of the
+   board underneath. */
+.hdr-clean {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  align-items: center;
+  gap: var(--sp-4);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  inset: 0 var(--sp-6);
+  /* Physical, not logical: the pair is a fixed piece of signage — English
+     left, Arabic right — and must read the same whichever locale the board
+     itself is in, so the overlay does not follow the RTL flip. The spans
+     carry their own dir, so each line still shapes correctly. */
+  direction: ltr;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-enter) var(--ease);
+}
+
+/* Each line hugs its own outer edge of the header. `justify-self`, not
+   `text-align`: the Arabic span is `dir="rtl"`, so its own "end" is the left
+   of its column and the line would settle against the logo instead of the
+   board's edge. Placement belongs to the grid, which reads the header's
+   direction, not the span's. */
+.hdr-clean-line {
+  max-width: 100%;
+  justify-self: start;
+  overflow: hidden;
+  color: var(--tx-2);
+  font-size: calc(22 * var(--u));
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Second line takes the far edge, so the pair frames the mark. */
+.hdr-clean-line:last-child {
+  justify-self: end;
+}
+
+.hdr-clean-logo {
+  height: calc(56 * var(--u));
+  filter: drop-shadow(0 0 18px rgba(var(--cy-rgb), 0.22));
+}
+
+html[data-clean] .hdr-clean {
+  opacity: 1;
+}
+
+html[data-clean] .hdr-brand,
+html[data-clean] .dock,
+html[data-clean] .hdr-meta {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-enter) var(--ease);
+}
+
 /* --- Wall identity ---
    Kept off the wall, kept in the DOM. The source dashboards led with the
    centre's name and set the other language beneath it, and `data-i18n-gloss`

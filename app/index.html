@@ -39,6 +39,18 @@
       <main class="stage" id="stage"></main>
 
       <header class="hdr">
+        <!-- Presentation mode (the "/" key). With the chrome hidden the wall
+             still has to say whose board it is, so the header collapses to the
+             SCE mark alone, flanked by the centre's line in both languages —
+             English on the reading-start side, Arabic on the other. Kept as its
+             own overlay rather than restyling .hdr-brand, so nothing about the
+             normal header moves when the key is pressed. -->
+        <div class="hdr-clean" aria-hidden="true">
+          <span class="hdr-clean-line" lang="en" dir="ltr">Engineering the Future</span>
+          <img class="hdr-clean-logo" src="assets/img/sce-logo.svg" alt="" />
+          <span class="hdr-clean-line" lang="ar" dir="rtl">نهندس المستقبل...</span>
+        </div>
+
         <!-- The wall's own identity, as the source dashboards printed it: the
              centre's name with the other language underneath, and — while the
              Big Screen is on — its three scenes beside it. -->
