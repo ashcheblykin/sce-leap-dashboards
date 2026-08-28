@@ -57,9 +57,60 @@
   display: none;
 }
 
+/* Leaving — the cover does not simply fade out, it recedes.
+
+   Two layers move at once: the whole overlay dims, while the artboard and the
+   relief behind it drift a touch towards the viewer (1 -> 1.04) and blur, so
+   the boards that are already staggering in underneath read as the layer the
+   cover has just uncovered. core/splash.js starts the shell ~180 ms into this,
+   which is what makes the handover feel like one movement rather than two.
+
+   Only opacity, transform and filter — no layout, no paint of the boards,
+   which is what keeps it cheap enough for the conference PC. */
 .splash[data-leaving] {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 460ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.splash[data-leaving] .cover__frame {
+  transform: translate(-50%, -50%) scale(calc(var(--s) * 1.045));
+  filter: blur(6px);
+}
+
+.splash[data-leaving] .cover__bg,
+.splash[data-leaving] .code {
+  transform: scale(1.03);
+  opacity: 0.5;
+}
+
+/* The transitions live on the leaving state only: a transition is read from
+   the after-change style, so this animates the departure without also putting
+   a 620 ms lag on --s, which every window resize rewrites. */
+.splash[data-leaving] .cover__frame,
+.splash[data-leaving] .cover__bg,
+.splash[data-leaving] .code {
+  transition:
+    transform 620ms cubic-bezier(0.32, 0, 0.24, 1),
+    opacity 460ms var(--ease),
+    filter 460ms var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash,
+  .splash[data-leaving],
+  .splash[data-leaving] .cover__frame,
+  .splash[data-leaving] .cover__bg,
+  .splash[data-leaving] .code {
+    transition-duration: 200ms;
+  }
+
+  .splash[data-leaving] .cover__frame,
+  .splash[data-leaving] .cover__bg,
+  .splash[data-leaving] .code {
+    transform: none;
+    filter: none;
+  }
 }
 
 /* The cover has no call-to-action of its own: the whole screen is the button.

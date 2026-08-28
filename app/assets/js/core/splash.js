@@ -35,15 +35,39 @@
     return !el.hidden;
   }
 
+  /* The cover recedes for LEAVE_MS (css/splash.css); the boards start
+     HANDOVER_MS into that, so the tile stagger is already running by the time
+     the cover is transparent enough to see through. Waiting for the fade to
+     finish first — which is what this used to do — read as two separate
+     animations with a dead beat between them. */
+  var LEAVE_MS = 620;
+  var HANDOVER_MS = 180;
+
   function hide() {
     if (el.hidden) return;
     clearTimeout(attract);
     el.setAttribute('data-leaving', '');
+
+    /* The chrome has nothing to stagger, so it gets the one fade-and-rise of
+       its own; the attribute is dropped once it has played. */
+    var root = document.documentElement;
+    root.setAttribute('data-booting', '');
+
+    setTimeout(function () {
+      Shell.start();
+      /* One tick, not one frame: the boards Shell.start() has just mounted
+         need a paint at the booting style before it is released, and a
+         backgrounded tab can withhold rAF long enough to strand the chrome at
+         opacity 0. */
+      setTimeout(function () {
+        root.removeAttribute('data-booting');
+      }, 32);
+    }, HANDOVER_MS);
+
     setTimeout(function () {
       el.hidden = true;
       if (field) field.stop();
-      Shell.start();
-    }, 520);
+    }, LEAVE_MS);
   }
 
   function arm() {
@@ -58,6 +82,7 @@
     el.hidden = false;
     // Let `hidden` clear before the transition target is removed.
     requestAnimationFrame(function () {
+      document.documentElement.removeAttribute('data-booting');
       el.removeAttribute('data-leaving');
       if (field) field.start();
     });

@@ -28,12 +28,12 @@
     palette: 'sce.leap.settings.palette',
   };
 
-  /* The two grounds the board can be read on — the SCE teal it was designed
-     in, and the slate navy taken from saudieng.sa. Both are declared in
-     tokens.css; this list is only the vocabulary of the stored setting, so an
-     unrecognised value in localStorage falls back rather than stamping a
-     palette the stylesheet has never heard of. */
-  var PALETTES = ['green', 'blue'];
+  /* The grounds the board can be read on — the SCE teal it was designed in,
+     the slate navy taken from saudieng.sa, and the deeper navy beside it. All
+     three are declared in tokens.css; this list is only the vocabulary of the
+     stored setting, so an unrecognised value in localStorage falls back rather
+     than stamping a palette the stylesheet has never heard of. */
+  var PALETTES = ['green', 'blue', 'purple'];
   var PALETTE_DEFAULT = 'green';
 
   function loadFlag(key, fallback) {

@@ -266,16 +266,23 @@
 /* The one thing on the board that does not follow the palette on its own.
    Everything else here fills from --ink, but the plate is a raster baked by
    tools/bake-basemap.py and graded into the teal at bake time (LAND #023341,
-   INK #1b9aa5), so on the blue ground it stayed a teal island in a navy room.
+   INK #1b9aa5), so on either navy ground it stayed a teal island in a navy
+   room.
 
-   Re-baking would mean a second multi-hundred-KB data URI shipped for a
-   setting most walls will never touch, and a network fetch of the Esri tiles
-   to produce it. A hue rotation costs nothing and is enough here precisely
-   because the plate is a low-saturation backdrop: 28deg carries the bake's
-   191deg teal to the navy's ~219deg, and the slight desaturation matches the
-   SCE site's own navy, which is far quieter than the teal it replaces. The
-   bubbles, the focus outline and the coast highlight are SVG siblings, not
-   part of the image, so they keep their cyan and stay in front of it. */
+   Re-baking would mean a second and third multi-hundred-KB data URI shipped
+   for a setting most walls will never touch, and a network fetch of the Esri
+   tiles to produce each. A hue rotation costs nothing and is enough here
+   precisely because the plate is a low-saturation backdrop: it carries the
+   bake's 191deg teal to each ground's own hue, and the desaturation is what
+   each ground asks for — `blue` is the SCE site's slate, far quieter than the
+   teal it replaces, while `purple` keeps most of the teal's saturation and so
+   barely needs any. The bubbles, the focus outline and the coast highlight are
+   SVG siblings, not part of the image, so they keep their cyan and stay in
+   front of it on every ground. */
 :root[data-palette='blue'] .map-plate {
   filter: hue-rotate(28deg) saturate(0.85);
+}
+
+:root[data-palette='purple'] .map-plate {
+  filter: hue-rotate(18deg) saturate(0.95);
 }

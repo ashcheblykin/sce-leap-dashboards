@@ -4,6 +4,33 @@
   flex-direction: column;
 }
 
+/* Handover from the splash.
+
+   The boards have the tile stagger to arrive with (core/motion.js); the two
+   bars of chrome have nothing, so they get one short fade-and-settle instead,
+   each from its own edge. core/splash.js stamps `data-booting` on <html> as
+   the cover starts receding and clears it a frame after Shell.start(), so the
+   whole handover is a single movement. */
+:root[data-booting] .ticker,
+:root[data-booting] .hdr {
+  opacity: 0;
+}
+
+:root[data-booting] .ticker {
+  transform: translateY(calc(-1 * var(--sp-3)));
+}
+
+:root[data-booting] .hdr {
+  transform: translateY(var(--sp-3));
+}
+
+.ticker,
+.hdr {
+  transition:
+    opacity 420ms var(--ease) 60ms,
+    transform 420ms var(--ease) 60ms;
+}
+
 /* --- Header --- */
 /* Three tracks, not a flex row with an absolutely centred nav: once the Big
    Screen's scene switcher sits beside the wall title, the left group is wide
@@ -633,11 +660,11 @@
 
 /* --- Palette switch ---
    The ground is a choice between two named palettes rather than a flag, so it
-   is a two-segment track and not a fifth checkbox — the same geometry as the
+   is a segmented track and not a fifth checkbox — the same geometry as the
    widgets' .chips and the language switch: --fsp-0-5 inset, --radius-track
    outer, concentric inner, --fs-control-m label. It does not borrow .chips
    itself because that track's active fill is a single sliding pill positioned
-   by JS; here there are exactly two fixed segments and `:checked` can fill
+   by JS; here the segments are fixed in the markup and `:checked` can fill
    them directly.
 
    The radio is hidden with opacity rather than `display: none` or

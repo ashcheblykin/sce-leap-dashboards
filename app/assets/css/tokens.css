@@ -349,30 +349,54 @@
   --grid-gap: 8px;
 }
 
-/* --- Second ground: the blue palette (`html[data-palette="blue"]`) ---
+/* --- The alternate grounds (`html[data-palette="blue" | "purple"]`) ---
 
-   The default above is the SCE teal the boards were designed on. This is the
-   alternate the settings panel switches to, drawn from saudieng.sa itself: the
+   The default above is the SCE teal the boards were designed on; both blocks
+   below are alternates the settings panel switches to, and both keep the same
+   discipline. Only the ground and its plates move. Every accent — the six
+   chart tones, the cyan rim, the gold — is a semantic colour (see the
+   colour-semantics rule) and is identical on all three, so a switch never
+   changes what a number means, only the room it is read in.
+
+   The rule for deriving a new one, so a fourth is a five-minute job: pick the
+   ground, then tint `--surface` toward it instead of leaving Figma's neutral
+   black 60%, so the card keeps the ground's hue rather than draining to a
+   charcoal; darken the tint until `--mut-2` — the smallest type on the wall,
+   and the only ink on the board tuned to a specific ratio — measures at least
+   the 4.9:1 the teal card gives it. `--plate-menu` is then that same resolved
+   card colour made near-opaque, since the scene menu stands in for the dock.
+
+   --- blue: drawn from saudieng.sa itself. The
    site's own header band is #3f5372 — hsl(218, 29%, 34%) — a slate navy, and
    the wall wants that hue at the ground's lightness rather than the site's,
    which would read as a light grey across 2880px. So the ground keeps the
    site's hue and takes the teal's lightness (17-18%) and a little more of its
-   saturation, and the two plates are re-resolved against it.
-
-   Only the ground and its plates move. Every accent — the six chart tones,
-   the cyan rim, the gold — is a semantic colour (see the colour-semantics
-   rule) and is the same on both palettes, so a switch never changes what a
-   number means, only the room it is read in.
-
-   `--surface` is Figma's black 60% on the teal; here it is tinted navy
-   instead, so the card keeps the ground's hue rather than draining to a
-   neutral charcoal. Resolved over `--ink` it is #101828, which measures 4.9:1
-   against `--mut-2` — the same margin the teal card gives the smallest type on
-   the wall (4.9:1), so the readability that `--mut-2` was tuned for holds on
-   both grounds. */
+   saturation. Its card resolves to #101828 and measures 4.90:1. */
 :root[data-palette='blue'] {
   --ink: #1e2a3f;
   --surface: rgba(6, 12, 24, 0.6);
   --plate: rgba(8, 16, 32, 0.72);
   --plate-menu: rgba(16, 24, 40, 0.92);
+}
+
+/* --- purple: #103455, hsl(209, 68%, 20%).
+
+   The name is the setting's, not the colour's — this is a deep saturated navy,
+   two hue degrees off `blue` and nowhere near the `--purple` chart tone
+   (#b48af5) that shares the word. They are unrelated: one is a ground, the
+   other is a series colour, and nothing on the wall ever shows both meanings
+   of the word at once.
+
+   Where `blue` is the SCE site's own slate — desaturated, close to grey — this
+   is that hue with the teal's saturation kept, so it reads as a colour rather
+   than a neutral and sits between the two existing grounds in temperature. Its
+   card resolves to #081b2d and measures 4.80:1 against `--mut-2`: still clear
+   of 4.5, and the tint is already darker than the hue would suggest precisely
+   to buy that margin — the ground's higher saturation costs luminance
+   contrast, so the plate has to give some back. */
+:root[data-palette='purple'] {
+  --ink: #103455;
+  --surface: rgba(3, 10, 18, 0.6);
+  --plate: rgba(5, 18, 32, 0.72);
+  --plate-menu: rgba(8, 27, 45, 0.92);
 }
