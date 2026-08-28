@@ -259,10 +259,23 @@
 
   function setClean(on) {
     clean = on;
+    /* Hiding the chrome is the opposite of taking the board over: the room is
+       about to watch it run. So the key does not count as interaction — it
+       lifts the 90-second hold any earlier tap left behind and hands the board
+       on screen a full slot, rather than parking the show for a minute and a
+       half at the moment somebody starts presenting. */
+    holdUntil = 0;
+    lastInteraction = Date.now();
+    slideStartedAt = lastInteraction;
+    sceneStartedAt = lastInteraction;
     if (on) {
       document.documentElement.setAttribute('data-clean', '');
       settingsPanel.hidden = true;
       closeSceneMenu();
+      /* With the dock gone there is no visible way back to play, so a board
+         paused before the key was pressed would simply stand still for the
+         whole talk. Presentation mode means the wall runs. */
+      if (!playing) setPlaying(true);
     } else {
       document.documentElement.removeAttribute('data-clean');
       /* The dock was faded out, not removed, but a locale or scale change
@@ -698,7 +711,10 @@
       return;
     }
 
-    if (settings.splashEnabled && now - lastInteraction > IDLE_TO_SPLASH_MS) {
+    /* Presentation mode has no idle: nobody touches the board while it is
+       being shown, and dropping to the attract screen mid-talk is the one
+       thing the mode exists to prevent. */
+    if (!clean && settings.splashEnabled && now - lastInteraction > IDLE_TO_SPLASH_MS) {
       global.Splash.show();
       return;
     }
@@ -951,7 +967,6 @@
         nudgeScale(-SCALE_STEP);
       } else if (ev.key === '/') {
         ev.preventDefault();
-        noteInteraction();
         setClean(!clean);
       } else if (ev.key === '\\') {
         scale = SCALE_DEFAULT;
