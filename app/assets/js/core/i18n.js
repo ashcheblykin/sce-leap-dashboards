@@ -55,21 +55,8 @@
     'ctl.reset': ['Reset layout', 'إعادة ضبط التخطيط'],
     'ctl.lang': ['Language', 'اللغة'],
 
-    /* Splash */
-    'splash.eyebrow': [
-      'Saudi Council of Engineers · LEAP 2026',
-      'الهيئة السعودية للمهندسين · LEAP 2026',
-    ],
-    'splash.title1': ['AI-Driven Oversight', 'رقابة مدعومة بالذكاء الاصطناعي'],
-    'splash.title2': ['for Future Cities', 'لمدن المستقبل'],
-    'splash.sub': [
-      "One live picture of the Kingdom's engineering profession — the registered workforce, the renewal pipeline, enforcement delivery and every office verified at the door.",
-      'صورة حية واحدة لمهنة الهندسة في المملكة — القوى العاملة المسجلة، ومسار التجديد، والإنفاذ، وكل مكتب تم التحقق منه ميدانياً.',
-    ],
-    'splash.cta': ['Start exploration', 'ابدأ الاستعراض'],
-    'splash.stat1': ['Professionals in regulated roles', 'المهنيون في الأدوار المنظمة'],
-    'splash.stat2': ['Registered with SCE', 'المسجلون لدى الهيئة'],
-    'splash.stat3': ['Offices verified on the ground', 'المكاتب المتحقق منها ميدانياً'],
+    /* The splash carries no translated strings: the cover is bilingual
+       by construction, English and Arabic both on screen at once. */
 
     /* Panel titles */
     'w.eco': ['National ecosystem', 'المنظومة الوطنية'],

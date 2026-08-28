@@ -125,7 +125,7 @@ Two departures from the prototype, both deliberate:
 | --- | --- |
 | Dock tabs | Jump to a board |
 | The page badge on the Overview tab | Open Overview / Profession / Operations |
-| The globe in the dock | Switch language (the splash has its own `EN` / `ع`) |
+| The globe in the dock | Switch language (the splash needs none: it is bilingual) |
 | Play/pause | Stop or resume the 45-second rotation |
 | `←` `→` | Previous / next board |
 | `Space` | Play/pause |
@@ -141,14 +141,31 @@ survive a reload — including a relaunch on the stand, which is the point: set
 them once during setup. To start clean, clear the site data for the file, or
 press `R` and `\` and switch back to `EN`.
 
+## The attract screen
+
+The splash is the LEAP '26 cover, reproduced 1:1 from Figma node 38:357 of
+«Sce Dashboards for LEAP '26», with three sibling artboards for the narrower
+windows (38:261, 38:938, 38:1084). It is the one part of the app that is not
+built from `--u` / `--fu`: each artboard is scaled as a whole, so every number
+in `css/splash.css` is a design pixel of its own frame, and those four
+breakpoints are the only media queries in the app that do not come from
+`core/viewport.js`.
+
+Both languages are on screen at once, so the cover carries no language switch
+and no translated strings. Behind the type, `core/cover-field.js` regenerates
+the design's baked «code» layer as a live field of JSON fragments in SCE's own
+subject matter, keeping clear of the headlines and the logos. `core/splash.js`
+owns nothing but the lifecycle: show, hide, and stopping the field with it.
+
 ## Timing
 
 - Boards rotate every **45 s**, except Overview, which holds **75 s** to
   play its three 25-second scenes; the active pill fills to show the time left.
 - Touching anything holds the rotation for **90 s**.
 - **5 min** with no interaction returns to the SCE splash.
-- The splash hands back to the boards after **40 s** if nobody presses Start,
-  so an unattended wall never sits on a static screen.
+- The splash hands back to the boards after **40 s** if nobody touches it
+  (anywhere on the cover starts the wall), so an unattended wall never sits on
+  a static screen.
 
 ## How it is put together
 
@@ -160,7 +177,7 @@ assets/css/           tokens -> base -> grid -> widget -> chart-dsl -> map
                       and every one is behind an attribute viewport.js writes)
 assets/js/core/       viewport (first: it stamps the layout mode on <html>),
                       i18n, format, counter, tooltip, pill, chart-dsl, map,
-                      grid, motion, board, shell, splash
+                      grid, motion, board, shell, cover-field, splash
 assets/js/boards/     kit.js plus one file per board: layout and view specs
                       only. profession.js and operations.js define the widget
                       sets bigscreen.js mounts as its scenes, so both load
@@ -361,7 +378,6 @@ pair per rung, in design pixels, not a ladder invented here:
 --fs-caption-m      12 / 14   credits, attribution, the hidden reset
 --fs-body-l         20 / 24   the dock's scene badge
 --fs-subheading-l   24 / 24   dock tabs, scene menu, ticker
---fs-heading-m      32 / 40   splash sub-head and CTA
 --fs-hero-l         72 / 100  every factoid on the wall, and the map HUD
 ```
 
@@ -555,7 +571,7 @@ ghosted grey and changed ones flagged red.
 
 For that to mean anything the app has to render the same twice, so `shoot.mjs`
 pins the two things that move on wall-clock time — the ticker marquee and the
-splash's animated ground — to one fixed phase before each capture (see
+splash's code field — to one fixed phase before each capture (see
 `freezeMotion`, and `Splash.freeze`, which exists for it and for nothing else).
 Fourteen frames then come back byte-identical across runs.
 

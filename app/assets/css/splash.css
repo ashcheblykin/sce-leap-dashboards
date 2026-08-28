@@ -1,15 +1,36 @@
-/* SCE start screen. Deliberately SCE-branded rather than Axion-branded: this is
-   the client's front door, so the only Axion mark is the small credit line. */
+/* SCE start screen — the LEAP '26 cover.
+
+   The whole screen is one Figma artboard reproduced 1:1: node 38:357 of
+   «Sce Dashboards for LEAP '26» (2880x1152), with three sibling artboards for
+   the narrower windows — 38:261 (1366x1024), 38:938 (1024x1366) and 38:1084
+   (402x700). Every number inside .cover__frame is a design pixel of its
+   artboard; the frame is scaled as a whole, so nothing here uses --u or --fu.
+
+   The four artboards are the splash's own, unrelated to the board layout
+   modes in core/viewport.js, so — uniquely in this stylesheet — they are
+   written as media queries rather than keyed off the <html> attributes.
+
+   Bilingual by construction: both the English and the Arabic block are always
+   on screen, which is why the splash carries no language switch of its own. */
+
+/* Roboto Flex with the wdth axis intact — the cover sets wdth 151, which the
+   board's instanced subset cannot reach, hence a family of its own. */
+@font-face {
+  font-family: 'Roboto Flex Cover';
+  src: url('../fonts/roboto-flex-cover.woff2') format('woff2');
+  font-weight: 100 1000;
+  font-stretch: 25% 151%;
+  font-style: normal;
+  font-display: block;
+}
+
+/* ── overlay ──────────────────────────────────────────────────────────── */
 
 .splash {
   position: fixed;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
   inset: 0;
+  background: var(--page);
   opacity: 1;
   transition: opacity 520ms var(--ease);
 }
@@ -23,165 +44,619 @@
   pointer-events: none;
 }
 
-.splash-canvas {
+/* The cover has no call-to-action of its own: the whole screen is the button.
+   It keeps the id the capture harness clicks (tools/shoot.mjs and friends). */
+.splash-start {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.splash-start:focus-visible {
+  outline: var(--hairline) solid rgba(var(--cy-rgb), 0.6);
+  outline-offset: calc(-4 * var(--fu));
+}
+
+/* ── enter button (tablet) ────────────────────────────────────────────────
+   A touch screen gets a target it can see: core/splash.js stamps `data-cta`
+   on the section for coarse pointers wide enough to be a tablet, and there —
+   and only there — the invisible full-surface button stops taking taps and
+   the attract timer is off, so the dashboards open on a deliberate press.
+
+   Sized in svh rather than the artboard pixel, because it is the one thing on
+   this screen that is not part of the Figma cover: a tap target has to stay a
+   tap target at every scale of the frame behind it. */
+
+.splash-cta {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: max(14svh, 88px);
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 56px;
+  padding: 1.1em 2.4em;
+  border: 0;
+  border-radius: 999px;
+  background-image: linear-gradient(90deg, var(--gold-dark) 0%, var(--gold-light) 100%);
+  box-shadow: 0 4px 48px var(--glow);
+  color: #1a0f00;
+  font-family: var(--font-en);
+  font-size: clamp(15px, 1.9svh, 21px);
+  line-height: 1.15;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.splash[data-cta] .splash-cta { display: flex; }
+
+/* The whole surface stays a button for the capture harness — a scripted
+   .click() ignores pointer-events — but it no longer swallows stray taps. */
+.splash[data-cta] .splash-start { pointer-events: none; }
+
+.splash-cta:active { filter: brightness(1.08); }
+
+.splash-cta__ar {
+  font-family: var(--font-ar);
+  font-size: 0.85em;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* ── tokens ───────────────────────────────────────────────────────────── */
+
+.splash {
+  /* frame of the source artboard */
+  --frame-w: 2880;
+  --frame-h: 1152;
+
+  /* colours — straight out of the Figma node */
+  --page:       #060d0f;   /* matches the darkest edge of background 1 */
+  --white:      #ffffff;
+  --gold-dark:  #b2731e;
+  --gold-light: #fce799;
+  --gold-flat:  #d7a552;   /* плашка вместо градиента в макете 1366×1024 */
+  --glow:       #3c1b00;
+
+  /* live code layer (sampled from ex8-pattern-02) */
+  --code-amber:   #f0a833;
+  --code-bright:  #fcd268;
+  --code-neutral: #dcd6d0;
+
+  --font-en: 'Roboto Flex Cover', 'Roboto Flex', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ar: 'Almarai Arabic', 'Roboto Flex Cover', 'Roboto Flex', system-ui, sans-serif;
+}
+
+/* ── cover shell ──────────────────────────────────────────────────────── */
+
+.cover {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--page);
+
+  /* Content scale — a plain number, so it can feed transform: scale().
+     calc() cannot divide a length by a length, hence tan(atan2(a, b)), which
+     is exactly that ratio. Driven by width, so at a 2880 px wide window the
+     artboard is reproduced 1:1; clamped by height so a wide-but-short window
+     never crops the composition. */
+  --s: min(
+    tan(atan2(100vw,  calc(var(--frame-w) * 1px))),
+    tan(atan2(100svh, calc(var(--frame-h) * 1px)))
+  );
+}
+
+/* Background — Figma places «background 1» as 2880×1312 at y −80 inside the
+   1152 frame, i.e. exactly a width-fit centred vertically. Keeping
+   `100% auto` reproduces that at any width; the leftover strips above and
+   below fall back to --page, which is the image's own edge colour, so the
+   seam is invisible.
+   Below --bg-switch the fit flips to height so the relief map keeps its
+   presence on laptop-sized windows. */
+.cover__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url(../img/cover/bg.jpg);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% auto;
+}
+
+/* The artboard itself */
+.cover__frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--frame-w) * 1px);
+  height: calc(var(--frame-h) * 1px);
+  transform: translate(-50%, -50%) scale(var(--s));
+  transform-origin: center center;
+  overflow: hidden;
+}
+
+/* Live «code» layer (Figma 38:368). It belongs to the backdrop, not to the
+   artboard: code-field.js locks its scale and origin to whatever crop
+   .cover__bg is currently showing, so the glyphs travel with the map. */
+.code {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+
+  /* read by code-field.js:
+     --code-fill  figma — три тайла ровно на координатах 38:368
+                  grid  — тайлы сеткой на всю видимую область
+     --code-gain  множитель кегля глифов относительно масштаба фона */
+  --code-fill: figma;
+  --code-gain: 1;
 }
 
-.splash-veil {
+/* ── shared type helpers ──────────────────────────────────────────────── */
+
+/* Figma trims the text box to cap-height / alphabetic baseline, which is what
+   makes the y-coordinates line up. `text-box` is the modern shorthand; the
+   longhands cover slightly older engines, and code-field.js falls back to a
+   measured offset where neither is supported. */
+[data-trim] {
+  text-box: trim-both cap alphabetic;
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
+}
+
+.en-title,
+.en-sub,
+.powered__label,
+.ar-title,
+.ar-sub {
   position: absolute;
-  background: radial-gradient(900px 520px at 50% 46%, rgba(1, 8, 18, 0.86) 0%, rgba(1, 8, 18, 0) 72%);
-  inset: 0;
+  margin: 0;
+  white-space: nowrap;
+  word-break: break-word;
+  font-style: normal;
 }
 
-.splash-inner {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
+/* ── EN block — Figma 38:449 «Group 3» ────────────────────────────────── */
 
-.splash-logo {
-  height: calc(96 * var(--u));
-  filter: drop-shadow(0 0 var(--sp-8) rgba(var(--cy-rgb), 0.2));
-}
-
-.splash-eyebrow {
-  margin-top: var(--sp-7);
-  color: var(--cy);
-  font-size: var(--fs-control-l);
-  font-weight: 500;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-}
-
-.splash-title {
-  max-width: calc(1500 * var(--u));
-  margin-top: var(--sp-5);
-  color: var(--tx);
-  font-size: var(--fs-splash);
-  font-weight: 300;
+/* 38:455 — two lines, 120/120, tracking −2 %, cap-trimmed → 769 × 205 */
+.en-title {
+  left: 116px;
+  top: 113px;
+  width: 769px;
+  font-family: var(--font-en);
+  font-size: 120px;
+  line-height: 120px;
+  font-weight: 600;
+  font-stretch: 151%;
+  font-variation-settings: 'wdth' 151;
+  /* −2 % на обоих макетах: −2.4 px при 120 и −1.2 px при 60 */
   letter-spacing: -0.02em;
-  line-height: 1.08;
+  /* Figma drop shadow 0 / 4.048 / 64.771 #3c1b00 — applied as a filter so it
+     also wraps the gradient-clipped line. */
+  filter: drop-shadow(0 4.048px 64.771px var(--glow));
 }
 
-.splash-title b {
-  font-weight: 400;
+.en-title__gold,
+.en-title__white {
+  display: block;
+  width: 100%;
 }
 
-.splash-sub {
-  max-width: calc(880 * var(--u));
-  margin-top: var(--sp-5);
-  color: var(--tx-2);
-  font-size: var(--fs-heading-m);
-  font-weight: 300;
-  line-height: 1.55;
+/* Градиент живёт на внутреннем инлайне, а не на самой строке: background-clip:
+   text обрезает заливку по боксу элемента, а при line-height, равном кеглю,
+   этот бокс — ровно cap-height, и выносные элементы («g») остаются без золота.
+   Вертикальный паддинг инлайна расширяет заливку, но на высоту строки не
+   влияет вовсе, поэтому межстрочник и координаты из Figma не трогаются. */
+.en-title__gold .fill,
+.ar-title__gold .fill {
+  padding: 0.25em 0;
+  font-style: normal;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.splash-cta {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-5) var(--sp-10);
-  border: var(--hairline) solid rgba(var(--cy-rgb), 0.55);
-  border-radius: var(--radius-pill);
-  margin-top: var(--sp-9);
-  background: rgba(var(--cy-rgb), 0.12);
-  box-shadow:
-    0 0 var(--sp-8) rgba(var(--cy-rgb), 0.16),
-    var(--glow-spectrum);
-  backdrop-filter: var(--blur-glass);
-  color: var(--tx);
-  font-size: var(--fs-heading-m);
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  transition:
-    background var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease),
-    scale var(--dur) var(--ease);
+.en-title__gold .fill {
+  background-image: linear-gradient(90deg, var(--gold-dark) 0%, var(--gold-light) 100%);
 }
 
-.splash-cta:hover {
-  background: rgba(var(--cy-rgb), 0.2);
-  box-shadow: 0 0 var(--sp-11) rgba(var(--cy-rgb), 0.28);
-  scale: 1.02;
+.en-title__white { color: var(--white); }
+
+/* 38:456 — 40.482/63.253, tracking −2 %, cap-trimmed → 612 × 29 */
+.en-sub {
+  left: 120px;
+  top: 364.326px;
+  width: 612px;
+  font-family: var(--font-en);
+  font-size: 40.482px;
+  line-height: 63.253px;
+  font-weight: 565;
+  font-stretch: 151%;
+  font-variation-settings: 'wdth' 151;
+  letter-spacing: -0.8096px;
+  color: var(--white);
+  text-shadow: 0 3.373px 53.976px var(--glow);
 }
 
-.splash-cta svg {
-  width: var(--sp-5);
-  height: var(--sp-5);
-  fill: var(--cy);
-}
-
-.splash-stats {
-  display: flex;
-  gap: var(--sp-11);
-  margin-top: var(--sp-10);
-}
-
-.splash-stat-value {
-  color: var(--tx);
-  font-size: var(--fs-hero-l);
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-
-.splash-stat-label {
-  margin-top: var(--sp-1);
-  color: var(--mut);
-  font-size: var(--fs-control-l);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.splash-foot {
+/* 38:450 — 187.372 × 62 stack: label, 15 px gap, logo */
+.powered {
   position: absolute;
-  bottom: var(--sp-7);
-  left: 50%;
-  color: rgba(var(--cy-rgb), 0.34);
-  font-size: var(--fs-caption-m);
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  translate: -50% 0;
+  left: 120px;
+  top: 976px;
+  width: 187.372px;
+  height: 62px;
 }
 
-/* Content rises once, on first paint. */
-.splash-inner > * {
-  animation: splash-rise 700ms var(--ease) backwards;
+.powered__label {
+  left: 0;
+  top: 0;
+  width: 100%;
+  font-family: var(--font-en);
+  font-size: 21px;
+  line-height: 25px;
+  font-weight: 450;
+  font-stretch: 151%;
+  font-variation-settings: 'wdth' 151;
+  color: var(--white);
 }
 
-.splash-inner > *:nth-child(1) { animation-delay: 60ms; }
-.splash-inner > *:nth-child(2) { animation-delay: 140ms; }
-.splash-inner > *:nth-child(3) { animation-delay: 220ms; }
-.splash-inner > *:nth-child(4) { animation-delay: 300ms; }
-.splash-inner > *:nth-child(5) { animation-delay: 380ms; }
-.splash-inner > *:nth-child(6) { animation-delay: 460ms; }
+/* 38:452 — Logo (large), offset −3 px to optically align with the label */
+.powered__logo {
+  position: absolute;
+  left: -3px;
+  top: 30px;
+  width: 186.372px;
+  height: 32px;
+  display: block;
+}
 
-@keyframes splash-rise {
-  from {
-    opacity: 0;
-    translate: 0 var(--sp-4);
+/* ── AR block — Figma 38:390 «Group 4» ────────────────────────────────── */
+
+/* 38:391 — the exported SVG carries the layer's drop shadow, so the image box
+   is inset negatively around the 667 × 279 logo box (Figma:
+   inset −48.6 % −24.2 % −67.11 % −24.2 %). */
+.sce {
+  position: absolute;
+  left: 2093px;
+  top: 114px;
+  width: 667px;
+  height: 279px;
+}
+
+/* Sizes are written out rather than left to the four insets: an absolutely
+   positioned replaced element with width:auto falls back to the SVG's own
+   989.84 × 601.82, which only happens to be right at the artboard scale.
+   148.4 % = 100 + 24.2 + 24.2, 215.71 % = 100 + 48.6 + 67.11. */
+.sce__img {
+  position: absolute;
+  left: -24.2%;
+  top: -48.6%;
+  width: 148.4%;
+  height: 215.71%;
+  display: block;
+  max-width: none;
+}
+
+/* 38:448 — two lines, 120/120, right aligned, no trim → 746 × 240 */
+.ar-title {
+  left: 2014px;
+  top: 722px;
+  width: 746px;
+  font-family: var(--font-ar);
+  font-size: 120px;
+  line-height: 120px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ar-title__gold,
+.ar-title__white {
+  display: block;
+  width: 100%;
+}
+
+.ar-title__gold .fill {
+  background-image: linear-gradient(90deg, var(--gold-light) 0%, var(--gold-dark) 100%);
+}
+
+.ar-title__white { color: var(--white); }
+
+/* 38:447 — 40.482/63.253, tracking −2 %, cap-trimmed → 514 × 29 */
+.ar-sub {
+  left: 2246px;
+  top: 1004px;
+  width: 514px;
+  font-family: var(--font-ar);
+  font-size: 40.482px;
+  line-height: 63.253px;
+  font-weight: 400;
+  letter-spacing: -0.8096px;
+  text-align: right;
+  color: var(--white);
+  text-shadow: 0 3.373px 53.976px var(--glow);
+}
+
+/* ── 1366 × 1024 — Figma node 38:261 ──────────────────────────────────────
+   Второй макет, а не уменьшенный первый: кегли почти фиксированные
+   (60 / 20 / 21 px), блоки прижаты к краям кадра, у арабского золота вместо
+   градиента плашка #D7A552, а тени переставлены — они у EN-заголовка и
+   AR-заголовка, но не у подзаголовков.
+
+   Артборд по ширине 1366, высота — сколько даёт окно, поэтому нижние блоки
+   держатся низа кадра. При 1366 × 1024 получается ровно исходный макет.
+   Диапазон: всё, что уже 1600 px и не слишком вытянуто по горизонтали;
+   вытянутые окна (2.5 : 1 и шире) остаются на широком макете. */
+
+@media (max-width: 1599px) and (max-aspect-ratio: 19/10) {
+  .cover {
+    --frame-w: 1366;
+    --frame-h: 1024;
+    --s: min(
+      tan(atan2(100vw,  1366px)),
+      tan(atan2(100svh, 640px))
+    );
+  }
+
+  .cover__frame { height: calc(100svh / var(--s)); }
+
+  /* «background 1» здесь стоит как 2247.8 × 1024 — подгонка по высоте с
+     центровкой, ровно то, что даёт `auto 100%` */
+  .cover__bg { background-size: auto 100%; }
+
+  .code { --code-fill: grid; --code-gain: 1.12; }
+
+  /* 38:283 — 60/60, две строки, cap-trim → 425 × 102.65 */
+  .en-title {
+    left: 49px;
+    top: 50px;
+    width: 425px;
+    font-size: 60px;
+    line-height: 60px;
+  }
+
+  /* 38:284 — 20/30, трекинг +1 %, без тени; 32 px отступ от заголовка */
+  .en-sub {
+    left: 49px;
+    top: 184.65px;
+    width: 425px;
+    font-size: 20px;
+    line-height: 30px;
+    letter-spacing: 0.2px;
+    text-shadow: none;
+  }
+
+  /* 38:291 */
+  .sce {
+    left: auto;
+    right: 48px;
+    top: 48.8px;
+    width: 364.185px;
+    height: 152.384px;
+  }
+
+  /* 38:287 — cap-trim (в широком макете его нет), тень есть, золото плашкой */
+  .ar-title {
+    left: auto;
+    right: 48px;
+    top: auto;
+    bottom: 106px;
+    width: 323px;
+    font-size: 60px;
+    line-height: 60px;
+    letter-spacing: -1.2px;
+    text-box: trim-both cap alphabetic;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+    text-shadow: 0 4.048px 64.771px var(--glow);
+  }
+
+  .ar-title__gold .fill {
+    background-image: none;
+    color: var(--gold-flat);
+  }
+
+  /* 38:286 — 20/30, без трекинга и без тени */
+  .ar-sub {
+    left: auto;
+    right: 48px;
+    top: auto;
+    bottom: 56px;
+    width: 295px;
+    font-size: 20px;
+    line-height: 30px;
+    letter-spacing: normal;
+    text-shadow: none;
+  }
+
+  /* 38:288 — кегль и логотип те же, что в широком макете */
+  .powered {
+    left: 49px;
+    top: auto;
+    bottom: 50px;
   }
 }
+
+/* ── 1024 × 1366, вертикальный планшет — Figma node 38:938 ────────────────
+   Типографика ровно та же, что в 1366 × 1024, меняется только раскладка:
+   EN сверху слева, SCE сверху справа, AR снизу справа, powered by снизу слева.
+   Поэтому блок наследует всё от предыдущего и переопределяет только артборд и
+   привязки. Фон — по высоте с центровкой, как «background 1» 2998 × 1366. */
+
+@media (max-aspect-ratio: 4/5) and (min-width: 600px) {
+  .cover {
+    --frame-w: 1024;
+    --frame-h: 1366;
+    --s: min(
+      tan(atan2(100vw,  1024px)),
+      tan(atan2(100svh, 900px))
+    );
+  }
+
+  .code { --code-gain: .84; }
+
+  .en-title { left: 48px; top: 49px; }
+  .en-sub   { left: 48px; top: 183.65px; }
+  .sce      { right: 48px; top: 49px; }
+  .ar-title { right: 48px; bottom: 106px; }
+  .ar-sub   { right: 48px; bottom: 56px; }
+  .powered  { left: 48px; bottom: 56px; }
+}
+
+/* ── 402 × 700, телефон — Figma node 38:1084 ──────────────────────────────
+   Третий самостоятельный макет. Отличия, кроме кеглей: фон уходит в тень —
+   картинка на 60 % поверх чёрного и сдвинута влево на 124.77 px артборда, —
+   а логотип SCE встаёт в центр кадра и получает собственную, заметно более
+   крупную тень (отдельный экспорт `sce-phone.svg`, подменяется через
+   <picture> в разметке). */
+
+@media (max-aspect-ratio: 4/5) and (max-width: 599px) {
+  .cover {
+    --frame-w: 402;
+    --frame-h: 700;
+    --s: min(
+      tan(atan2(100vw,  402px)),
+      tan(atan2(100svh, 560px))
+    );
+    background: #000;
+  }
+
+  /* Картинка сдвинута влево на 124.77 px артборда от центра. Храним сдвиг
+     долей от ширины картинки (124.77 / 1536.43), чтобы он не зависел от
+     масштаба и читался из JS числом: слой кода обязан повторить тот же сдвиг.
+     При подгонке по высоте ширина картинки = 100svh × 2.1951. */
+  .cover__bg {
+    --bg-shift: -0.081208;
+    background-size: auto 100%;
+    background-position: calc(50% + var(--bg-shift) * 100svh * 2.1951) center;
+    opacity: .6;
+  }
+
+  .code { --code-gain: 1; --code-count: 12; }
+
+  .en-title {
+    left: 20px;
+    top: 32px;
+    width: 318.75px;
+    font-size: 45px;
+    line-height: 45px;
+    filter: drop-shadow(0 3.036px 48.578px var(--glow));
+  }
+
+  .en-sub {
+    left: 20px;
+    top: 133px;              /* 32 + 76.99 (два кегля с cap-trim) + 24 gap */
+    width: 318.75px;
+    font-size: 15px;
+    line-height: 22.5px;
+    letter-spacing: 0.15px;
+  }
+
+  /* 38:1102 — по центру кадра */
+  .sce {
+    left: 50%;
+    right: auto;
+    top: 50%;
+    width: 191.193px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* тень в этом экспорте больше: инсеты −50 % / −41.84 % / −149.99 % / −41.84 %
+     → 183.68 % × 299.99 % от бокса (это drop shadow 0 / 40 / 80 артборда) */
+  .sce__img {
+    left: -41.84%;
+    top: -50%;
+    width: 183.68%;
+    height: 299.99%;
+  }
+
+  .ar-title {
+    right: 19.98px;
+    bottom: 62px;
+    width: 194.022px;
+    font-size: 36.041px;
+    line-height: 36.041px;
+    letter-spacing: -0.7208px;
+    text-shadow: 0 2.432px 38.907px var(--glow);
+  }
+
+  .ar-sub {
+    right: 19.98px;
+    bottom: 31.5px;
+    width: 177.203px;
+    font-size: 12.014px;
+    line-height: 18.021px;
+  }
+
+  .powered { left: 20px; bottom: 31.75px; width: 70.265px; height: 23.25px; }
+
+  .powered__label { font-size: 7.875px; line-height: 9.375px; }
+
+  .powered__logo { left: -1.13px; top: 11.25px; width: 69.89px; height: 12px; }
+}
+
+/* ── motion ───────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-inner > * {
-    animation: none;
-  }
+  .code { --static: 1; }
 }
 
-/* The attract screen's own language switch, in the corner opposite the logo's
-   optical centre so it never competes with the headline. */
-.lang--splash {
-  z-index: 3;
+/* ── края фона ────────────────────────────────────────────────────────────
+   Фон вписан по ширине, поэтому по высоте он либо обрезан, либо не достаёт
+   до края кадра — в обоих случаях граница картинки видна полосой. Две мягкие
+   тени сверху и снизу гасят её, уходя в --page. Слой лежит над фоном и кодом,
+   но под артбордом, так что на текст и логотипы не влияет. */
+.cover__fade {
   position: absolute;
-  top: var(--sp-7);
-  inset-inline-end: var(--sp-7);
-  background: var(--plate);
-  backdrop-filter: var(--blur-glass);
+  inset: 0;
+  pointer-events: none;
+
+  /* --fade-solid — сплошная зона у края, --fade-end — где тень сходит на нет.
+     Значения по умолчанию рассчитаны на кадры, где картинка не достаёт до
+     верха и низа. */
+  --fade-solid: 13%;
+  --fade-end: 47%;
+
+  background:
+    linear-gradient(to bottom,
+      var(--page) 0,
+      var(--page) var(--fade-solid),
+      color-mix(in srgb, var(--page) 78%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .21),
+      color-mix(in srgb, var(--page) 42%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .47),
+      color-mix(in srgb, var(--page) 14%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .74),
+      transparent var(--fade-end)),
+    linear-gradient(to top,
+      var(--page) 0,
+      var(--page) var(--fade-solid),
+      color-mix(in srgb, var(--page) 78%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .21),
+      color-mix(in srgb, var(--page) 42%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .47),
+      color-mix(in srgb, var(--page) 14%, transparent) calc(var(--fade-solid) + (var(--fade-end) - var(--fade-solid)) * .74),
+      transparent var(--fade-end));
+}
+
+/* 2880 × 1152 и прочие широкие короткие окна: фон вписан по ширине и по высоте
+   обрезан — своего края у картинки в кадре нет, тень нужна только символическая,
+   чтобы снять возможную полосу в один-два пикселя. */
+@media (min-aspect-ratio: 12/5) {
+  .cover__fade { --fade-solid: 0%; --fade-end: 4%; }
+}
+
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  .cover__fade {
+    background:
+      linear-gradient(to bottom, var(--page) 0, var(--page) var(--fade-solid), transparent var(--fade-end)),
+      linear-gradient(to top,    var(--page) 0, var(--page) var(--fade-solid), transparent var(--fade-end));
+  }
 }

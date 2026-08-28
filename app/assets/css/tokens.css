@@ -231,7 +231,6 @@
   --fs-subheading-l: calc(24 * var(--fu)); /* medium/subheading_L — dock tabs, ticker */
   --fs-heading-m: calc(32 * var(--fu)); /* medium/heading_M — the map HUD's caption */
   --fs-hero-l: calc(72 * var(--fu)); /* medium/hero_L — every factoid, and the map HUD */
-  --fs-splash: calc(112 * var(--fu)); /* attract screen only; Figma has no splash */
 
   --lh-control: calc(10 * var(--fu)); /* height/control_* — all three control rungs */
   --lh-caption: calc(14 * var(--fu)); /* height/caption_medium */

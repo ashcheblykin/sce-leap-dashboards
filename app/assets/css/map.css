@@ -181,11 +181,14 @@
   padding: var(--fsp-4);
   border: none;
   border-radius: var(--radius-card);
-  background: rgba(2, 10, 20, 0.55);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: var(--blur-glass);
 }
 
 .map-hud-value {
+  /* The figure takes the active map mode's tone — same concept, same colour as
+     the bubbles and the tooltip it belongs to. Set inline by map.js from
+     mode.tone; --fg-primary is the fallback when a mode declares none. */
   color: var(--fg-primary);
   font-size: var(--fs-hero-l);
   font-weight: 500;
@@ -207,7 +210,7 @@
   flex-wrap: wrap;
   gap: var(--fsp-3);
   margin-top: var(--fsp-2);
-  color: var(--mut-2);
+  color: rgba(255, 255, 255, 0.5);
   font-size: var(--fs-caption-m);
   line-height: var(--lh-caption);
   letter-spacing: 0.02em;
@@ -217,24 +220,32 @@
   margin-top: 0;
 }
 
-/* The only Axion mark anywhere in the experience, tucked under the map. */
+/* The only Axion mark anywhere in the experience, tucked under the map.
+
+   Figma (Dashboard / National map, 5039:94568) draws no plate here: the mark
+   sits bare on the basemap, bottom-right, as a 10.5px "powered by" set light
+   and 60% white with the wordmark on the same baseline. The figures below are
+   the node's own, divided back out of its 0.749 canvas scale — 7.867/9.365px
+   text, 3.746px gap, 69.817x11.988 logo. */
 .map-credit {
   z-index: 1;
   position: absolute;
-  inset-inline-end: var(--fsp-4);
+  inset-inline-end: var(--fsp-3);
   bottom: var(--fsp-3);
-  display: flex;
-  align-items: center;
-  gap: var(--fsp-2);
-  padding: var(--fsp-1) var(--fsp-2);
-  border: var(--hairline) solid var(--border-primary);
-  border-radius: var(--radius-sm);
-  background: var(--plate);
-  backdrop-filter: var(--blur-glass);
-  color: var(--mut);
-  font-size: var(--fs-caption-m);
-  line-height: var(--lh-caption);
-  letter-spacing: 0.02em;
+  color: rgba(253, 253, 253, 0.6);
+  font-size: calc(10.5 * var(--fu));
+  font-weight: 300;
+  line-height: calc(12.5 * var(--fu));
+  letter-spacing: 0;
+}
+
+/* The wordmark is a fixed 16px box in the design, not a multiple of the
+   caption's em, and it sits ON the baseline rather than the -0.05em nudge the
+   shared rule gives the ticker and the splash footer. */
+.map-credit .axion-mark {
+  height: calc(16 * var(--fu));
+  margin-inline-start: calc(5 * var(--fu));
+  vertical-align: baseline;
 }
 
 

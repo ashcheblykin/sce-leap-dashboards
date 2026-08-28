@@ -195,16 +195,12 @@ async function evaluate(expression) {
   return result.value;
 }
 
-/* The attract screen is a state of its own, in both languages — it is what the
-   stand shows for most of the day. */
+/* The attract screen is a state of its own — it is what the stand shows for
+   most of the day. One capture, not two: the cover carries English and Arabic
+   at once, so it looks the same whichever locale the wall is in. */
 await evaluate(`I18N.set('en')`);
 await sleep(400);
-await shot('0-splash-en');
-await evaluate(`I18N.set('ar')`);
-await sleep(600);
-await shot('0-splash-ar');
-await evaluate(`I18N.set('en')`);
-await sleep(400);
+await shot('0-splash');
 
 await evaluate(`document.getElementById('splashStart').click()`);
 await sleep(1600);

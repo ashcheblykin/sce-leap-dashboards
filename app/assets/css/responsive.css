@@ -393,17 +393,5 @@
   padding: var(--fsp-2);
 }
 
-/* --- Attract screen ---
-   112 design pixels is a wall headline. On a phone it is four characters per
-   line, so the splash takes the same two-rail treatment the board does. */
-:root[data-view='compact'] {
-  --fs-splash: clamp(40px, 9vw, 84px);
-}
-
-:root[data-view='compact'] .splash-inner {
-  padding: var(--sp-6);
-}
-
-:root[data-narrow] .splash-stats {
-  flex-wrap: wrap;
-}
+/* The attract screen is not sized from here: it is a Figma artboard scaled as
+   a whole, and it carries its own four breakpoints in css/splash.css. */

@@ -287,7 +287,7 @@
        the Arabic board the credit stayed in the physical right corner while
        the HUD — which is positioned logically — moved there as well, and the
        two sat on top of each other. Text pinned, box mirrored. */
-    credit.innerHTML = '<span dir="ltr">Powered by ' + Fmt.axionMark + '</span>';
+    credit.innerHTML = '<span dir="ltr">powered by ' + Fmt.axionMark + '</span>';
     container.appendChild(credit);
 
     /**
@@ -403,14 +403,10 @@
          observer callback later. */
       fit();
 
-      /* No inline colour on the figure. It is a factoid — Figma's Tips block
-         (node 5044:95235) draws it in the same white as the ones in the panels
-         either side — and it was the last number on the wall still taking the
-         active map mode's tone, so switching a map chip repainted it while the
-         four factoids beside it stayed white. The mode's tone still carries
-         the bubbles and the tooltip, which is where it means something. */
+      /* The figure carries the active mode's tone, like the bubbles and the
+         tooltip: one concept, one colour across the map. */
       hudBody.innerHTML = mode.hud
-        ? '<div class="map-hud-value hud-value">' +
+        ? '<div class="map-hud-value hud-value" style="color:' + tone + '">' +
           Counter.span(mode.hud.value, mode.hud.format || 'compact') +
           '</div><div class="map-hud-label">' +
           mode.hud.label +
