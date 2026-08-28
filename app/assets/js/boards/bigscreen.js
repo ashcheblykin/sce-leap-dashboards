@@ -18,9 +18,24 @@
      a wall runs unattended; ours ships without the handles for the same
      reason. The other three boards keep them.
 
-   Scenes 2 and 3 are the Profession and Operations widget sets verbatim, which
-   is where the sankey, sunburst, radar and the enforcement money donut live —
-   in the original those were scenes here too, not separate pages. */
+   The three scenes are NOT three different widget sets. In the original,
+   `#mapbox` and all six `pL*`/`pR*` panels are mounted once and never leave
+   the page — `setScene(i)` only calls `.set(SCENES[i].L1)` etc. on each
+   already-visible panel and `setMode(SCENES[i].map)` on the always-visible
+   map, per its own `SCENES` table:
+
+     overview:   { map:0, L1:0, L2:0, L3:0, R1:0, R2:0, R3:0 }
+     profession: { map:2, L1:1, L2:1, L3:1, R1:1, R2:0, R3:0 }
+     operations: { map:4, L1:0, L2:2, L3:2, R1:0, R2:1, R3:1 }
+
+   So every scene below reuses the exact same seven panels and simply asks
+   each one to open on a different one of its own tabs (`defaultView`, see
+   `sceneOf()`) — the map is on screen in all three scenes, just showing a
+   different one of its six modes. Nothing here should ever swap in an
+   unrelated widget (sankey/sunburst/radar and the like are not part of this
+   screen in the original; they were an earlier, mistaken invention and are
+   no longer wired in — see `boards/profession.js`/`boards/operations.js`,
+   now unused). */
 
 (function (global) {
   'use strict';
@@ -196,7 +211,10 @@
               return [r[1], r[2], r[3], Labels.t(r[0]) + ' · ' + Fmt.grouped(r[3]) + ' · ' + Fmt.grouped(r[4]) + ' SAR'];
             }),
             tone: T.purple,
-            hud: { value: Data.regionActions, format: 'grouped', label: t('s.cases') },
+            /* HUD is the national total, matching the source's map HUD
+               (fmt(H.cases)); the note below still calls out that the
+               bubbles themselves only cover the 10 mapped regions. */
+            hud: { value: Data.head.cases, format: 'grouped', label: t('s.cases') },
             note: t('n.bubbleRegions', {
               n: Fmt.grouped(Data.regionActions),
               total: Fmt.grouped(Data.head.cases),
@@ -356,6 +374,19 @@
     },
   ];
 
+  /* Clones `overview`'s seven panels with a different starting tab per
+     panel — the source's `SCENES[i]` row (see header comment) — instead of
+     replacing the panel set. `defaultView` is read by board.js's
+     `widgetMarkup`/`mountScene` to pick which chip opens active. */
+  function sceneOf(defaults) {
+    return overview.map(function (w) {
+      var clone = {};
+      for (var k in w) if (w.hasOwnProperty(k)) clone[k] = w[k];
+      clone.defaultView = defaults[w.id] || 0;
+      return clone;
+    });
+  }
+
   global.BOARD_BIGSCREEN = {
     id: 'bigscreen',
     labelKey: 'nav.bigscreen',
@@ -370,12 +401,16 @@
       {
         key: 'profession',
         labelKey: 'sc.profession',
-        widgets: global.BOARD_PROFESSION.widgets,
+        widgets: sceneOf({
+          'bs-map': 2, 'bs-eco': 1, 'bs-spec': 1, 'bs-struct': 1, 'bs-mon': 1,
+        }),
       },
       {
         key: 'operations',
         labelKey: 'sc.operations',
-        widgets: global.BOARD_OPERATIONS.widgets,
+        widgets: sceneOf({
+          'bs-map': 4, 'bs-spec': 2, 'bs-struct': 2, 'bs-enf': 1, 'bs-field': 1,
+        }),
       },
     ],
   };

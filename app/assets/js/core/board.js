@@ -461,6 +461,7 @@
 
   function widgetMarkup(def, kiosk) {
     var chips = '';
+    var defaultView = def.defaultView || 0;
     if (def.chipKeys && def.chipKeys.length > 1) {
       chips = '<div class="chips" data-no-drag>';
       for (var i = 0; i < def.chipKeys.length; i++) {
@@ -468,7 +469,7 @@
           '<button class="chip" type="button" data-view="' +
           i +
           '"' +
-          (i === 0 ? ' data-on' : '') +
+          (i === defaultView ? ' data-on' : '') +
           '>' +
           Fmt.escapeHtml(I18N.t(def.chipKeys[i])) +
           '</button>';
@@ -600,8 +601,9 @@
         var chipsEl = item.querySelector('.chips');
         if (chipsEl) chipsEl._tabs = attachChipTabs(chipsEl, onChipSelect);
 
-        views[w.id] = { def: w, body: body, current: 0 };
-        w.views[0](body);
+        var dv = w.defaultView || 0;
+        views[w.id] = { def: w, body: body, current: dv };
+        w.views[dv](body);
       }
 
       /* Kiosk boards still need paint() to place the widgets; they just never

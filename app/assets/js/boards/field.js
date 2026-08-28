@@ -92,7 +92,7 @@
               legendPosition: 'right',
               valueFormat: 'pct',
               data: [
-                { label: t('m.dual'), value: Data.tuv.dual, color: T.purple },
+                { label: t('m.dual'), value: Data.tuv.dual, color: T.cy },
                 { label: t('s.unlicensed'), value: 100 - Data.tuv.dual, color: '#7fa8c2' },
               ],
               centerLabel: t('m.dual'),
@@ -116,7 +116,7 @@
               max: Data.tuv.surveyed,
               valueFormat: 'grouped',
               data: [
-                { label: t('m.contact'), value: Data.tuv.contact, color: T.cy },
+                { label: t('m.contact'), value: Data.tuv.contact, color: T.purple },
                 { label: t('m.lic'), value: Data.tuv.lic, color: T.green },
                 { label: t('m.geo'), value: Data.tuv.geo, color: T.gold },
               ],

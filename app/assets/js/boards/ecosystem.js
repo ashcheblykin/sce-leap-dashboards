@@ -170,7 +170,10 @@
                  unrelated figure that happens to sit right next to those
                  tiles on the same board. */
               tone: T.pink,
-              hud: { value: Data.regionActions, format: 'grouped', label: t('s.cases') },
+              /* HUD is the national total, matching the source's map HUD
+                 (fmt(H.cases)); the note below still calls out that the
+                 bubbles themselves only cover the 10 mapped regions. */
+              hud: { value: Data.head.cases, format: 'grouped', label: t('s.cases') },
               note: t('n.bubbleRegions', {
                 n: Fmt.grouped(Data.regionActions),
                 total: Fmt.grouped(Data.head.cases),
@@ -185,8 +188,30 @@
         id: 'eco-struct',
         x: 17, y: 0, w: 7, h: 3, minW: 4, minH: 2,
         titleKey: 'w.struct',
-        chipKeys: ['c.classes', 'c.nationalities'],
+        /* Source order is Grades / Classes / Nationalities — the same three
+           tabs bs-struct on the Big Screen already carries. */
+        chipKeys: ['c.grades', 'c.classes', 'c.nationalities'],
         views: [
+          function (el) {
+            Chart.mount(el, {
+              chart: 'pie',
+              donut: true,
+              gap: 3,
+              cornerRadius: 3,
+              legendPosition: 'right',
+              data: Data.gradeOrder.map(function (g) {
+                var row = Data.gradeCross[g] || {};
+                var total = 0;
+                Data.register.statusOrder.forEach(function (s) {
+                  total += row[s] || 0;
+                });
+                return { label: t(Kit.GRADE_KEY[g]), value: total, color: Kit.GRADE_TONE[g] };
+              }),
+              centerLabel: t('s.engineers'),
+              centerValue: Data.gradeTotal,
+              note: t('n.gradesNote', { n: Fmt.grouped(Data.gradeTotal) }),
+            });
+          },
           function (el) {
             Chart.mount(el, {
               chart: 'pie',
@@ -223,8 +248,34 @@
         // labels, so the header hairline sat directly above a second line.
         chipKeys: ['c.pipeline', 'c.bytrack'],
         views: [
+          /* Source shows a 2-item KPI row (proactive monitoring, renewal
+             engagement) above the d30/d60/d90 bars, in the same panel — not
+             as a separate tab — so this view mounts both into stacked
+             children rather than handing the whole body to one chart. */
           function (el) {
-            Chart.mount(el, {
+            el.innerHTML = '';
+            /* Each wrapper has to repeat .widget-body's own flex-column role
+               (see widget.css) AND get a definite flex-basis: .ax-kpis
+               itself is `flex:1;min-height:0` (chart-dsl.css), built to fill
+               whatever height it's handed, so an `auto`-basis wrapper around
+               it has nothing to resolve against and collapses to ~0. A
+               percentage basis against .widget-body's own definite height is
+               a real length, so the KPI row gets an actual box instead. */
+            var kpis = document.createElement('div');
+            kpis.style.cssText = 'display:flex;flex-direction:column;flex:0 0 38%;';
+            var chart = document.createElement('div');
+            chart.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;';
+            el.appendChild(kpis);
+            el.appendChild(chart);
+            Chart.mount(kpis, {
+              chart: 'indicator',
+              cols: 2,
+              items: [
+                { value: Data.head.proact, format: 'grouped', label: t('m.proact') },
+                { value: Data.head.renewengage, format: 'compact', label: t('m.engage') },
+              ],
+            });
+            Chart.mount(chart, {
               chart: 'cartesian',
               series: Kit.barSeries(
                 Data.pipeline.map(function (r) {
@@ -273,11 +324,12 @@
           function (el) {
             Chart.mount(el, {
               chart: 'indicator',
-              cols: 3,
+              cols: 2,
               items: [
                 { value: Data.head.cases, format: 'grouped', label: t('m.cases') },
                 { value: Data.head.enforced, format: 'sar', label: t('m.enforced') },
                 { value: Data.head.collected, format: 'sar', label: t('m.collected') },
+                { value: Data.register.active, format: 'compact', label: t('m.active') },
               ],
             });
           },

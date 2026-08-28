@@ -97,7 +97,7 @@
     'c.classes': ['Classes', 'الفئات'],
     'c.nationalities': ['Nationalities', 'الجنسيات'],
     'c.pipeline': ['Pipeline', 'المسار'],
-    'c.bytrack': ['By track', 'حسب الفئة'],
+    'c.bytrack': ['By track', 'حسب المسار'],
     'c.headline': ['Headline', 'الملخص'],
     'c.trend': ['Activity trend', 'اتجاه النشاط'],
     'c.status': ['By status', 'حسب الحالة'],
