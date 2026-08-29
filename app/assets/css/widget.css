@@ -133,15 +133,24 @@ body.grid-dragging .widget-head {
 .widget-title {
   display: flex;
   min-width: 0;
-  /* Matches .widget-icon's 16px square so the row keeps Figma's height when
-     the current chart kind has no glyph and the icon collapses to
-     display:none. The clipping the label needs for its ellipsis is the
-     label's own now (see base.css), not this box's — this one clipped the
-     descenders off every title that had any. */
+  /* Figma's 16px title row. It used to be the height of the type glyph that
+     sat in front of the label; the glyphs are gone (SCE review, 2026-08-29)
+     and the label starts at the card's padding edge now, but the row keeps
+     the height so every header on the wall is still the same depth. The
+     clipping the label needs for its ellipsis is the label's own (see
+     base.css), not this box's — this one clipped the descenders off every
+     title that had any. */
   min-height: calc(16 * var(--fu));
   align-items: center;
-  gap: var(--fsp-1);
   white-space: nowrap;
+  /* The same side inset the content below carries: a card's padding is
+     --fsp-3 and every tile, bar row and table cell then insets itself by
+     --fsp-4 (see .ax-kpi in chart-dsl.css), so the text inside a card starts
+     one --fsp-4 in from the card's edge. The title used to reach that column
+     because a 16px glyph sat in front of it; with the glyph gone it has to
+     say so itself, or it hangs a notch to the reading-start side of every
+     number underneath it. Logical, so Arabic mirrors it. */
+  padding-inline: var(--fsp-4);
 }
 
 /* Figma medium/control_L, the Dashboard component's own title style: 16px at
@@ -159,55 +168,6 @@ body.grid-dragging .widget-head {
   line-height: var(--lh-control);
   letter-spacing: 0;
   text-overflow: ellipsis;
-}
-
-/* Per-chart-kind title glyph (see WIDGET_ICONS in board.js). All four ship
-   in every widget's markup and sit hidden; the one whose data-icon matches
-   data-icon-chart (set by Chart.mount/Kit.mapView, but only for kinds that
-   have a glyph) is the only one shown. A chip that switches between two
-   iconized kinds (e.g. pie -> progress-bars) swaps the glyph with it; a chip
-   that switches to a kind with no Figma glyph (only `table` now) leaves
-   data-icon-chart — and the glyph — untouched instead of the header icon
-   vanishing. */
-.widget-icon {
-  display: none;
-  flex: none;
-  width: calc(16 * var(--fu));
-  height: calc(16 * var(--fu));
-  align-items: center;
-  justify-content: center;
-}
-
-.widget-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.widget[data-icon-chart='indicator'] .widget-icon[data-icon='indicator'],
-.widget[data-icon-chart='progress-bars'] .widget-icon[data-icon='progress-bars'],
-.widget[data-icon-chart='pie'] .widget-icon[data-icon='pie'],
-.widget[data-icon-chart='map'] .widget-icon[data-icon='map'],
-.widget[data-icon-chart='sankey'] .widget-icon[data-icon='sankey'],
-.widget[data-icon-chart='sunburst'] .widget-icon[data-icon='sunburst'],
-.widget[data-icon-chart='cartesian'] .widget-icon[data-icon='cartesian'],
-.widget[data-icon-chart='radar'] .widget-icon[data-icon='radar'] {
-  display: flex;
-}
-
-/* Nothing matched — the current view is a kind Figma has no D-item glyph for
-   (table). The slot stays, empty: with it
-   collapsing, a table card's title started 20px to the left of the title on
-   the card beside it, so a row of cards had two different left edges for the
-   same piece of text. Reserving the slot is what makes every title on the
-   wall start in the same place, whatever is drawn underneath it. */
-.widget:not([data-icon-chart='indicator']):not([data-icon-chart='progress-bars']):not(
-    [data-icon-chart='pie']
-  ):not([data-icon-chart='map']):not([data-icon-chart='sankey']):not(
-    [data-icon-chart='sunburst']
-  ):not([data-icon-chart='cartesian']):not([data-icon-chart='radar'])
-  .widget-icon[data-icon='indicator'] {
-  display: flex;
-  visibility: hidden;
 }
 
 /* Body height is fixed by flex before any view renders, so switching a view

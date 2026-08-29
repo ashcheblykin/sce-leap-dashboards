@@ -124,6 +124,34 @@
     nonSaudi: eco - saudis,
     saudiShare: (saudis / eco) * 100,
 
+    /* --- Gender (WeDo's August 2026 upgrade kit) ---
+
+       The `gender` key is on the person grain — fact_compliance, one row per
+       in-scope person — so it decomposes head.eco (722,690) and NOT head.reg
+       (1,116,186), which counts memberships. That matters for `regShare`: the
+       denominator for "registered women" is the 395,614 people the register
+       covers, the figure the National Map already shows on its SCE-registered
+       mode, not the membership total. Dividing by head.reg would report 1.2%
+       where the truth is 24.7%. */
+    gender: {
+      male: L.gender.male,
+      female: L.gender.female,
+      femaleShare: (L.gender.female / eco) * 100,
+      femSaudi: L.gender.fem_saudi,
+      femNonSaudi: L.gender.fem_nonsaudi,
+      femSaudiShare: (L.gender.fem_saudi / L.gender.female) * 100,
+      femReg: L.gender.fem_reg,
+      maleSaudi: L.gender.male_saudi,
+      maleReg: L.gender.male_reg,
+      registered: L.gender.male_reg + L.gender.fem_reg,
+      /* Two different questions, and the kit only states the first: what
+         share of women are on the register (24.7%), versus what share of the
+         register is women (3.3%). Naming both stops the next reader from
+         reaching for whichever is to hand. */
+      femRegOfWomen: (L.gender.fem_reg / L.gender.female) * 100,
+      femShareOfRegistered: (L.gender.fem_reg / (L.gender.male_reg + L.gender.fem_reg)) * 100,
+    },
+
     classes: L.cls.map(function (r) {
       return [r[0], r[1]];
     }),
@@ -268,6 +296,15 @@
       // ten only, so the check that can actually hold is the subset one.
       ['regions actions < head.cases', regionActions < L.head.cases, true],
       ['months = 36 points', L.months.length, 36],
+      /* Gender is a partition of the workforce, of the Saudi count and of the
+         mapped register, so each of the three has to close exactly. */
+      ['gender total = head.eco', L.gender.male + L.gender.female, L.head.eco],
+      ['women saudi + non-saudi = women', L.gender.fem_saudi + L.gender.fem_nonsaudi, L.gender.female],
+      ['gender saudi split = head.saudis', L.gender.male_saudi + L.gender.fem_saudi, L.head.saudis],
+      ['gender registered = mapped registered', Data.gender.registered, cityRegistered],
+      ['female share = 7.4%', Math.round(Data.gender.femaleShare * 10) / 10, 7.4],
+      ['saudi women = 87.1% of women', Math.round(Data.gender.femSaudiShare * 10) / 10, 87.1],
+      ['registered women = 24.7% of women', Math.round(Data.gender.femRegOfWomen * 10) / 10, 24.7],
     ];
 
     var failed = results.filter(function (r) {

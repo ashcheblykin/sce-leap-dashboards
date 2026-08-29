@@ -2097,25 +2097,6 @@
     indicator: indicator,
   };
 
-  /* Chart kinds with a Figma title glyph (see WIDGET_ICONS in board.js) —
-     'map' is stamped by Kit.mapView, not through this DSL. */
-  var ICON_CHART_KINDS = {
-    indicator: true,
-    'progress-bars': true,
-    pie: true,
-    map: true,
-    /* Added with their glyphs (see WIDGET_ICONS in board.js): the Profession
-       board's panels are a sankey, a sunburst, a cartesian and a radar, and
-       they were the only cards on the wall whose titles started with a
-       reserved but empty icon slot. Only `table` is still un-iconized, so a
-       chip that swaps to it keeps the previous kind's icon rather than
-       blanking it — see the note below. */
-    sankey: true,
-    sunburst: true,
-    cartesian: true,
-    radar: true,
-  };
-
   /* Every number handed to a chart, in the order it was handed over. The
      deliverable's whole claim is that it displays the dataset and never invents
      a figure, and tools/audit-data.mjs makes that checkable: it walks every
@@ -2193,11 +2174,6 @@
     var widget = host.closest('.widget');
     if (widget) {
       widget.setAttribute('data-chart', spec.chart);
-      /* Only kinds with a Figma glyph (see WIDGET_ICONS in board.js) touch
-         data-icon-chart, so a chip that swaps to an un-iconized kind (e.g.
-         indicator -> cartesian) leaves the previous glyph in place instead
-         of the header icon vanishing. */
-      if (ICON_CHART_KINDS[spec.chart]) widget.setAttribute('data-icon-chart', spec.chart);
     }
     return render(host, spec);
   }

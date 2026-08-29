@@ -96,6 +96,11 @@
     'c.enforcement': ['Enforcement', 'الإنفاذ'],
     'c.classes': ['Classes', 'الفئات'],
     'c.nationalities': ['Nationalities', 'الجنسيات'],
+    /* Arabic is the kit's own "Gender distribution", not a literal "الجنس":
+       next to "الجنسيات" on the same chip row the short form differs by two
+       characters and is misread at wall distance. English keeps the short
+       label — there is nothing to confuse it with. */
+    'c.gender': ['Gender', 'التوزيع حسب الجنس'],
     'c.pipeline': ['Pipeline', 'المسار'],
     'c.bytrack': ['By track', 'حسب المسار'],
     'c.headline': ['Headline', 'الملخص'],
@@ -138,6 +143,17 @@
     'm.offices': ['Offices & firms network', 'شبكة المكاتب والمنشآت'],
     'm.saudis': ['Saudi engineering talent', 'الكفاءات الهندسية السعودية'],
     'm.nonsaudi': ['Global talent', 'الكفاءات العالمية'],
+    /* Gender labels are WeDo's own, from ADD_GENDER_KPIS_AR.md — the same
+       authority as the rest of the Arabic in this table (see i18n-source/). */
+    'm.men': ['Men', 'رجال'],
+    'm.women': ['Women', 'نساء'],
+    'c.gendersplit': ['Workforce', 'القوى العاملة'],
+    /* Composed from the kit's own two phrases rather than written here: the
+       Arabic in this table is SCE's and WeDo's, never ours (see README). */
+    'n.genderNote': [
+      'Female share of the workforce · {p}%',
+      'نسبة الإناث من القوى العاملة · {p}%',
+    ],
     'm.active': ['Active memberships', 'العضويات الفعالة'],
     'm.near': ['In the renewal window', 'ضمن نافذة التجديد'],
     'm.expired': ['Expired', 'منتهية'],

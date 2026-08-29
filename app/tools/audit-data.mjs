@@ -85,6 +85,14 @@ for (const part of String(LEAP.head.off_note).match(/[\d,]+/g) ?? []) {
 }
 for (const [key, value] of Object.entries(LEAP.tuv.head)) allow(value, `tuv.head.${key}`);
 
+/* Gender (WeDo's August 2026 kit). Every figure is stated outright, and the
+   three shares the boards draw are quotients of two stated figures — the same
+   standing as saudiShare or the city reach percentages below. */
+for (const [key, value] of Object.entries(LEAP.gender)) allow(value, `gender.${key}`);
+allow((LEAP.gender.female / LEAP.head.eco) * 100, 'gender female share %');
+allow((LEAP.gender.fem_saudi / LEAP.gender.female) * 100, 'gender saudi women %');
+allow((LEAP.gender.fem_reg / LEAP.gender.female) * 100, 'gender registered women %');
+
 for (const row of LEAP.cls) allow(row[1], `cls ${row[0]}`);
 for (const row of LEAP.register) allow(row[2], `register ${row[0]}/${row[1]}`);
 for (const row of LEAP.grades) allow(row[2], `grades ${row[0]}/${row[1]}`);

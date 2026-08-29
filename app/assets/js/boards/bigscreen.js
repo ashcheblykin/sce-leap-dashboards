@@ -111,7 +111,7 @@
       id: 'bs-struct',
       x: 0, y: 16 / 3, w: 6, h: 8 / 3, minW: 4, minH: 2,
       titleKey: 'w.struct',
-      chipKeys: ['c.grades', 'c.classes', 'c.nationalities'],
+      chipKeys: ['c.grades', 'c.classes', 'c.nationalities', 'c.gender'],
       views: [
         function (el) {
           Chart.mount(el, {
@@ -152,6 +152,32 @@
             chart: 'progress-bars',
             data: Kit.barData(Data.nat5, T.purple),
             note: t('n.natNote'),
+          });
+        },
+        /* Gender, added from WeDo's August 2026 kit. It sits on this panel
+           rather than in a panel of its own because the Big Screen's six
+           wing panels are inherited literally from the original deliverable
+           and all three scenes share them — an eighth panel would appear in
+           every scene. As a fourth tab it needs no layout at all, and
+           `cycleViews` brings it round on its own during the scene's dwell,
+           so the main screen shows it without giving up grades.
+
+           It decomposes head.eco, the same 722,690 the panel's own centre
+           reads, so the donut closes against a figure already on the wall. */
+        function (el) {
+          Chart.mount(el, {
+            chart: 'pie',
+            donut: true,
+            gap: 3,
+            cornerRadius: 3,
+            legendPosition: 'right',
+            data: [
+              { label: t('m.men'), value: Data.gender.male, color: T.cy },
+              { label: t('m.women'), value: Data.gender.female, color: T.purple },
+            ],
+            centerLabel: t('c.gendersplit'),
+            centerValue: Data.head.eco,
+            note: t('n.genderNote', { p: Fmt.one(Data.gender.femaleShare) }),
           });
         },
       ],
