@@ -901,10 +901,14 @@ html[data-clean] .hdr-meta {
   color: rgba(var(--cy-rgb), 0.3);
 }
 
+/* The credit reads in the ticker's own voice: same face, same size, same
+   0.04em tracking as every fact beside it (SCE review, 2026-08-29). It used
+   to be uppercase at 0.2em, which made the one non-numeric item on the strip
+   the most typographically distinct thing on it. Only the colour still sets
+   it apart — and that carries the Axion mark too, which takes its fill from
+   currentColor. */
 .ticker-item--credit {
   color: rgba(var(--cy-rgb), 0.4);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
 }
 
 @keyframes ticker-scroll {
@@ -929,4 +933,63 @@ html[data-clean] .hdr-meta {
 body.grid-dragging .ticker-track,
 .ticker.is-paused .ticker-track {
   animation-play-state: paused;
+}
+
+/* --- The cycle bar ---------------------------------------------------
+   Presentation mode hides the dock, and with it the only sign of how far
+   through the rotation the wall is. This is that sign and nothing else: no
+   titles, no labels, a hairline along the very bottom edge running from the
+   first screen of the cycle to the last, with a tick wherever the content
+   changes — the three Big Screen scenes and the three boards after them.
+
+   Height is the one measurement here that does NOT scale freely, and the
+   absolute px are deliberate. 6u is 7.8px at the default --u-scale of 1.3,
+   but `]` takes the scale to 2 and that would put the bar at 12px — a
+   component, not an edge. The clamp holds it inside the 4-8px it was asked
+   for at every scale the wall can be retuned to. */
+.cycle {
+  position: fixed;
+  z-index: 40;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: clamp(4px, calc(6 * var(--u)), 8px);
+  background: rgba(var(--cy-rgb), 0.1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-enter) var(--ease);
+}
+
+html[data-clean] .cycle {
+  opacity: 1;
+}
+
+/* Scaled, not sized: the same reason .nav-item-fill is a transform. This
+   element is written five times a second for as long as the wall is up, and
+   a width would be a layout and a repaint each time. */
+.cycle-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--cy);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+[dir='rtl'] .cycle-fill {
+  transform-origin: right center;
+}
+
+/* One tick per switch, placed by its own share of the cycle's running time,
+   so a 25s scene and a 45s board are marked where they actually fall rather
+   than at even intervals. Drawn over the fill, in the ground colour, so a
+   passed tick still reads as a notch in the bar. */
+.cycle-tick {
+  position: absolute;
+  top: 0;
+  width: calc(2 * var(--u));
+  height: 100%;
+  margin-inline-start: calc(-1 * var(--u));
+  background: var(--ink);
+  opacity: 0.9;
 }

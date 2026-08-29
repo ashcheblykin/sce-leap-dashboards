@@ -38,6 +38,13 @@
 
       <main class="stage" id="stage"></main>
 
+      <!-- Presentation mode's only chrome: where the cycle has got to, from
+           the first screen to the last. Built by shell.js, which knows the
+           dwell of every board and scene; hidden until data-clean. -->
+      <div class="cycle" id="cycle" aria-hidden="true">
+        <span class="cycle-fill"></span>
+      </div>
+
       <header class="hdr">
         <!-- Presentation mode (the "/" key). With the chrome hidden the wall
              still has to say whose board it is, so the header collapses to the

@@ -128,6 +128,8 @@
   var tickerEl = document.getElementById('ticker');
   var sceneHost = document.getElementById('scenes');
   var settingsBtn = document.getElementById('settingsBtn');
+  var cycleEl = document.getElementById('cycle');
+  var cycleFill = cycleEl && cycleEl.querySelector('.cycle-fill');
   var settingsPanel = document.getElementById('settingsPanel');
   var setTickerVisible = document.getElementById('setTickerVisible');
   var setTickerPaused = document.getElementById('setTickerPaused');
@@ -669,6 +671,51 @@
     el.style.transform = 'scaleX(' + ratio + ')';
   }
 
+  /* --- The cycle bar ---
+     One pass over BOARDS gives both the length of a full rotation and the
+     offset of every content switch inside it. A scene board spends its whole
+     slot on one panel set and steps its scenes inside it, so its scenes are
+     switches too and are marked at their own sceneMs, not at the board's. */
+  var cycleTotal = 0;
+  var cycleStarts = [];
+  var cycleMarks = [];
+
+  (function planCycle() {
+    for (var i = 0; i < BOARDS.length; i++) {
+      var slide = BOARDS[i].slideMs || SLIDE_MS;
+      cycleStarts.push(cycleTotal);
+      var scene = BOARDS[i].sceneMs;
+      if (scene && scene < slide) {
+        for (var at = scene; at < slide - 1; at += scene) {
+          cycleMarks.push(cycleTotal + at);
+        }
+      }
+      cycleTotal += slide;
+      if (i < BOARDS.length - 1) cycleMarks.push(cycleTotal);
+    }
+  })();
+
+  function buildCycleTicks() {
+    if (!cycleEl) return;
+    for (var i = 0; i < cycleMarks.length; i++) {
+      var tick = document.createElement('span');
+      tick.className = 'cycle-tick';
+      tick.style.insetInlineStart = (cycleMarks[i] / cycleTotal) * 100 + '%';
+      cycleEl.appendChild(tick);
+    }
+  }
+
+  /* Where the rotation stands, as one number for the whole loop: the boards
+     already finished plus how far into the current one we are. Clamped
+     because a held or paused board keeps its clock pinned at `now`. */
+  function setCycleFill(now) {
+    if (!cycleFill || current < 0) return;
+    var slide = BOARDS[current].slideMs || SLIDE_MS;
+    var into = Math.min(Math.max(0, now - slideStartedAt), slide);
+    var ratio = (cycleStarts[current] + into) / cycleTotal;
+    setNavFill(cycleFill, Math.min(1, Math.max(0, ratio)));
+  }
+
   function setPlaying(on) {
     playing = on;
     if (on) {
@@ -750,6 +797,12 @@
       // Whatever is on screen gets a full slot once the hold lifts.
       slideStartedAt = now;
       sceneStartedAt = now;
+      /* Not while switching. `current` is still the outgoing board until
+         reveal() runs, so painting here would rewind the bar to that board's
+         own start for the length of the transition and then jump forward two
+         steps at once. Held instead: the bar keeps its last value until the
+         incoming board owns the clock. */
+      if (!switching) setCycleFill(now);
       return;
     }
 
@@ -773,6 +826,7 @@
     if (current >= 0 && navFills[current]) {
       setNavFill(navFills[current], Math.min(1, elapsed / slideMs));
     }
+    setCycleFill(now);
     if (elapsed >= slideMs) advance(true);
   }
 
@@ -1042,6 +1096,7 @@
     localizeStatic();
     bindControls();
     bindSettings();
+    buildCycleTicks();
     setPlaying(settings.autoplay);
     setInterval(slideshowTick, 200);
   }
