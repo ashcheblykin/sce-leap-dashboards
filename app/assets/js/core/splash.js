@@ -42,6 +42,8 @@
      animations with a dead beat between them. */
   var LEAVE_MS = 620;
   var HANDOVER_MS = 180;
+  /* The cover's own fade in, from .splash's transition in css/splash.css. */
+  var ENTER_MS = 520;
 
   function hide() {
     if (el.hidden) return;
@@ -75,17 +77,31 @@
     if (!tablet.matches) attract = setTimeout(hide, ATTRACT_MS);
   }
 
-  function show() {
+  /* `onCovered` runs once the cover is opaque, for a caller that wants to
+     rearrange the boards behind it without the room seeing it happen. */
+  function show(onCovered) {
     arm();
-    if (!el.hidden) return;
+    if (!el.hidden) {
+      if (onCovered) onCovered();
+      return;
+    }
 
+    /* Unhide still wearing data-leaving — that state is opacity 0 — and take
+       it off only after a forced reflow, so .splash's 520ms transition has
+       two computed states to run between and the cover fades in rather than
+       appearing whole. Going straight from `hidden` to opacity 1, which is
+       what this did, gave no transition at all: display:none has no computed
+       opacity to leave from, and a rAF callback is not reliably a style
+       recalc boundary. */
+    el.setAttribute('data-leaving', '');
     el.hidden = false;
-    // Let `hidden` clear before the transition target is removed.
-    requestAnimationFrame(function () {
-      document.documentElement.removeAttribute('data-booting');
-      el.removeAttribute('data-leaving');
-      if (field) field.start();
-    });
+    void el.offsetWidth;
+
+    document.documentElement.removeAttribute('data-booting');
+    el.removeAttribute('data-leaving');
+    if (field) field.start();
+
+    if (onCovered) setTimeout(onCovered, ENTER_MS);
   }
 
   function init() {

@@ -642,13 +642,19 @@
   function advance(auto) {
     var next = current + 1;
     if (next >= BOARDS.length) {
-      if (auto && !clean && settings.splashEnabled) {
-        global.Splash.show();
-        /* Rewind behind the cover rather than after it lifts. start() runs
-           180ms into the 620ms recede, so a board change made there plays its
-           exit animation in front of the room and the outgoing board flashes
-           back for a beat before the first one arrives. */
-        show(0);
+      if (auto && settings.splashEnabled) {
+        /* Presentation mode gets the cover too. Suppressing it here confused
+           two different things: the idle attract screen, which the mode does
+           exist to prevent mid-talk, and the top of the loop, which is part
+           of the show. Only the idle path in slideshowTick checks `clean`.
+
+           The rewind waits for the cover to be opaque. Done immediately it
+           plays the outgoing board's exit animation through a cover that is
+           still fading in; done after the cover lifts it flashes the last
+           board back for a beat. Under it is the only place it is invisible. */
+        global.Splash.show(function () {
+          show(0);
+        });
         return;
       }
       next = 0;
