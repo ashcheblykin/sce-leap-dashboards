@@ -7,10 +7,13 @@
   'use strict';
 
   var MINUS = '\u2212';
-  /* Narrow no-break space in place of the comma: reads as a digit grouping
-     without implying a decimal (some locales use comma there), and it can't
-     become a line-break point the way a plain space could on a big tile. */
-  var GROUP_SEP = '\u202f';
+  /* Comma, at SCE's request (LEAP review, 2026-08-29). The earlier narrow
+     no-break space avoided implying a decimal in locales that use a comma
+     there, but the boards render Western digits in both languages and the
+     client reads the comma as the grouping mark. Like U+202F and unlike a
+     plain space, it is not a line-break opportunity, so a big tile still
+     cannot wrap mid-number. */
+  var GROUP_SEP = ',';
 
   function degroup(s) {
     return s.replace(/,/g, GROUP_SEP);
@@ -46,10 +49,13 @@
       var rounded = abs < 100 ? Math.round(n * 10) / 10 : Math.round(n);
       return withMinus(degroup(rounded.toLocaleString('en-US')));
     }
+    /* Uppercase, matching compactSplit below: these two used to disagree on
+       the k, and one board showed "597k" in a donut next to "265K" on a
+       tile. */
     var units = [
       [1e9, 'B'],
       [1e6, 'M'],
-      [1e3, 'k'],
+      [1e3, 'K'],
     ];
     for (var i = 0; i < units.length; i++) {
       if (abs >= units[i][0]) {

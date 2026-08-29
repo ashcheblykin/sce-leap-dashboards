@@ -34,7 +34,10 @@
      stored setting, so an unrecognised value in localStorage falls back rather
      than stamping a palette the stylesheet has never heard of. */
   var PALETTES = ['green', 'blue', 'purple'];
-  var PALETTE_DEFAULT = 'green';
+  /* Purple is the stand's ground (SCE review, 2026-08-29). index.html stamps
+     the same value on <html> so the splash never paints the default green for
+     a frame before this file runs at the foot of the body. */
+  var PALETTE_DEFAULT = 'purple';
 
   function loadFlag(key, fallback) {
     try {
@@ -626,8 +629,29 @@
     reveal();
   }
 
-  function advance() {
-    show((current + 1) % BOARDS.length);
+  /* `auto` marks the slideshow's own step, as opposed to ArrowRight.
+
+     The show is a loop whose top is the cover: once the last board has had
+     its slot the wall hands back to the splash and starts over from the
+     first board, rather than wrapping straight into it. A key press is
+     somebody driving the wall, so it still wraps — dropping a presenter onto
+     the attract screen is not what the arrow means — and presentation mode
+     never shows the cover at all. */
+  function advance(auto) {
+    var next = current + 1;
+    if (next >= BOARDS.length) {
+      if (auto && !clean && settings.splashEnabled) {
+        global.Splash.show();
+        /* Rewind behind the cover rather than after it lifts. start() runs
+           180ms into the 620ms recede, so a board change made there plays its
+           exit animation in front of the room and the outgoing board flashes
+           back for a beat before the first one arrives. */
+        show(0);
+        return;
+      }
+      next = 0;
+    }
+    show(next);
   }
 
   /* --- Slideshow --- */
@@ -749,7 +773,7 @@
     if (current >= 0 && navFills[current]) {
       setNavFill(navFills[current], Math.min(1, elapsed / slideMs));
     }
-    if (elapsed >= slideMs) advance();
+    if (elapsed >= slideMs) advance(true);
   }
 
   /* --- Ticker ---
@@ -987,16 +1011,25 @@
   }
 
   function start() {
-    if (current < 0) show(0);
+    /* The cover is the top of the loop, so leaving it always hands back to
+       the first board and to that board's first scene, however far the cycle
+       had got when the splash came up. */
+    if (current !== 0) show(0);
     else {
+      if (boards[0].sceneCount > 1) boards[0].setScene(0);
       measure();
-      Motion.enter(boards[current].surface);
+      Motion.enter(boards[0].surface);
     }
     // Leaving the splash is not board interaction: the first board runs its
     // normal slot rather than being held.
     lastInteraction = Date.now();
     holdUntil = 0;
+    /* Both clocks, not just the slide one. The scene clock used to survive
+       the cover, so a board coming back from it had already spent the
+       cover's dwell and stepped its scene the moment it appeared — the
+       splash's seconds were being charged to the board behind it. */
     slideStartedAt = lastInteraction;
+    sceneStartedAt = lastInteraction;
     setPlaying(settings.autoplay);
   }
 

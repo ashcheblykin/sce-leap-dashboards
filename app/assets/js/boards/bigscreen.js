@@ -266,9 +266,9 @@
             chart: 'indicator',
             cols: 3,
             items: [
-              { value: Data.head.proact, format: 'grouped', label: t('m.proact'), labelFirst: true },
-              { value: Data.head.renewengage, format: 'compact', label: t('m.engage'), labelFirst: true },
-              { value: Data.register.near, format: 'compact', label: t('m.near'), labelFirst: true },
+              { value: Data.head.proact, format: 'grouped', label: t('m.proact') },
+              { value: Data.head.renewengage, format: 'compact', label: t('m.engage') },
+              { value: Data.register.near, format: 'compact', label: t('m.near') },
             ],
           });
         },
