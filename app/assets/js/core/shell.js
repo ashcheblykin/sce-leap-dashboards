@@ -848,7 +848,10 @@
       ['g', Fmt.pct(Data.tuv.scecov), I18N.t('t.scecov')],
       ['b', Fmt.grouped(Data.head.proact), I18N.t('t.proact')],
       ['g', Fmt.grouped(Data.head.renewengage), I18N.t('t.engage')],
-      ['y', Fmt.sar(Data.head.enforced), I18N.t('t.money', { n: Fmt.sar(Data.head.collected) })],
+      /* The enforced/collected SAR line was dropped from the strip at SCE's
+         request (client review, 2026-08-30). The figures themselves stay on
+         Enforcement delivery and in the KPI Library; only the marquee loses
+         them. `t.money` is kept in the message table for those. */
       ['b', Fmt.grouped(Data.tuv.surveyed), I18N.t('t.surveyed', { n: Data.tuv.regions })],
       ['g', Fmt.grouped(Data.register.active), I18N.t('t.active')],
       ['b', Fmt.grouped(Data.tuv.workers), I18N.t('t.workers')],
