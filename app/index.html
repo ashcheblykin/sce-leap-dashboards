@@ -165,15 +165,21 @@
         <div class="cover__fade" aria-hidden="true"></div>
 
         <div class="cover__frame">
-          <!-- EN block — Figma 38:449 «Group 3» -->
-          <h1 class="en-title" data-trim data-node="38:455">
+          <!-- EN block — Figma 38:449 «Group 3». dir="ltr" is explicit for
+               the same reason the AR block below declares dir="rtl": the cover
+               shows both languages at once whatever the app's locale is, so
+               neither block may take its direction from <html>. Without it the
+               Arabic locale right-aligned this English text inside its own
+               fixed-width box — the box stays put (every coordinate here is a
+               physical `left`), only the lines slid across it. -->
+          <h1 class="en-title" dir="ltr" lang="en" data-trim data-node="38:455">
             <span class="en-title__gold"><i class="fill">Engineering</i></span>
             <span class="en-title__white">the Future</span>
           </h1>
 
-          <p class="en-sub" data-trim data-node="38:456">Mapped Across the Kingdom</p>
+          <p class="en-sub" dir="ltr" lang="en" data-trim data-node="38:456">Mapped Across the Kingdom</p>
 
-          <div class="powered" data-node="38:450">
+          <div class="powered" dir="ltr" lang="en" data-node="38:450">
             <p class="powered__label" data-trim data-node="38:451">powered by</p>
             <img class="powered__logo" data-node="38:452" src="assets/img/cover/axion.svg" alt="Axion" width="186" height="32" />
           </div>
@@ -203,7 +209,7 @@
            invisible full-surface button and the 10s auto-advance. Shown by
            core/splash.js, which stamps data-cta on the section. -->
       <button class="splash-cta" id="splashEnter" type="button">
-        <span class="splash-cta__en">Enter the dashboards</span>
+        <span class="splash-cta__en" dir="ltr" lang="en">Enter the dashboards</span>
         <span class="splash-cta__ar" dir="rtl" lang="ar">الدخول إلى اللوحات</span>
       </button>
     </section>
