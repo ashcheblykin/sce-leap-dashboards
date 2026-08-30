@@ -332,10 +332,16 @@
           Chart.mount(el, {
             chart: 'indicator',
             cols: 2,
+            /* SAR enforced and SAR collected are gone: SCE told us they are
+               not permitted to show collections or amounts (client review,
+               2026-08-30). What is left is a count of cases, which is not an
+               amount, and the membership total. The trend view below stays —
+               it is plotted unitless, so it carries no money either. The same
+               two figures still appear on the Ecosystem board and in the KPI
+               Library; SCE named only the Overview page and the ticker, and
+               those two are pending their answer. */
             items: [
               { value: Data.head.cases, format: 'grouped', label: t('m.cases') },
-              { value: Data.head.enforced, format: 'sar', label: t('m.enforced') },
-              { value: Data.head.collected, format: 'sar', label: t('m.collected') },
               { value: Data.register.active, format: 'compact', label: t('m.active') },
             ],
           });
