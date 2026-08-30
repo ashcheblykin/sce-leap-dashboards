@@ -121,6 +121,15 @@
       }),
 
     /* --- Ecosystem --- */
+    /* Stated by SCE, not derived. Every other figure in this file comes out
+       of leap_data.js and reconciles against it; this one was handed to us
+       directly (client review, 2026-08-30) to replace the 21,405 offices-and-
+       firms network on the ecosystem panel, and the dataset cannot account
+       for it. It is named here rather than written into a board so that the
+       one number on the wall the data does not back is impossible to miss,
+       and so audit-data.mjs has a single place to whitelist. */
+    activeOffices: 4220,
+
     nonSaudi: eco - saudis,
     saudiShare: (saudis / eco) * 100,
 

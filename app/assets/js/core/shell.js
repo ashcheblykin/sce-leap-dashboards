@@ -844,7 +844,7 @@
     var facts = [
       ['b', Fmt.grouped(Data.head.eco), I18N.t('t.eco')],
       ['g', Fmt.grouped(Data.head.reg), I18N.t('t.reg')],
-      ['b', Data.head.offices, I18N.t('t.offices')],
+      ['b', Fmt.grouped(Data.activeOffices), I18N.t('t.activeoffices')],
       ['g', Fmt.pct(Data.tuv.scecov), I18N.t('t.scecov')],
       ['b', Fmt.grouped(Data.head.proact), I18N.t('t.proact')],
       ['g', Fmt.grouped(Data.head.renewengage), I18N.t('t.engage')],

@@ -62,18 +62,23 @@
             cols: 2,
             items: [
               { value: Data.head.eco, format: 'compact', label: t('m.eco') },
-              { value: Data.head.reg, format: 'compact', label: t('m.reg') },
-              { value: Data.offices, format: 'compact', label: t('m.offices') },
+              /* Active memberships, not the 1.12M ever registered, and the
+                 4,220 active licensed offices rather than the 21,405-strong
+                 network (client review, 2026-08-30). */
+              { value: Data.register.active, format: 'compact', label: t('m.active') },
+              { value: Data.activeOffices, format: 'compact', label: t('m.activeoffices') },
               { value: Data.head.saudis, format: 'compact', label: t('m.saudis') },
             ],
           });
         },
+        /* Three now that active memberships lead the Totals tab, so cols
+           follows: a fourth cell left empty is the one thing this wall does
+           not do. Same shape as bs-mon. */
         function (el) {
           Chart.mount(el, {
             chart: 'indicator',
-            cols: 2,
+            cols: 3,
             items: [
-              { value: Data.register.active, format: 'compact', label: t('m.active') },
               { value: Data.register.near, format: 'compact', label: t('m.near') },
               { value: Data.register.expired, format: 'compact', label: t('m.expired') },
               { value: Data.register.frozen, format: 'compact', label: t('m.frozen') },

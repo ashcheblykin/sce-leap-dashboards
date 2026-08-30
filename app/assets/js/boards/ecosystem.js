@@ -30,16 +30,13 @@
               cols: 2,
               items: [
                 { value: Data.head.eco, format: 'grouped', label: t('m.eco') },
-                { value: Data.head.reg, format: 'grouped', label: t('m.reg') },
-                {
-                  value: Data.offices,
-                  format: 'grouped',
-                  label: t('m.offices'),
-                  note: t('n.offnote', {
-                    a: Fmt.grouped(Data.officesParts[0]),
-                    b: Fmt.grouped(Data.officesParts[1]),
-                  }),
-                },
+                /* See bs-eco: active memberships lead, and the offices tile
+                   is the 4,220 SCE states rather than the 21,405 network.
+                   n.offnote went with it — "9,103 licensed + 12,302
+                   structured feed" adds up to the number that is no longer
+                   on the tile. */
+                { value: Data.register.active, format: 'grouped', label: t('m.active') },
+                { value: Data.activeOffices, format: 'grouped', label: t('m.activeoffices') },
                 { value: Data.head.saudis, format: 'grouped', label: t('m.saudis') },
               ],
             });
@@ -47,9 +44,8 @@
           function (el) {
             Chart.mount(el, {
               chart: 'indicator',
-              cols: 2,
+              cols: 3,
               items: [
-                { value: Data.register.active, format: 'grouped', label: t('m.active') },
                 { value: Data.register.near, format: 'grouped', label: t('m.near') },
                 { value: Data.register.expired, format: 'grouped', label: t('m.expired') },
                 { value: Data.register.frozen, format: 'grouped', label: t('m.frozen') },

@@ -220,7 +220,10 @@
         ],
       },
       {
-        id: 'k-offices', cat: 'eco', titleKey: 'k.offices',
+        /* The 4,220 SCE stated in the 2026-08-30 review, not the 21,405
+           network the pack ships. n.offnote went with it: its two components
+           add up to the number that is no longer here. */
+        id: 'k-offices', cat: 'eco', titleKey: 'k.activeoffices',
         chipKeys: ['c.number'],
         views: [
           function (el) {
@@ -229,13 +232,9 @@
               cols: 1,
               items: [
                 {
-                  value: Data.offices,
+                  value: Data.activeOffices,
                   format: 'grouped',
-                  label: t('m.offices'),
-                  note: t('n.offnote', {
-                    a: Fmt.grouped(Data.officesParts[0]),
-                    b: Fmt.grouped(Data.officesParts[1]),
-                  }),
+                  label: t('m.activeoffices'),
                 },
               ],
             });

@@ -191,6 +191,13 @@ for (const status of ['active', 'near_expiry', 'expired', 'frozen']) {
   for (const v of values) allow(max ? (v / max) * 100 : 0, `radar ${status} normalised`);
 }
 
+/* The one figure on the wall the dataset does not back. SCE stated it
+   directly in the 2026-08-30 review, to replace the 21,405 offices-and-firms
+   network on the ecosystem panel; leap_data.js knows nothing about it. It is
+   whitelisted by hand, with its provenance, rather than being quietly
+   derivable — see Data.activeOffices in data/derive.js. */
+allow(4220, 'SCE-stated: active licensed offices (not in leap_data.js)');
+
 /* Structural constants a spec carries that are not data: a progress-bar's
    axis maximum when it is the surveyed total, and 0/100 endpoints. */
 allow(0, 'zero');

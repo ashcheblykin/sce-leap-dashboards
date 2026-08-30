@@ -141,6 +141,10 @@
     'm.eco': ['Professionals in regulated roles', 'المهنيون في الأدوار المنظمة'],
     'm.reg': ['Registered with SCE', 'المسجلون لدى الهيئة'],
     'm.offices': ['Offices & firms network', 'شبكة المكاتب والمنشآت'],
+    /* Arabic is SCE's own, not ours: "المكاتب النشطة المرخصة" is how their
+       translators render "active offices ... licensed" in i18n-source (see
+       GLOSSARY.md, the city-coverage legend). */
+    'm.activeoffices': ['Active licensed offices', 'المكاتب النشطة المرخصة'],
     'm.saudis': ['Saudi engineering talent', 'الكفاءات الهندسية السعودية'],
     'm.nonsaudi': ['Global talent', 'الكفاءات العالمية'],
     /* Gender labels are WeDo's own, from ADD_GENDER_KPIS_AR.md — the same
@@ -314,6 +318,7 @@
     'k.ecosize': ['Engineering ecosystem size', 'حجم منظومة المهن الهندسية'],
     'k.registered': ['Registered with SCE', 'المسجلون لدى الهيئة'],
     'k.offices': ['Offices & firms network', 'شبكة المكاتب والمنشآت'],
+    'k.activeoffices': ['Active licensed offices', 'المكاتب النشطة المرخصة'],
     'k.saudis': ['Saudi engineering talent', 'الكفاءات الهندسية السعودية'],
     'k.activemem': ['Active memberships', 'العضويات الفعالة'],
     'k.engspec': ['Top engineering specialties', 'أبرز التخصصات الهندسية'],
@@ -382,6 +387,7 @@
     't.eco': ['professionals in the national engineering ecosystem', 'مهني في المنظومة الهندسية الوطنية'],
     't.reg': ['professionals registered with SCE', 'مهني مسجل لدى الهيئة'],
     't.offices': ['engineering offices and firms in the network', 'مكتب وشركة هندسية في الشبكة'],
+    't.activeoffices': ['active licensed offices', 'المكاتب النشطة المرخصة'],
     't.scecov': ['of field-verified active offices hold an SCE licence', 'من المكاتب النشطة المتحقق منها ميدانياً تحمل ترخيص الهيئة'],
     't.proact': ['licences tracked proactively by digital monitoring', 'ترخيص قيد المتابعة الاستباقية عبر الرصد الرقمي'],
     't.engage': ['professionals engaged each renewal cycle', 'مهني متفاعل في كل دورة تجديد'],
