@@ -265,6 +265,32 @@
           },
         ],
       },
+      /* Twentieth card, and the one that keeps the grid exactly full: the
+         library lost k-money when SCE barred amounts, and nineteen against a
+         five-column grid leaves the last row one short. The figures are
+         WeDo's August 2026 gender kit, already on the Big Screen and already
+         reconciled — nothing new had to be approved to fill the hole. */
+      {
+        id: 'k-women', cat: 'eco', titleKey: 'k.women',
+        chipKeys: ['c.number', 'c.split'],
+        views: [
+          vNum(Data.gender.female, 'grouped', 'n.genderNote', {
+            p: Fmt.one(Data.gender.femaleShare),
+          }),
+          vDonut(
+            function () {
+              return [
+                { label: t('m.men'), value: Data.gender.male, color: T.cy },
+                { label: t('m.women'), value: Data.gender.female, color: T.purple },
+              ];
+            },
+            'c.gendersplit',
+            function () {
+              return Data.head.eco;
+            }
+          ),
+        ],
+      },
       {
         id: 'k-activemem', cat: 'eco', titleKey: 'k.activemem',
         chipKeys: ['c.number', 'c.registermix'],
@@ -384,25 +410,12 @@
         chipKeys: ['c.number', 'c.trendshort'],
         views: [vNum(Data.head.cases, 'grouped', 'kn.cases'), vTrend()],
       },
-      {
-        id: 'k-money', cat: 'enf', titleKey: 'k.money',
-        chipKeys: ['c.number', 'c.split'],
-        views: [
-          vNum(Data.head.enforced, 'sar', 'kn.money', { n: Fmt.sar(Data.head.collected) }),
-          vDonut(
-            function () {
-              return Data.enforcedSplit.map(function (r, i) {
-                return { label: t(r[0]), value: r[1], color: [T.green, T.gold, T.blue][i] };
-              });
-            },
-            'm.enforced',
-            function () {
-              return Data.head.enforced;
-            },
-            'sar'
-          ),
-        ],
-      },
+      /* `k-money` — "Value enforced & collected" — was removed here: SCE may
+         not display collections or amounts (client review, 2026-08-30). Unlike
+         the enforcement panels on the boards, nothing was left to keep — both
+         of its views were sums, the headline figure and the donut splitting
+         it. That leaves the library at nineteen cards against a five-column
+         grid, so the last row runs one short; see the note on columnsFor. */
       {
         id: 'k-regions', cat: 'enf', titleKey: 'k.regions',
         chipKeys: ['c.bars', 'c.table'],

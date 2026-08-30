@@ -321,6 +321,8 @@
     'k.activeoffices': ['Active licensed offices', 'المكاتب النشطة المرخصة'],
     'k.saudis': ['Saudi engineering talent', 'الكفاءات الهندسية السعودية'],
     'k.activemem': ['Active memberships', 'العضويات الفعالة'],
+    /* Both halves are WeDo's own wording, from ADD_GENDER_KPIS_AR.md. */
+    'k.women': ['Women in the engineering workforce', 'النساء في القوى العاملة الهندسية'],
     'k.engspec': ['Top engineering specialties', 'أبرز التخصصات الهندسية'],
     'k.techspec': ['Top technician specialties', 'أبرز تخصصات التقنيين'],
     'k.specfields': ['Top specialist fields', 'أبرز مجالات الأخصائيين'],

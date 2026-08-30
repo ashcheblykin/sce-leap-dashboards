@@ -321,10 +321,12 @@
             Chart.mount(el, {
               chart: 'indicator',
               cols: 2,
+              /* No amounts, as on bs-enf: SCE may not display collections or
+                 sums (client review, 2026-08-30, confirmed for this board and
+                 the KPI Library). A case count is not an amount, and the
+                 trend view beside it is plotted unitless. */
               items: [
                 { value: Data.head.cases, format: 'grouped', label: t('m.cases') },
-                { value: Data.head.enforced, format: 'sar', label: t('m.enforced') },
-                { value: Data.head.collected, format: 'sar', label: t('m.collected') },
                 { value: Data.register.active, format: 'compact', label: t('m.active') },
               ],
             });
